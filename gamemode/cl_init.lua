@@ -289,22 +289,22 @@ function RestartMap( len )
 end
 net.Receive( "RestartMap", RestartMap )
 
-function GetEXMode()
-	if gamemode.Call("EXMode") then
-		return "Enabled"
-	else
-		return "Disabled" end
-end
+
 -- Called by show help
 function ShowHelp( len )
 
-	local helpText = "-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nEX Mode is "..GetEXMode().."!"
+	local helpText = "-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nEX Mode is disabled!"
+	local helpText2 = "-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nEX Mode is enabled!"
 
 	local helpMenu = vgui.Create( "DFrame" )
 	local helpPanel = vgui.Create( "DPanel", helpMenu )
 	local helpLabel = vgui.Create( "DLabel", helpPanel )
 
-	helpLabel:SetText( helpText )
+	if !GAMEMODE.EXMode then
+		helpLabel:SetText( helpText )
+	else
+		helpLabel:SetText( helpText2 )
+	end
 	helpLabel:SetTextColor( color_black )
 	helpLabel:SizeToContents()
 	helpLabel:SetPos( 5, 5 )

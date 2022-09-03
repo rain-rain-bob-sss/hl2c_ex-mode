@@ -18,7 +18,7 @@ local hl2cex_server_ex_mode_enabled = CreateConVar( "hl2cex_server_ex_mode_enabl
 GM.Name = "Half-Life 2 Campaign: EX Mode"
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.6.0b"
+GM.Version = "0.6.1 (EARLY ACCESS)"
 
 
 -- Constants
@@ -154,10 +154,10 @@ function GM:IsSpecialPerson(ply, image)
 	elseif ply:IsBot() then
 		img = "icon16/plugin.png"
 		tooltip = "BOT"
-	elseif SuperAdminCheck(ply) then
+	elseif ply:IsSuperAdmin() then
 		img = "icon16/shield_add.png"
 		tooltip = "Super Admin"
-	elseif AdminCheck(ply) then
+	elseif ply:IsAdmin() then
 		img = "icon16/shield.png"
 		tooltip = "Admin"
 	end

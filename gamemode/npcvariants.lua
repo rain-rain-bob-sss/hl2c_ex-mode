@@ -1,3 +1,35 @@
+function AntlionGuardAURA()
+	for k,ent in pairs(ents.FindByClass("npc_antlionguard")) do
+	if !ent:IsValid() or ent.VariantType != 5 or ent:Health() < 0 then continue end 
+	local effectdata = EffectData()
+	ent:SetHealth(math.Clamp(ent:Health() + 3, 0, ent:GetMaxHealth()))
+	if !timer.Exists("NPC_ANTLIONGUARD_AURA_FX") then
+		timer.Create("NPC_ANTLIONGUARD_AURA_FX", 2, 1, function()
+			if !ent:IsValid() then return end
+			ent:EmitSound("ambient/machines/thumper_hit.wav", 120, 70)
+			effectdata:SetOrigin(ent:GetPos() + Vector(0, 0, 60))
+			util.Effect("zw_master_strike", effectdata)
+		end)
+	end
+
+	for k,v in pairs(ents.FindInSphere(ent:GetPos(), 200)) do
+		if (v:GetClass() == "npc_antlion" or v:GetClass() == "npc_antlion_worker") and v:IsNPC() then 
+			v:SetHealth(math.Clamp(v:Health() + 10, 0, v:GetMaxHealth()))
+			effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
+			util.Effect("zw_master_strike", effectdata)
+		elseif (v:IsNPC() or v:IsPlayer()) && v:GetClass() != "npc_antlionguard" then
+			if v:Health() < 0 then return end
+			v:TakeDamage(1, ent)
+			if v:IsPlayer() and v:Alive() then
+			v:PrintMessage(4, "YOU ARE BEING DAMAGED BY ANTLION GUARD VARIANT,\nGET AWAY FROM IT!!")
+			end
+			effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
+			util.Effect("zw_master_strike", effectdata)
+		end 
+	end 
+end
+end
+
 function HL2cEX_NPCVariantSpawn(ent)
 	if !GAMEMODE.EXMode or !ent:IsNPC() then return end
 	ent.VariantType = math.random(1,2)
@@ -167,33 +199,4 @@ function HL2cEX_NPCVariantTakeDamage(target, dmginfo)
 end
 hook.Add("EntityTakeDamage", "damagemodshook", HL2cEX_NPCVariantTakeDamage)
 
-timer.Create("NPC_ANTLIONGUARD_AURA", 1, 0, function() 
-	for k,ent in pairs(ents.FindByClass("npc_antlionguard")) do
-		if !ent:IsValid() or ent.VariantType != 5 or ent:Health() < 0 then continue end 
-		local effectdata = EffectData()
-		ent:SetHealth(math.Clamp(ent:Health() + 3, 0, ent:GetMaxHealth()))
-		if !timer.Exists("NPC_ANTLIONGUARD_AURA_FX") then
-			timer.Create("NPC_ANTLIONGUARD_AURA_FX", 2, 1, function()
-				ent:EmitSound("ambient/machines/thumper_hit.wav", 120, 70)
-				effectdata:SetOrigin(ent:GetPos() + Vector(0, 0, 60))
-				util.Effect("zw_master_strike", effectdata)
-			end)
-		end
-
-		for k,v in pairs(ents.FindInSphere(ent:GetPos(), 200)) do
-			if (v:GetClass() == "npc_antlion" or v:GetClass() == "npc_antlion_worker") and v:IsNPC() then 
-				v:SetHealth(math.Clamp(v:Health() + 10, 0, v:GetMaxHealth()))
-				effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
-				util.Effect("zw_master_strike", effectdata)
-			elseif (v:IsNPC() or v:IsPlayer()) && v:GetClass() != "npc_antlionguard" then
-				if v:Health() < 0 then return end
-				v:TakeDamage(1, ent)
-				if v:IsPlayer() and v:Alive() then
-				v:PrintMessage(4, "YOU ARE BEING DAMAGED BY ANTLION GUARD VARIANT,\nGET AWAY FROM IT!!")
-				end
-				effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
-				util.Effect("zw_master_strike", effectdata)
-			end 
-		end 
-	end
-end)
+timer.Create("NPC_ANTLIONGUARD_AURA", 1, 0, AntlionGuardAURA)

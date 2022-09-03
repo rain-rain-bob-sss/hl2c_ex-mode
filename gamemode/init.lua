@@ -325,7 +325,7 @@ function GM:Initialize()
 	startingWeapons = {}
 	GAMEMODE.EXMode = GetConVar("hl2cex_server_ex_mode_enabled"):GetBool()
 
-	--set tweak if ex mode is enabled
+	--set more damage if ex mode is enabled
 	if GAMEMODE.EXMode then
 		timer.Simple(1, function() RunConsoleCommand("sk_npc_dmg_stunstick", "100") end)
 	end
