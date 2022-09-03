@@ -18,7 +18,7 @@ local hl2cex_server_ex_mode_enabled = CreateConVar( "hl2cex_server_ex_mode_enabl
 GM.Name = "Half-Life 2 Campaign: EX Mode"
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.6.0a"
+GM.Version = "0.6.0b"
 
 
 -- Constants
