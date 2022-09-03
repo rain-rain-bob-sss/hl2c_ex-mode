@@ -5,7 +5,7 @@ include( "cl_playermodels.lua" )
 include( "cl_scoreboard.lua" )
 include( "cl_viewmodel.lua" )
 
-
+local timeleft = 0
 -- Create data folders
 if ( !file.IsDir( "half-life_2_campaign_ex", "DATA" ) ) then
 
@@ -39,6 +39,12 @@ end
 function GM:HUDDrawScoreBoard()
 end
 
+net.Receive("ObjectiveTimer", function(length)
+local net1 = net.ReadFloat()
+
+timeleft = net1
+end)
+
 
 -- Called every frame to draw the hud
 function GM:HUDPaint()
@@ -46,8 +52,17 @@ function GM:HUDPaint()
 	if ( ( !GetConVar( "cl_drawhud" ):GetBool() ) || ( self.ShowScoreboard && IsValid( LocalPlayer() ) && ( LocalPlayer():Team() != TEAM_DEAD ) ) ) then
 		return
 	end
+	local timeleftmin = math.floor(timeleft / 60)
+	local timeleftsec = timeleft - (timeleftmin * 60)
 
 	draw.SimpleText("Half-Life 2 Campaign: EX Mode "..GAMEMODE.Version, "TargetIDSmall", 5, 5, Color(255,255,192,255))
+	if timeleft != nil and timeleft > 0 then
+		if timeleftsec <= 0 then
+			draw.SimpleText("Objective: Complete the map within "..timeleftmin.." minutes! (Time left: "..math.floor(timeleft - CurTime()).."s)", "TargetIDSmall", 5, 22, Color(255,255,192,255))
+		else
+			draw.SimpleText("Objective: Complete the map within "..timeleftmin.." minutes and "..timeleftsec.." seconds! (Time left: "..math.floor(timeleft - CurTime()).."s)", "TargetIDSmall", 5, 22, Color(255,255,192,255))
+		end
+	end
 
 	if ( !showNav ) then hook.Run( "HUDDrawTargetID" ) end
 	hook.Run( "HUDDrawPickupHistory" )
@@ -293,17 +308,19 @@ net.Receive( "RestartMap", RestartMap )
 -- Called by show help
 function ShowHelp( len )
 
-	local helpText = "-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nEX Mode is disabled!"
-	local helpText2 = "-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nEX Mode is enabled!"
+	local helpText = "-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map."
+	
+	local helpEXModeOn = "EX Mode is enabled! Expect Map objectives, NPC variants and chaos here!"
+	local helpEXModeOff = "EX Mode is disabled!"
 
 	local helpMenu = vgui.Create( "DFrame" )
 	local helpPanel = vgui.Create( "DPanel", helpMenu )
 	local helpLabel = vgui.Create( "DLabel", helpPanel )
 
 	if !GAMEMODE.EXMode then
-		helpLabel:SetText( helpText )
+		helpLabel:SetText(helpText.."\n"..helpEXModeOff)
 	else
-		helpLabel:SetText( helpText2 )
+		helpLabel:SetText(helpText.."\n"..helpEXModeOn)
 	end
 	helpLabel:SetTextColor( color_black )
 	helpLabel:SizeToContents()

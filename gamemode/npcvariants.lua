@@ -80,7 +80,7 @@ function HL2cEX_NPCVariantSpawn(ent)
 			end)
 		end
 	elseif ent:GetClass() == "npc_antlionguard" then
-		ent.VariantType = math.random(1,5)
+		ent.VariantType = math.random(1,5) --make medical antlion guard variant less common
 		if ent.VariantType == 5 then
 			ent:SetColor(Color(0,255,0,255))
 			timer.Simple(0.05, function()

@@ -17,8 +17,11 @@ hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 function hl2cAcceptInput( ent, input )
 
 	if GAMEMODE.EXMode then
-		timer.Create("ActivateAntlionSpawningGlobal", 0.325, 0, function()
+		timer.Create("Hl2c_EX_input1", 0.325, 0, function()
 			if (IsValid(ents.FindByName("grigori_pyre_script_door_1")[1])) then ents.FindByName("grigori_pyre_script_door_1")[1]:Fire("Toggle") end
+		end)
+		timer.Create("Hl2c_EX_input2", 5, 0, function()
+			if (IsValid(ents.FindByName("crushtrap_02_switch_01")[1])) then ents.FindByName("crushtrap_02_switch_01")[1]:Use(game.GetWorld()) end
 		end)
 	end
 	

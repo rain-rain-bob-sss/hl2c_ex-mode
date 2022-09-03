@@ -331,13 +331,14 @@ function GM:Initialize()
 	end
 
 	-- Network strings
-	util.AddNetworkString( "SetCheckpointPosition" )
-	util.AddNetworkString( "NextMap" )
-	util.AddNetworkString( "PlayerInitialSpawn" )
-	util.AddNetworkString( "RestartMap" )
-	util.AddNetworkString( "ShowHelp" )
-	util.AddNetworkString( "ShowTeam" )
-	util.AddNetworkString( "UpdatePlayerModel" )
+	util.AddNetworkString("SetCheckpointPosition")
+	util.AddNetworkString("NextMap")
+	util.AddNetworkString("PlayerInitialSpawn")
+	util.AddNetworkString("RestartMap")
+	util.AddNetworkString("ShowHelp")
+	util.AddNetworkString("ShowTeam")
+	util.AddNetworkString("UpdatePlayerModel")
+	util.AddNetworkString("ObjectiveTimer")
 
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand( "ai_disabled 0\n" )
@@ -1042,28 +1043,26 @@ end
 -- Called automatically and by the console command
 function GM:RestartMap()
 
-	if ( changingLevel ) then
-	
+	if (changingLevel) then
 		return
-	
 	end
 
 	changingLevel = true
 
 	net.Start( "RestartMap" )
-		net.WriteFloat( CurTime() )
+	net.WriteFloat( CurTime() )
 	net.Broadcast()
 
-	for _, ply in pairs( player.GetAll() ) do
+--	for _, ply in pairs( player.GetAll() ) do
 	
-		ply:SendLua( "GAMEMODE.ShowScoreboard = true" )
+--		ply:SendLua( "GAMEMODE.ShowScoreboard = true" )
 	
-	end
+--	end
 
-	timer.Simple( RESTART_MAP_TIME, function() game.ConsoleCommand( "changelevel "..game.GetMap().."\n" ) end )
+	timer.Simple(RESTART_MAP_TIME + 0.5, function() game.ConsoleCommand( "changelevel "..game.GetMap().."\n" ) end )
 
 end
-concommand.Add( "hl2cex_restart_map", function( ply ) if ( IsValid( ply ) && ply:IsAdmin() ) then RESTART_MAP_TIME = 0; hook.Call( "RestartMap", GAMEMODE ); end end )
+concommand.Add("hl2cex_restart_map", function( ply ) if ( IsValid( ply ) && ply:IsAdmin() ) then RESTART_MAP_TIME = 0; hook.Call( "RestartMap", GAMEMODE ); end end )
 
 
 -- Called every time a player does damage to an npc
