@@ -327,9 +327,7 @@ function GM:Initialize()
 
 	--set tweak if ex mode is enabled
 	if GAMEMODE.EXMode then
-		timer.Simple(1, function()
-			game.ConsoleCommand("sk_npc_dmg_stunstick 100")
-		end)
+		timer.Simple(1, function() RunConsoleCommand("sk_npc_dmg_stunstick", "100") end)
 	end
 
 	-- Network strings

@@ -2,6 +2,17 @@
 include( "sh_config.lua" )
 include( "sh_player.lua" )
 
+-- Create console variables to make these config vars easier to access
+local hl2cex_admin_physgun = CreateConVar( "hl2cex_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY )
+local hl2cex_admin_noclip = CreateConVar( "hl2cex_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY )
+local hl2cex_server_force_gamerules = CreateConVar( "hl2cex_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2cex_server_custom_playermodels = CreateConVar( "hl2cex_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2cex_server_checkpoint_respawn = CreateConVar( "hl2cex_server_checkpoint_respawn", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2cex_server_dynamic_skill_level = CreateConVar( "hl2cex_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2cex_server_lag_compensation = CreateConVar( "hl2cex_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2cex_server_player_respawning = CreateConVar( "hl2cex_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2cex_server_jeep_passenger_seat = CreateConVar( "hl2cex_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2cex_server_ex_mode_enabled = CreateConVar( "hl2cex_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
 
 -- General gamemode information
 GM.Name = "Half-Life 2 Campaign: EX Mode"
@@ -30,7 +41,9 @@ GODLIKE_NPCS = {
 	"npc_vortigaunt"
 }
 
-
+hook.Add("Initialize", "ClientsideHookHL2c_EX", function()
+GAMEMODE.EXMode = GetConVar("hl2cex_server_ex_mode_enabled"):GetBool()
+end)
 -- Create the teams that we are going to use throughout the game
 function GM:CreateTeams()
 
@@ -135,7 +148,7 @@ function GM:IsSpecialPerson(ply, image)
 	if ply:SteamID64() == "76561198274314803" then
 		img = "icon16/award_star_gold_3.png"
 		tooltip = "HL2c EX coder"
-	elseif ply:SteamID64() == "76561198028288732" then
+	elseif ply:SteamID64() == "76561198058929932" then
 		img = "icon16/medal_gold_3.png"
 		tooltip = "Original Creator of Half-Life 2 Campaign"
 	elseif ply:IsBot() then

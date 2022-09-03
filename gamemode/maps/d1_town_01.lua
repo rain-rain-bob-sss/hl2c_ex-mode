@@ -14,6 +14,16 @@ function hl2cPlayerSpawn( ply )
 end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
+function hl2cAcceptInput( ent, input )
+
+	if GAMEMODE.EXMode then
+		timer.Create("ActivateAntlionSpawningGlobal", 0.325, 0, function()
+			if (IsValid(ents.FindByName("grigori_pyre_script_door_1")[1])) then ents.FindByName("grigori_pyre_script_door_1")[1]:Fire("Toggle") end
+		end)
+	end
+	
+end
+hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 
 -- Initialize entities
 function hl2cMapEdit()
