@@ -55,4 +55,13 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
+
+function HL2cEXPreventRollermineDamage(target, dmginfo)
+	if dmginfo:GetAttacker():GetClass() == "npc_rollermine" and target:IsPlayer() then
+		dmginfo:SetDamage(0)
+	end
+end
+hook.Add("EntityTakeDamage", "HL2cEX_d1_eli_02_rollerminedoesnodamage", HL2cEXPreventRollermineDamage)
+
+

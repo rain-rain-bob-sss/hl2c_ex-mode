@@ -640,43 +640,27 @@ local gmod_maxammo = GetConVar( "gmod_maxammo" )
 function GM:PlayerCanPickupWeapon( ply, wep )
 
 	if ( ( ply:Team() != TEAM_ALIVE ) || ( ADMINISTRATOR_WEAPONS[ wep:GetClass() ] && !ply:IsAdmin() ) ) then
-	
 		return false
-	
 	end
 
 	-- This prevents melee weapons disappearing
 	if ( ( wep:GetPrimaryAmmoType() <= 0 ) && ply:HasWeapon( wep:GetClass() ) ) then
-	
 		return false
-	
 	end
 
 	-- Garry's Mod doesn't seem to handle this itself so yeah
 	if ( !gmod_maxammo:GetBool() ) then
-	
 		if ( wep:GetPrimaryAmmoType() > 0 ) then
-		
 			if ( ply:HasWeapon( wep:GetClass() ) && ( ply:GetAmmoCount( wep:GetPrimaryAmmoType() ) >= game.GetAmmoMax( wep:GetPrimaryAmmoType() ) ) ) then
-			
 				return false
-			
 			end
-		
 		elseif ( wep:GetSecondaryAmmoType() > 0 ) then
-		
 			if ( ply:HasWeapon( wep:GetClass() ) && ( ply:GetAmmoCount( wep:GetSecondaryAmmoType() ) >= game.GetAmmoMax( wep:GetSecondaryAmmoType() ) ) ) then
-			
 				return false
-			
 			end
-		
 		end
-	
 	end
-
 	return true
-
 end
 
 
@@ -801,8 +785,9 @@ function GM:PlayerLoadout( ply )
 	elseif ( startingWeapons && ( #startingWeapons > 0 ) ) then
 	
 		for _, wep in pairs( startingWeapons ) do
-		
-			ply:Give( wep )
+			if wep[WHITELISTED_WEAPONS] then
+				ply:Give(wep)
+			end
 		
 		end
 	
@@ -1053,11 +1038,9 @@ function GM:RestartMap()
 	net.WriteFloat( CurTime() )
 	net.Broadcast()
 
---	for _, ply in pairs( player.GetAll() ) do
-	
---		ply:SendLua( "GAMEMODE.ShowScoreboard = true" )
-	
---	end
+	for _, ply in pairs( player.GetAll() ) do
+		ply:SendLua( "GAMEMODE.ShowScoreboard = true" )
+	end
 
 	timer.Simple(RESTART_MAP_TIME + 0.5, function() game.ConsoleCommand( "changelevel "..game.GetMap().."\n" ) end )
 

@@ -36,7 +36,7 @@ function HL2cEX_NPCVariantSpawn(ent)
 	if ent:GetClass() == "npc_metropolice" then
 		if ent.VariantType == 1 then
 			ent:SetColor(Color(128,128,255,255))
-			timer.Simple(0.05, function()
+			timer.Simple(0, function()
 				if !ent:IsValid() then return end
 				ent:SetColor(Color(128,128,255,255))
 				ent:SetMaxHealth(1.3 * ent:Health())
@@ -46,14 +46,14 @@ function HL2cEX_NPCVariantSpawn(ent)
 	elseif ent:GetClass() == "npc_combine_s" then
 		if ent.VariantType == 1 then
 			ent:SetColor(Color(255,128,128,255))
-			timer.Simple(0.05, function()
+			timer.Simple(0, function()
 				if !ent:IsValid() then return end
 				ent:SetColor(Color(255,128,128,255))
 				ent:SetMaxHealth(0.4 * ent:Health())
 				ent:SetHealth(0.4 * ent:Health())
 			end)
 		elseif ent.VariantType == 2 then
-			timer.Simple(0.05, function()
+			timer.Simple(0, function()
 				if !ent:IsValid() then return end
 				ent:SetMaxHealth(1.2 * ent:Health())
 				ent:SetHealth(1.2 * ent:Health())
@@ -62,7 +62,7 @@ function HL2cEX_NPCVariantSpawn(ent)
 	elseif ent:GetClass() == "npc_zombie" then
 		if ent.VariantType == 1 then
 			ent:SetColor(Color(255,128,128,255))
-			timer.Simple(0.05, function()
+			timer.Simple(0, function()
 				if !ent:IsValid() then return end
 				ent:SetColor(Color(255,128,128,255))
 				ent:SetMaxHealth(0.6 * ent:Health())
@@ -72,7 +72,7 @@ function HL2cEX_NPCVariantSpawn(ent)
 	elseif ent:GetClass() == "npc_fastzombie" then
 		if ent.VariantType == 1 then
 			ent:SetColor(Color(255,128,128,255))
-			timer.Simple(0.05, function()
+			timer.Simple(0, function()
 				if !ent:IsValid() then return end
 				ent:SetColor(Color(255,128,128,255))
 				ent:SetMaxHealth(0.7 * ent:Health())
@@ -83,7 +83,7 @@ function HL2cEX_NPCVariantSpawn(ent)
 		ent.VariantType = math.random(1,5) --make medical antlion guard variant less common
 		if ent.VariantType == 5 then
 			ent:SetColor(Color(0,255,0,255))
-			timer.Simple(0.05, function()
+			timer.Simple(0, function()
 				if !ent:IsValid() then return end
 				ent:SetColor(Color(0,255,0,255))
 				ent:SetMaxHealth(2 * ent:Health())
@@ -150,7 +150,7 @@ function HL2cEX_NPCVariantKilled(ent)
 			EDrop:SetAngles(ent:GetAngles())
 			EDrop:Spawn()
 			EDrop:Activate()
-			timer.Simple(0.05, function()
+			timer.Simple(0, function()
 				EDrop:SetMaxHealth(EDrop:Health() * 2)
 				EDrop:SetHealth(EDrop:Health() * 2)
 			end)

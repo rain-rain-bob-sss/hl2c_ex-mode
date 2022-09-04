@@ -123,3 +123,19 @@ ADMINISTRATOR_WEAPONS = {
 	[ "weapon_base" ] = true,
 	[ "weapon_flechettegun" ] = true
 }
+
+--Give shared weapons. If weapon is in list, will give everyone else the same gun. 
+WHITELISTED_WEAPONS = {
+	["weapon_crowbar"] = true,
+	["weapon_physcannon"] = true,
+	["weapon_pistol"] = true,
+	["weapon_357"] = true,
+	["weapon_smg1"] = true,
+	["weapon_ar2"] = true,
+	["weapon_shotgun"] = true,
+	["weapon_crossbow"] = true,
+	["weapon_frag"] = true,
+	["weapon_rpg"] = true,
+	["weapon_bugbait"] = true,
+	
+}

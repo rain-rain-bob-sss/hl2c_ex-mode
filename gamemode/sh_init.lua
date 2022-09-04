@@ -18,7 +18,7 @@ local hl2cex_server_ex_mode_enabled = CreateConVar( "hl2cex_server_ex_mode_enabl
 GM.Name = "Half-Life 2 Campaign: EX Mode"
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.6.1 (EARLY ACCESS)"
+GM.Version = "0.6.2 (EARLY ACCESS)"
 
 
 -- Constants
@@ -184,7 +184,7 @@ function GM:PlayerPostThink( ply )
 			-- Give them weapons they don't have
 			for _, ply2 in ipairs( player.GetAll() ) do
 			
-				if ( ( ply != ply2 ) && ply2:Alive() && !ply:InVehicle() && !ply2:InVehicle() && IsValid( ply2:GetActiveWeapon() ) && !ply:HasWeapon( ply2:GetActiveWeapon():GetClass() ) && !table.HasValue( ply.givenWeapons, ply2:GetActiveWeapon():GetClass() ) && ( ply2:GetActiveWeapon():GetClass() != "weapon_physgun" ) ) then
+				if ( ( ply != ply2 ) && ply2:Alive() && !ply:InVehicle() && !ply2:InVehicle() && IsValid( ply2:GetActiveWeapon() ) && !ply:HasWeapon( ply2:GetActiveWeapon():GetClass() ) && !table.HasValue( ply.givenWeapons, ply2:GetActiveWeapon():GetClass() ) && ( ply2:GetActiveWeapon():GetClass() != "weapon_physgun" and WHITELISTED_WEAPONS[ply2:GetActiveWeapon():GetClass()] ) ) then
 				
 					ply:Give( ply2:GetActiveWeapon():GetClass() )
 					table.insert( ply.givenWeapons, ply2:GetActiveWeapon():GetClass() )

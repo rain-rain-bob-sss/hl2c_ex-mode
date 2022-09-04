@@ -13,7 +13,7 @@ TRAINSTATION_LEAVEBARNEYDOOROPEN = false
 function Hl2cEXSpecialAnomaly()
 	local i = 0
 	for k,v in pairs(ents.FindByClass("npc_*")) do
-		i = i + 0.6
+		i = i + 0.45
 		timer.Simple(i, function()
 			if !v:IsValid() then return end
 			v:EmitSound("npc/metropolice/vo/is10-108.wav")
@@ -30,25 +30,27 @@ function Hl2cEXSpecialAnomalyForPlayer()
 				if !v:IsValid() then return end
 				v:EmitSound("npc/metropolice/vo/is10-108.wav")
 				v:TakeDamage(1)
+				v:PrintMessage(HUD_PRINTCENTER, "Is 10-108!")
 			end)
 		end
 	end)
 end
 timer.Simple(1, function()
 	if GAMEMODE.EXMode then
-		timer.Create("is10-108", 20, 0, Hl2cEXSpecialAnomaly)
+		timer.Create("is10-108", 35, 0, Hl2cEXSpecialAnomaly)
 		net.Start("ObjectiveTimer")
 		net.WriteFloat(600)
 		net.Broadcast()
 
-		timer.Simple(600, function()
+		timer.Simple(600 - CurTime(), function()
 		GAMEMODE:RestartMap()
 			for k,ply in pairs(player.GetAll()) do
 				ply:PrintMessage(HUD_PRINTTALK, "OBJECTIVE FAILED!!")
 			end
 		timer.Create("a", 0, 150, Hl2cEXSpecialAnomaly)
-		timer.Create("a", 0.05, 1000, Hl2cEXSpecialAnomalyForPlayer)
+		timer.Create("a", 0.08, 500, Hl2cEXSpecialAnomalyForPlayer)
 		game.SetGlobalState( "gordon_invulnerable", GLOBAL_OFF )
+		game.SetGlobalState( "gordon_precriminal", GLOBAL_OFF )
 		end)
 	end
 end)
