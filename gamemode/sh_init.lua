@@ -1,24 +1,25 @@
 -- Include the required lua files
-include( "sh_config.lua" )
-include( "sh_player.lua" )
+include("sh_config.lua")
+include("sh_globals.lua")
+include("sh_player.lua")
 
 -- Create console variables to make these config vars easier to access
-local hl2cex_admin_physgun = CreateConVar( "hl2cex_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY )
-local hl2cex_admin_noclip = CreateConVar( "hl2cex_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY )
-local hl2cex_server_force_gamerules = CreateConVar( "hl2cex_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_custom_playermodels = CreateConVar( "hl2cex_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_checkpoint_respawn = CreateConVar( "hl2cex_server_checkpoint_respawn", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_dynamic_skill_level = CreateConVar( "hl2cex_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_lag_compensation = CreateConVar( "hl2cex_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_player_respawning = CreateConVar( "hl2cex_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_jeep_passenger_seat = CreateConVar( "hl2cex_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_ex_mode_enabled = CreateConVar( "hl2cex_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_admin_physgun = CreateConVar( "hl2ce_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY )
+local hl2ce_admin_noclip = CreateConVar( "hl2ce_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY )
+local hl2ce_server_force_gamerules = CreateConVar( "hl2ce_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_custom_playermodels = CreateConVar( "hl2ce_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_checkpoint_respawn = CreateConVar( "hl2ce_server_checkpoint_respawn", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_dynamic_skill_level = CreateConVar( "hl2ce_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_lag_compensation = CreateConVar( "hl2ce_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_player_respawning = CreateConVar( "hl2ce_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_jeep_passenger_seat = CreateConVar( "hl2ce_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_ex_mode_enabled = CreateConVar( "hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
 
 -- General gamemode information
 GM.Name = "Half-Life 2 Campaign: EX Mode"
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.6.2 (EARLY ACCESS)"
+GM.Version = "0.7.0"
 
 
 -- Constants
@@ -27,7 +28,7 @@ FRIENDLY_NPCS = {
 }
 
 GODLIKE_NPCS = {
---	"npc_alyx",
+	"npc_alyx",
 	"npc_barney",
 	"npc_breen",
 	"npc_dog",
@@ -42,22 +43,33 @@ GODLIKE_NPCS = {
 }
 
 hook.Add("Initialize", "ClientsideHookHL2c_EX", function()
-GAMEMODE.EXMode = GetConVar("hl2cex_server_ex_mode_enabled"):GetBool()
+	GAMEMODE.EXMode = GetConVar("hl2ce_server_ex_mode_enabled"):GetBool()
 end)
 -- Create the teams that we are going to use throughout the game
 function GM:CreateTeams()
 
 	TEAM_ALIVE = 1
-	team.SetUp( TEAM_ALIVE, "ALIVE", Color( 192, 192, 192, 255 ) )
+	team.SetUp(TEAM_ALIVE, "ALIVE", Color(192, 192, 192, 255))
 	
 	TEAM_COMPLETED_MAP = 2
-	team.SetUp( TEAM_COMPLETED_MAP, "COMPLETED MAP", Color( 255, 215, 0, 255 ) )
+	team.SetUp(TEAM_COMPLETED_MAP, "COMPLETED MAP", Color(255, 215, 0, 255))
 	
 	TEAM_DEAD = 3
-	team.SetUp( TEAM_DEAD, "DEAD", Color( 128, 128, 128, 255 ) )
+	team.SetUp(TEAM_DEAD, "DEAD", Color(128, 128, 128, 255))
 
 end
 
+function GM:GetReqXP(ply)
+	local basexpreq = 152
+	local addxpperlevel = 27
+	local morelvlreq = 1.1715
+	if SERVER then
+		return math.floor(basexpreq + (ply.Level  * addxpperlevel) ^ morelvlreq)
+	else
+		return math.floor(basexpreq + (mylvl  * addxpperlevel) ^ morelvlreq)
+	end
+	return 100
+end
 
 -- Called when a gravity gun is attempting to punt something
 function GM:GravGunPunt( ply, ent ) 
@@ -151,6 +163,8 @@ function GM:IsSpecialPerson(ply, image)
 	elseif ply:SteamID64() == "76561198058929932" then
 		img = "icon16/medal_gold_3.png"
 		tooltip = "Original Creator of Half-Life 2 Campaign"
+
+
 	elseif ply:IsBot() then
 		img = "icon16/plugin.png"
 		tooltip = "BOT"
@@ -175,26 +189,16 @@ end
 
 -- Called after the player's think
 function GM:PlayerPostThink( ply )
-
 	-- Manage server data on the player
-	if ( SERVER ) then
-	
-		if ( IsValid( ply ) && ply:Alive() && ( ply:Team() == TEAM_ALIVE ) ) then
-		
+	if SERVER then
+		if IsValid(ply) && ply:Alive() && ( ply:Team() == TEAM_ALIVE ) then
 			-- Give them weapons they don't have
-			for _, ply2 in ipairs( player.GetAll() ) do
-			
-				if ( ( ply != ply2 ) && ply2:Alive() && !ply:InVehicle() && !ply2:InVehicle() && IsValid( ply2:GetActiveWeapon() ) && !ply:HasWeapon( ply2:GetActiveWeapon():GetClass() ) && !table.HasValue( ply.givenWeapons, ply2:GetActiveWeapon():GetClass() ) && ( ply2:GetActiveWeapon():GetClass() != "weapon_physgun" and WHITELISTED_WEAPONS[ply2:GetActiveWeapon():GetClass()] ) ) then
-				
-					ply:Give( ply2:GetActiveWeapon():GetClass() )
-					table.insert( ply.givenWeapons, ply2:GetActiveWeapon():GetClass() )
-				
+			for _, ply2 in ipairs(player.GetAll()) do
+				if (ply != ply2) && ply2:Alive() && !ply:InVehicle() && !ply2:InVehicle() && IsValid(ply2:GetActiveWeapon()) && !ply:HasWeapon( ply2:GetActiveWeapon():GetClass() ) && !table.HasValue( ply.givenWeapons, ply2:GetActiveWeapon():GetClass() ) && ( ply2:GetActiveWeapon():GetClass() != "weapon_physgun" and WHITELISTED_WEAPONS[ply2:GetActiveWeapon():GetClass()] ) then
+					ply:Give(ply2:GetActiveWeapon():GetClass())
+					table.insert(ply.givenWeapons, ply2:GetActiveWeapon():GetClass())
 				end
-			
 			end
-		
 		end
-	
 	end
-
 end

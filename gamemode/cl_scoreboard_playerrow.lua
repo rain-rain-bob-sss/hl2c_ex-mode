@@ -86,16 +86,11 @@ end
 
 -- Called every frame
 function PANEL:Paint()
-
 	if ( !IsValid( self.ply ) ) then return end
-
 	if ( LocalPlayer() == self.ply ) then
-	
 		surface.SetDrawColor( Color( 125, 125, 125, 75 ) )
 		surface.DrawRect( 0, 0, self:GetWide(), self:GetTall() )
-	
 	end
-
 end
 
 
@@ -104,6 +99,7 @@ function PANEL:PerformLayout()
 
 	self.muteIcon:SetPos( 5, self.posY )
 	self.muteIcon:SetSize( 16, 16 )
+	self.muteIcon:SetToolTip("Mute player")
 
 	self.avatarImage:SetPos( self.avatarX, self.avatarY )
 	self.avatarImage:SetSize( self.avatarSize, self.avatarSize )
@@ -112,7 +108,6 @@ function PANEL:PerformLayout()
 	self.SpecialImage:SetSize(self.SpecialImageSize, self.SpecialImageSize)
 	self.SpecialImage:SetMouseInputEnabled(true)
 	self.SpecialImage:SetVisible(false)
-	self.SpecialImage:SetTooltip("WHAT")
 
 	if gamemode.Call("IsSpecialPerson", self.ply, self.SpecialImage) then
 		self.SpecialImage:SetVisible(true)
@@ -158,13 +153,9 @@ end
 function PANEL:UpdatePlayerRow()
 
 	if ( self.ply:IsMuted() ) then
-	
 		self.muteIcon:SetIcon( "icon16/sound_mute.png" )
-	
 	else
-	
 		self.muteIcon:SetIcon( "icon16/sound.png" )
-	
 	end
 
 	self.nameLabel:SetText( self.ply:Name() )
@@ -180,9 +171,7 @@ function PANEL:UpdatePlayerRow()
 	end
 
 	self.scoreLabel:SetText( self.ply:Frags() )
-
 	self.deathsLabel:SetText( self.ply:Deaths() )
-
 	self.pingLabel:SetText( self.ply:Ping() )
 
 	self:InvalidateLayout()

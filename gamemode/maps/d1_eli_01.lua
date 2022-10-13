@@ -1,4 +1,5 @@
 NEXT_MAP = "d1_eli_02"
+GM.XP_REWARD_ON_MAP_COMPLETION = 0
 
 TRIGGER_CHECKPOINT = {
 	{ Vector( 364, 1764, -2730 ), Vector( 549, 1787, -2575 ) }

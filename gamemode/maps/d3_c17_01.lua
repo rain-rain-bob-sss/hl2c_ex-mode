@@ -1,4 +1,5 @@
 NEXT_MAP = "d3_c17_02"
+GM.XP_REWARD_ON_MAP_COMPLETION = 0
 
 
 -- Player spawns

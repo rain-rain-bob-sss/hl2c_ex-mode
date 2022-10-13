@@ -52,6 +52,14 @@ end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 
+hook.Add("NextMap", "hl2cEX_NextMap", function()
+	if changingLevel then return end
+	for _,ply in pairs(player.GetAll()) do
+		ply:PrintMessage(HUD_PRINTTALK, "Congratulations, you have completed the campaign!")
+		ply:GiveXP(40)
+	end
+end)
+
 -- Initialize entities
 function hl2cMapEdit()
 

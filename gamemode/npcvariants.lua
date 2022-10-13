@@ -1,33 +1,33 @@
 function AntlionGuardAURA()
 	for k,ent in pairs(ents.FindByClass("npc_antlionguard")) do
-	if !ent:IsValid() or ent.VariantType != 5 or ent:Health() < 0 then continue end 
-	local effectdata = EffectData()
-	ent:SetHealth(math.Clamp(ent:Health() + 3, 0, ent:GetMaxHealth()))
-	if !timer.Exists("NPC_ANTLIONGUARD_AURA_FX") then
-		timer.Create("NPC_ANTLIONGUARD_AURA_FX", 2, 1, function()
-			if !ent:IsValid() then return end
-			ent:EmitSound("ambient/machines/thumper_hit.wav", 120, 70)
-			effectdata:SetOrigin(ent:GetPos() + Vector(0, 0, 60))
-			util.Effect("zw_master_strike", effectdata)
-		end)
-	end
+		if !ent:IsValid() or ent.VariantType != 5 or ent:Health() < 0 then continue end 
+		local effectdata = EffectData()
+		ent:SetHealth(math.Clamp(ent:Health() + 3, 0, ent:GetMaxHealth()))
+		if !timer.Exists("NPC_ANTLIONGUARD_AURA_FX") then
+			timer.Create("NPC_ANTLIONGUARD_AURA_FX", 2, 1, function()
+				if !ent:IsValid() then return end
+				ent:EmitSound("ambient/machines/thumper_hit.wav", 120, 70)
+				effectdata:SetOrigin(ent:GetPos() + Vector(0, 0, 60))
+				util.Effect("zw_master_strike", effectdata)
+			end)
+		end
 
-	for k,v in pairs(ents.FindInSphere(ent:GetPos(), 200)) do
-		if (v:GetClass() == "npc_antlion" or v:GetClass() == "npc_antlion_worker") and v:IsNPC() then 
-			v:SetHealth(math.Clamp(v:Health() + 10, 0, v:GetMaxHealth()))
-			effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
-			util.Effect("zw_master_strike", effectdata)
-		elseif (v:IsNPC() or v:IsPlayer()) && v:GetClass() != "npc_antlionguard" then
-			if v:Health() < 0 then return end
-			v:TakeDamage(1, ent)
-			if v:IsPlayer() and v:Alive() then
-			v:PrintMessage(4, "YOU ARE BEING DAMAGED BY ANTLION GUARD VARIANT,\nGET AWAY FROM IT!!")
-			end
-			effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
-			util.Effect("zw_master_strike", effectdata)
+		for k,v in pairs(ents.FindInSphere(ent:GetPos(), 200)) do
+			if (v:GetClass() == "npc_antlion" or v:GetClass() == "npc_antlion_worker") and v:IsNPC() then 
+				v:SetHealth(math.Clamp(v:Health() + 10, 0, v:GetMaxHealth()))
+				effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
+				util.Effect("zw_master_strike", effectdata)
+			elseif (v:IsNPC() or v:IsPlayer()) && v:GetClass() != "npc_antlionguard" then
+				if v:Health() < 0 then return end
+				v:TakeDamage(1, ent)
+				if v:IsPlayer() and v:Alive() then
+					v:PrintMessage(4, "YOU ARE BEING DAMAGED BY ANTLION GUARD VARIANT,\nGET AWAY FROM IT!!")
+				end
+				effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
+				util.Effect("zw_master_strike", effectdata)
+			end 
 		end 
-	end 
-end
+	end
 end
 
 function HL2cEX_NPCVariantSpawn(ent)
@@ -94,6 +94,22 @@ function HL2cEX_NPCVariantSpawn(ent)
 		if ent.VariantType == 1 then
 			ent:SetColor(Color(255,128,128,255))
 		end
+	elseif ent:GetClass() == "npc_barnacle" then
+		if ent.VariantType == 1 then
+			ent:SetColor(Color(255,0,0,255))
+			timer.Simple(0, function()
+				if !ent:IsValid() then return end
+				ent:SetColor(Color(255,128,128,255))
+				ent:SetMaxHealth(0.6 * ent:Health())
+				ent:SetHealth(0.6 * ent:Health())
+			end)
+		else
+			timer.Simple(0, function()
+				if !ent:IsValid() then return end
+				ent:SetMaxHealth(1.5 * ent:Health())
+				ent:SetHealth(1.5 * ent:Health())
+			end)
+		end
 	end
 end
 hook.Add("OnEntityCreated", "HL2cEX_NPCVariantsSpawned", HL2cEX_NPCVariantSpawn)
@@ -137,7 +153,7 @@ function HL2cEX_NPCVariantKilled(ent)
 		
 	elseif ent:GetClass() == "npc_antlionguard" then
 		if ent.VariantType == 5 then
-			local EDrop = ents.Create("weapon_medkit")
+			local EDrop = ents.Create("weapon_hl2ce_medkit")
 			EDrop:SetPos(ent:GetPos() + Vector(0, 0, 50))
 			EDrop:SetAngles(ent:GetAngles())
 			EDrop:Spawn()
@@ -193,10 +209,17 @@ function HL2cEX_NPCVariantTakeDamage(target, dmginfo)
 	elseif attacker:GetClass() == "npc_headcrab" then
 		dmginfo:SetDamageType(DMG_FALL)
 		dmginfo:ScaleDamage(1.4)
+	elseif attacker:GetClass() == "npc_headcrab_fast" then
+		dmginfo:SetDamageType(DMG_FALL)
+		dmginfo:ScaleDamage(1.2)
 	elseif attacker:GetClass() == "npc_antlionguard" then
 		dmginfo:ScaleDamage(2.25)
+	elseif attacker:GetClass() == "npc_barnacle" and attacker.VariantType == 1 then
+		dmginfo:ScaleDamage(3)
 	end
 end
 hook.Add("EntityTakeDamage", "damagemodshook", HL2cEX_NPCVariantTakeDamage)
 
 timer.Create("NPC_ANTLIONGUARD_AURA", 1, 0, AntlionGuardAURA)
+
+

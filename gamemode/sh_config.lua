@@ -7,7 +7,7 @@ ADMIN_PHYSGUN = 0
 
 
 -- Range the difficulty scale can be in [{Min, Max}] (Default: { 1, 3 })
-DIFFICULTY_RANGE = { 1, 3 }
+DIFFICULTY_RANGE = {1, 3}
 
 
 -- Percent of players that need to be in the loading section for the next map to load (Default: 60)
@@ -20,17 +20,44 @@ NEXT_MAP_TIME = 60
 
 -- Points to give a player for killing an NPC (if non-one)
 NPC_POINT_VALUES = {
-	[ "npc_antlionguard" ] = 2,
-	[ "npc_citizen" ] = 0,
-	[ "npc_combinedropship" ] = 3,
-	[ "npc_combinegunship" ] = 2,
-	[ "npc_crow" ] = 0,
-	[ "npc_helicopter" ] = 3,
-	[ "npc_ministrider" ] = 2,
-	[ "npc_pigeon" ] = 0,
-	[ "npc_strider" ] = 3
+	["npc_antlionguard"] = 2,
+	["npc_citizen"] = 0,
+	["npc_combinedropship"] = 3,
+	["npc_combinegunship"] = 2,
+	["npc_crow"] = 0,
+	["npc_helicopter"] = 3,
+	["npc_ministrider"] = 2,
+	["npc_pigeon"] = 0,
+	["npc_strider"] = 3
 }
 
+NPC_XP_VALUES = {
+	["npc_antlion"] = 0.2, -- in some maps the antlions can spawn indefinitely so best is to make them give least amount of xp per kill
+	["npc_antlion_worker"] = 5.7,
+	["npc_antlionguard"] = 27,
+	["npc_barnacle"] = 1.7,
+	["npc_combinedropship"] = 12,
+	["npc_combinegunship"] = 9.5,
+	["npc_combine_s"] = 5.7,
+	["npc_cscanner"] = 1.5,
+	["npc_clawscanner"] = 1.6,
+	["npc_fastzombie"] = 3.8,
+	["npc_fastzombie_torso"] = 2.7,
+	["npc_headcrab"] = 0.6,
+	["npc_headcrab_fast"] = 0.8,
+	["npc_headcrab_black"] = 1.2,
+	["npc_headcrab_poison"] = 1.2,
+	["npc_helicopter"] = 11,
+	["npc_hunter"] = 14.1,
+	["npc_manhack"] = 2.1,
+	["npc_metropolice"] = 4.4,
+	["npc_ministrider"] = 2,
+	["npc_poisonzombie"] = 9.1,
+	["npc_stalker"] = 3,
+	["npc_strider"] = 16,
+	["npc_zombie"] = 3.4,
+	["npc_zombie_torso"] = 2.1,
+}
 
 -- Exclude these NPCs from lag compensation
 NPC_EXCLUDE_LAG_COMPENSATION = {
@@ -76,8 +103,8 @@ PLAY_EPISODE_1 = false
 PLAY_EPISODE_2 = false
 
 
--- Seconds before the map is restarted (Default: 10)
-RESTART_MAP_TIME = 15
+-- Seconds before the map is restarted (Default: 13)
+RESTART_MAP_TIME = 13
 
 
 -- Models the player can be
@@ -124,7 +151,7 @@ ADMINISTRATOR_WEAPONS = {
 	[ "weapon_flechettegun" ] = true
 }
 
---Give shared weapons. If weapon is in list, will give everyone else the same gun. 
+--Give shared weapons. If weapon is in list, gives everyone else the same gun. 
 WHITELISTED_WEAPONS = {
 	["weapon_crowbar"] = true,
 	["weapon_physcannon"] = true,
@@ -136,6 +163,5 @@ WHITELISTED_WEAPONS = {
 	["weapon_crossbow"] = true,
 	["weapon_frag"] = true,
 	["weapon_rpg"] = true,
-	["weapon_bugbait"] = true,
-	
+	["weapon_bugbait"] = true
 }

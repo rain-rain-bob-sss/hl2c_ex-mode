@@ -9,7 +9,7 @@
 	{
 		1
 		{
-			"name"		"hl2cex_server_force_gamerules"
+			"name"		"hl2ce_server_force_gamerules"
 			"text"		"Force HL2 gamerules (AUX Power & Max Ammo)"
 			"help"		"Force HL2 gamerules (AUX Power & Max Ammo)"
 			"type"		"CheckBox"
@@ -19,7 +19,7 @@
 	
 		2
 		{
-			"name"		"hl2cex_admin_physgun"
+			"name"		"hl2ce_admin_physgun"
 			"text"		"Give admins the physics gun"
 			"help"		"Give admins the physics gun"
 			"type"		"CheckBox"
@@ -28,7 +28,7 @@
 	
 		3
 		{
-			"name"		"hl2cex_admin_noclip"
+			"name"		"hl2ce_admin_noclip"
 			"text"		"Allow admins to use noclip"
 			"help"		"Allow admins to use noclip"
 			"type"		"CheckBox"
@@ -37,7 +37,7 @@
 	
 		4
 		{
-			"name"		"hl2cex_server_custom_playermodels"
+			"name"		"hl2ce_server_custom_playermodels"
 			"text"		"Allow usage of custom playermodels"
 			"help"		"Allow usage of custom playermodels. Set variable to -1 to entirely disable it."
 			"type"		"CheckBox"
@@ -46,16 +46,16 @@
 	
 		5
 		{
-			"name"		"hl2cex_server_checkpoint_respawn"
+			"name"		"hl2ce_server_checkpoint_respawn"
 			"text"		"Make dead players respawn at checkpoints"
 			"help"		"Make dead players respawn at checkpoints"
 			"type"		"CheckBox"
-			"default"	"0"
+			"default"	"1"
 		}
 	
 		6
 		{
-			"name"		"hl2cex_server_dynamic_skill_level"
+			"name"		"hl2ce_server_dynamic_skill_level"
 			"text"		"Dynamically change the skill level based on player count"
 			"help"		"Dynamically change the skill level based on player count"
 			"type"		"CheckBox"
@@ -64,7 +64,7 @@
 	
 		7
 		{
-			"name"		"hl2cex_server_lag_compensation"
+			"name"		"hl2ce_server_lag_compensation"
 			"text"		"Use NPC Lag Compensation"
 			"help"		"Use NPC Lag Compensation"
 			"type"		"CheckBox"
@@ -73,7 +73,7 @@
 	
 		8
 		{
-			"name"		"hl2cex_server_player_respawning"
+			"name"		"hl2ce_server_player_respawning"
 			"text"		"playercanrespawn"
 			"help"		"Players can never permanently die"
 			"type"		"CheckBox"
@@ -82,7 +82,7 @@
 	
 		9
 		{
-			"name"		"hl2cex_server_jeep_passenger_seat"
+			"name"		"hl2ce_server_jeep_passenger_seat"
 			"text"		"passengerseat"
 			"help"		"Give Jeeps a passenger seat"
 			"type"		"CheckBox"
@@ -91,11 +91,11 @@
 
 		10
 		{
-			"name"		"hl2cex_server_ex_mode_enabled"
+			"name"		"hl2ce_server_ex_mode_enabled"
 			"text"		"THE EX MODE - turns hl2c into rng manipulating simulator"
 			"help"		"Enable Half-Life 2 Campaign: EX Mode. If enabled, will make overall difficulty of HL2c even harder. Requires map change!"
 			"type"		"CheckBox"
-			"default"	"0"
+			"default"	"1"
 		}
 	}
 }

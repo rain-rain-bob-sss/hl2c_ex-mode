@@ -70,27 +70,26 @@ function ENT:StartTouch( ent )
 		
 			-- Dead players become alive again
 			if ( GetConVar( "hl2c_server_checkpoint_respawn" ):GetBool() && IsValid( ply ) && ( ply != ent ) && ( ply:Team() == TEAM_DEAD ) ) then
-			
 				deadPlayers = {}
 			
 				ply:SetTeam( TEAM_ALIVE )
 				ply:Spawn()
-			
 			end
-		
 		end
 	
 		-- Remove the checkpoint from the table
 		table.remove( checkpointPositions, 1 )
-	
+
+		-- Broadcast in chat who activated checkpoint
+		PrintMessage(HUD_PRINTTALK, ent:Nick().." has activated checkpoint!")
+
 		-- Update checkpoints on the client
 		net.Start( "SetCheckpointPosition" )
-			net.WriteVector( checkpointPositions[ 1 ] )
+		net.WriteVector( checkpointPositions[ 1 ] )
 		net.Broadcast()
 	
 		-- Remove the trigger
 		self:Remove()
 	
 	end
-
 end

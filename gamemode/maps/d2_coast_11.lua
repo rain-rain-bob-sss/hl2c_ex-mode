@@ -5,7 +5,6 @@ COAST_PREVENT_CAMP_DOOR = false
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )
-
 	ply:SetName( "!player" )
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -17,10 +16,27 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_ar2" )
 	ply:Give( "weapon_rpg" )
 	ply:Give( "weapon_crossbow" )
-
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
+hook.Add("OnEntityCreated", "HL2cEX_AntlionVariants", function(ent)
+	if !GAMEMODE.EXMode or !ent:IsNPC() then return end
+	if ent:GetClass() == "npc_antlion" then
+		ent:SetColor(Color(128,255,0,255))
+		timer.Simple(0, function()
+			if !ent:IsValid() then return end
+			ent:SetColor(Color(128,255,0,255))
+			ent:SetMaxHealth(1.3 * ent:Health())
+			ent:SetHealth(1.3 * ent:Health())
+		end)
+	elseif ent:GetClass() == "npc_antlionguard" then
+		timer.Simple(0, function()
+			if !ent:IsValid() then return end
+			ent:SetMaxHealth(1.5 * ent:Health())
+			ent:SetHealth(1.5 * ent:Health())
+		end)
+	end
+end)
 
 -- Initialize entities
 function hl2cMapEdit()

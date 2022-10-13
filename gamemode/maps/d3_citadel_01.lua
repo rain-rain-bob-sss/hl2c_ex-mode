@@ -7,7 +7,6 @@ CITADEL_VEHICLE_ENTITY = nil
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )
-
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
 	ply:Give( "weapon_smg1" )
@@ -21,7 +20,6 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 	if ( !game.SinglePlayer() && IsValid( PLAYER_VIEWCONTROL ) && ( PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) ) then
-	
 		ply:SetViewEntity( PLAYER_VIEWCONTROL )
 		ply:SetNoDraw( true )
 		ply:DrawWorldModel( false )
@@ -29,20 +27,38 @@ function hl2cPlayerSpawn( ply )
 	
 		ply:SetCollisionGroup( COLLISION_GROUP_WORLD )
 		ply:CollisionRulesChanged()
-	
 	end
-
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
+
+function hl2cEX_PlayerInitialSpawn(ply)
+	if !GAMEMODE.EXMode then return end
+	ply:PrintMessage(HUD_PRINTTALK, "Gimnick of the map: Don't take any damage. Beware.")
+end
+hook.Add("PlayerInitialSpawn", "hl2cEX_InitialSpawn", hl2cEX_PlayerInitialSpawn)
+
+hook.Add("EntityTakeDamage", "hl2cEX_gimnick", function(target, dmginfo)
+	if !GAMEMODE.EXMode then return end
+	if target:IsPlayer() then
+		dmginfo:SetDamage(1000)
+	end
+	dmginfo:SetDamageType(DMG_DISSOLVE)
+end, HOOK_LOW)
 
 
 -- Initialize entities
 function hl2cMapEdit()
+	ents.FindByName("global_newgame_template_ammo" )[1]:Remove()
+	ents.FindByName("global_newgame_template_base_items" )[1]:Remove()
+	ents.FindByName("global_newgame_template_local_items" )[1]:Remove()
 
-	ents.FindByName( "global_newgame_template_ammo" )[ 1 ]:Remove()
-	ents.FindByName( "global_newgame_template_base_items" )[ 1 ]:Remove()
-	ents.FindByName( "global_newgame_template_local_items" )[ 1 ]:Remove()
-
+	if GAMEMODE.EXMode then
+		local ent = ents.Create("npc_combine_s")
+		ent:SetPos(Vector(10094,3364,-1470))
+		ent:SetAngles(Angle(0,180,0))
+		ent:Give("weapon_ar2")
+		ent:Spawn()
+	end
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 

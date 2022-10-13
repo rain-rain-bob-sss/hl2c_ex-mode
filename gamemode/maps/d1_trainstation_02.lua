@@ -1,4 +1,5 @@
 INFO_PLAYER_SPAWN = { Vector( -4257, -179, -61 ), -95 }
+GM.XP_REWARD_ON_MAP_COMPLETION = 0
 
 NEXT_MAP = "d1_trainstation_03"
 

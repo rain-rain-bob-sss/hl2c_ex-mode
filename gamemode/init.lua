@@ -1,52 +1,55 @@
 -- Send the required lua files to the client
-AddCSLuaFile( "cl_calcview.lua" )
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "cl_playermodels.lua" )
-AddCSLuaFile( "cl_scoreboard.lua" )
-AddCSLuaFile( "cl_scoreboard_playerlist.lua" )
-AddCSLuaFile( "cl_scoreboard_playerrow.lua" )
-AddCSLuaFile( "cl_viewmodel.lua" )
-AddCSLuaFile( "sh_config.lua" )
-AddCSLuaFile( "sh_init.lua" )
-AddCSLuaFile( "sh_player.lua" )
+AddCSLuaFile("cl_calcview.lua")
+AddCSLuaFile("cl_init.lua")
+AddCSLuaFile("cl_playermodels.lua")
+AddCSLuaFile("cl_scoreboard.lua")
+AddCSLuaFile("cl_scoreboard_playerlist.lua")
+AddCSLuaFile("cl_scoreboard_playerrow.lua")
+AddCSLuaFile("cl_viewmodel.lua")
+AddCSLuaFile("cl_net.lua")
+AddCSLuaFile("sh_config.lua")
+AddCSLuaFile("sh_globals.lua")
+AddCSLuaFile("sh_init.lua")
+AddCSLuaFile("sh_player.lua")
+AddCSLuaFile("sh_translate.lua")
 
 -- Include the required lua files
-include("sv_globalstates.lua")
 include("sh_init.lua")
+include("sh_translate.lua")
+
 include("npcvariants.lua")
+include("database_manager/config.lua")
+include("database_manager/player.lua")
+
+include("sv_netstuff.lua")
+include("player_leveling.lua")
 
 -- Include the configuration for this map
-if ( file.Exists( "half-life_2_campaign/gamemode/maps/"..game.GetMap()..".lua", "LUA" ) ) then
-
-	include( "maps/"..game.GetMap()..".lua" )
-
+if file.Exists(GM.VaultFolder.."/gamemode/maps/"..game.GetMap()..".lua", "LUA") then
+	include("maps/"..game.GetMap()..".lua")
 end
 
 -- Create data folders
-if ( !file.IsDir( "half-life_2_campaign", "DATA" ) ) then
-
-	file.CreateDir( "half-life_2_campaign" )
-
+if !file.IsDir(GM.VaultFolder, "DATA") then
+	file.CreateDir(GM.VaultFolder)
 end
 
-if ( !file.IsDir( "half-life_2_campaign/players", "DATA" ) ) then
-
-	file.CreateDir( "half-life_2_campaign/players" )
-
+if !file.IsDir(GM.VaultFolder.."/players", "DATA") then
+	file.CreateDir(GM.VaultFolder.."/players")
 end
 
 
 -- Create console variables to make these config vars easier to access
-local hl2cex_admin_physgun = CreateConVar( "hl2cex_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY )
-local hl2cex_admin_noclip = CreateConVar( "hl2cex_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY )
-local hl2cex_server_force_gamerules = CreateConVar( "hl2cex_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_custom_playermodels = CreateConVar( "hl2cex_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_checkpoint_respawn = CreateConVar( "hl2cex_server_checkpoint_respawn", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_dynamic_skill_level = CreateConVar( "hl2cex_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_lag_compensation = CreateConVar( "hl2cex_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_player_respawning = CreateConVar( "hl2cex_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_jeep_passenger_seat = CreateConVar( "hl2cex_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2cex_server_ex_mode_enabled = CreateConVar( "hl2cex_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_admin_physgun = CreateConVar( "hl2ce_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY )
+local hl2ce_admin_noclip = CreateConVar( "hl2ce_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY )
+local hl2ce_server_force_gamerules = CreateConVar( "hl2ce_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_custom_playermodels = CreateConVar( "hl2ce_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_checkpoint_respawn = CreateConVar( "hl2ce_server_checkpoint_respawn", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_dynamic_skill_level = CreateConVar( "hl2ce_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_lag_compensation = CreateConVar( "hl2ce_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_player_respawning = CreateConVar( "hl2ce_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_jeep_passenger_seat = CreateConVar( "hl2ce_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_server_ex_mode_enabled = CreateConVar( "hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
 
 -- Precache all the player models ahead of time
 for _, playerModel in pairs( PLAYER_MODELS ) do
@@ -57,29 +60,23 @@ end
 
 
 -- Called when the player attempts to suicide
-function GM:CanPlayerSuicide( ply )
-
-	if ( ply:Team() == TEAM_COMPLETED_MAP ) then
+function GM:CanPlayerSuicide(ply)
+	if ply:Team() == TEAM_COMPLETED_MAP then
 	
 		ply:ChatPrint( "You cannot suicide once you've completed the map." )
 		return false
-	
-	elseif ( ply:Team() == TEAM_DEAD ) then
+	elseif ply:Team() == TEAM_DEAD then
 	
 		ply:ChatPrint( "This may come as a surprise, but you are already dead." )
 		return false
-	
 	end
 
-	if ( !ply.vulnerable ) then
-	
+	if !ply.vulnerable then
 		ply:ChatPrint( "You're currently invulnerable. Suicide attempt blocked!" )
 		return false
-	
 	end
 
 	return true
-
 end 
 
 
@@ -96,16 +93,14 @@ end
 
 
 -- Creates a trigger delaymapload
-function GM:CreateTDML( min, max )
-
-	tdmlPos = max - ( ( max - min ) / 2 )
+function GM:CreateTDML(min, max)
+	tdmlPos = max - ((max - min) / 2)
 	
-	local tdml = ents.Create( "trigger_delaymapload" )
-	tdml:SetPos( tdmlPos )
+	local tdml = ents.Create("trigger_delaymapload")
+	tdml:SetPos(tdmlPos)
 	tdml.min = min
 	tdml.max = max
 	tdml:Spawn()
-
 end
 
 
@@ -115,10 +110,8 @@ function GM:DoPlayerDeath( ply, attacker, dmgInfo )
 	ply.deathPos = ply:EyePos()
 
 	-- Add to deadPlayers table to prevent respawning on re-connect
-	if ( ( ( !hl2cex_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING ) && !table.HasValue( deadPlayers, ply:SteamID() ) ) then
-	
-		table.insert( deadPlayers, ply:SteamID() )
-	
+	if ( ( ( !hl2ce_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING ) && !table.HasValue( deadPlayers, ply:SteamID() ) ) then
+		table.insert(deadPlayers, ply:SteamID())
 	end
 	
 	ply:RemoveVehicle()
@@ -140,7 +133,7 @@ function GM:PlayerDeathThink( ply )
 
 	if ( ( ply:GetObserverMode() != OBS_MODE_ROAMING ) && ( ply:IsBot() || ply:KeyPressed( IN_ATTACK ) || ply:KeyPressed( IN_ATTACK2 ) || ply:KeyPressed( IN_JUMP ) ) ) then
 	
-		if ( ( !hl2cex_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING ) then
+		if ( ( !hl2ce_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING ) then
 		
 			ply:Spectate( OBS_MODE_ROAMING )
 			ply:SetPos( ply.deathPos )
@@ -162,14 +155,14 @@ end
 function GM:OnEntityCreated( ent )
 
 	-- NPC Lag Compensation
-	if ( hl2cex_server_lag_compensation:GetBool() && ent:IsNPC() && !table.HasValue( NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass() ) ) then
+	if ( hl2ce_server_lag_compensation:GetBool() && ent:IsNPC() && !table.HasValue( NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass() ) ) then
 	
 		ent:SetLagCompensated( true )
 	
 	end
 
 	-- Vehicle Passenger Seating
-	if ( hl2cex_server_jeep_passenger_seat:GetBool() && !GetConVar( "hl2_episodic" ):GetBool() && ent:IsVehicle() && string.find( ent:GetClass(), "prop_vehicle_jeep" ) ) then
+	if ( hl2ce_server_jeep_passenger_seat:GetBool() && !GetConVar( "hl2_episodic" ):GetBool() && ent:IsVehicle() && string.find( ent:GetClass(), "prop_vehicle_jeep" ) ) then
 	
 		ent.passengerSeat = ents.Create( "prop_vehicle_prisoner_pod" )
 		ent.passengerSeat:SetPos( ent:LocalToWorld( Vector( 21, -32, 18 ) ) )
@@ -204,67 +197,50 @@ function GM:EntityKeyValue( ent, key, value )
 end
 
 
--- Called when an entity has received damage	  
-function GM:EntityTakeDamage( ent, dmgInfo )
-
+-- Called when an entity has received damage
+function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Gets the attacker
 	local attacker = dmgInfo:GetAttacker()
 
 	-- Godlike NPCs take no damage ever
 	if ( IsValid( ent ) && table.HasValue( GODLIKE_NPCS, ent:GetClass() ) ) then
-	
 		return true
-	
 	end
 
 	-- NPCs cannot be damaged by friends
 	if ( IsValid( ent ) && ent:IsNPC() && ( ent:GetClass() != "npc_turret_ground" ) && IsValid( attacker ) && ( ent:Disposition( attacker ) == D_LI ) ) then
-	
 		return true
-	
 	end
 
 	-- Gravity gun punt should kill NPC's
 	if ( IsValid( ent ) && ent:IsNPC() && IsValid( attacker ) && attacker:IsPlayer() ) then
-	
 		if ( GetGlobalBool( "SUPER_GRAVITY_GUN" ) && IsValid( attacker:GetActiveWeapon() ) && ( attacker:GetActiveWeapon():GetClass() == "weapon_physcannon" ) ) then
-		
 			dmgInfo:SetDamage( ent:Health() )
-		
 		end
-	
 	end
 
 	-- Crowbar and Stunstick should follow skill level
 	if ( IsValid( ent ) && IsValid( attacker ) && attacker:IsPlayer() ) then
-	
-		if ( IsValid( attacker:GetActiveWeapon() ) && ( ( attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB ) || ( attacker:GetActiveWeapon():GetClass() == "weapon_stunstick" && dmgInfo:GetDamageType() == DMG_CLUB ) ) ) then
-		
-			dmgInfo:SetDamage( 10 / difficulty )
-		
+		if ( IsValid( attacker:GetActiveWeapon() ) && ( ( attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB ) ) ) then
+			dmgInfo:SetDamage( GetConVar("sk_plr_dmg_crowbar"):GetFloat() / self.difficulty )
+		elseif IsValid(attacker:GetActiveWeapon()) && attacker:GetActiveWeapon():GetClass() == "weapon_stunstick" && dmgInfo:GetDamageType() == DMG_CLUB then
+			dmgInfo:SetDamage( GetConVar("sk_plr_dmg_stunstick"):GetFloat() / self.difficulty )
 		end
-	
 	end
-
 end
 
 
 -- Clears the player data folder
 function GM:ClearPlayerDataFolder()
-
-	local tableFiles, tableFolders = file.Find( "half-life_2_campaign/players/*", "DATA" )
+	local tableFiles, tableFolders = file.Find( self.VaultFolder.."/players/*", "DATA" )
 	for k, v in ipairs( tableFiles ) do
-	
-		file.Delete( "half-life_2_campaign/players/"..v )
-	
+		file.Delete( self.VaultFolder.."/players/"..v )
 	end
-
 end
 
 
 -- Called by GoToNextLevel
 function GM:GrabAndSwitch()
-
 	changingLevel = true
 
 	-- Since the file can build up with useless files we should clear it
@@ -302,34 +278,38 @@ function GM:GrabAndSwitch()
 		end
 	
 		local plyID = ply:SteamID64() || ply:UniqueID()
-		file.Write( "half-life_2_campaign/players/"..plyID..".txt", util.TableToJSON( plyInfo ) )
-	
+		file.Write( self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON( plyInfo ) )
+		self:SavePlayer(ply)
 	end
-
-	-- Switch maps
-	game.ConsoleCommand( "changelevel "..NEXT_MAP.."\n" )
-
+	
+	PrintMessage(4, "Map change in progress...")
+	timer.Simple(1, function() game.ConsoleCommand("changelevel "..NEXT_MAP.."\n") end)
 end
 
+function GM:ShutDown()
+	for _,ply in pairs(player.GetAll()) do
+		self:SavePlayer(ply)
+	end
+end
 
 -- Called immediately after starting the gamemode  
 function GM:Initialize()
-
 	-- Variables and stuff
 	deadPlayers = {}
-	difficulty = 1
-	updateDifficulty = 0
 	changingLevel = false
 	checkpointPositions = {}
 	nextAreaOpenTime = 0
 	startingWeapons = {}
-	GAMEMODE.EXMode = GetConVar("hl2cex_server_ex_mode_enabled"):GetBool()
+	updateDifficulty = 0
+
+	self.XP_REWARD_ON_MAP_COMPLETION = self.XP_REWARD_ON_MAP_COMPLETION or 1 -- because it would call true if it was false, we use other values
+	self.difficulty = 1
+	self.EXMode = GetConVar("hl2ce_server_ex_mode_enabled"):GetBool()
 
 	--set more damage if ex mode is enabled
-	if GAMEMODE.EXMode then
-		timer.Simple(1, function() RunConsoleCommand("sk_npc_dmg_stunstick", "100") end)
-	end
+	if self.EXMode then timer.Simple(1, function() RunConsoleCommand("sk_npc_dmg_stunstick", "100") end) end
 
+	
 	-- Network strings
 	util.AddNetworkString("SetCheckpointPosition")
 	util.AddNetworkString("NextMap")
@@ -339,7 +319,13 @@ function GM:Initialize()
 	util.AddNetworkString("ShowTeam")
 	util.AddNetworkString("UpdatePlayerModel")
 	util.AddNetworkString("ObjectiveTimer")
-
+	
+	util.AddNetworkString("XPGain")
+	util.AddNetworkString("UpdateStats")
+	util.AddNetworkString("UpdateSkills")
+	util.AddNetworkString("UpgradePerk")
+	util.AddNetworkString("updateDifficulty")
+	
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand( "ai_disabled 0\n" )
 	game.ConsoleCommand( "ai_ignoreplayers 0\n" )
@@ -349,35 +335,35 @@ function GM:Initialize()
 	game.ConsoleCommand( "physgun_limited 1\n" )
 	game.ConsoleCommand( "sv_alltalk 1\n" )
 	game.ConsoleCommand( "sv_defaultdeployspeed 1\n" )
-
+	
 	-- Physcannon
 	game.ConsoleCommand( "physcannon_tracelength 250\n" )
 	game.ConsoleCommand( "physcannon_maxmass 250\n" )
 	game.ConsoleCommand( "physcannon_pullforce 4000\n" )
-
+	
 	-- Episodic
-	if ( string.find( game.GetMap(), "ep1_" ) || string.find( game.GetMap(), "ep2_" ) ) then
-	
-		game.ConsoleCommand( "hl2_episodic 1\n" )
-	
+	if string.find( game.GetMap(), "ep1_" ) || string.find( game.GetMap(), "ep2_" ) then
+		game.ConsoleCommand("hl2_episodic 1\n")
 	else
-	
-		game.ConsoleCommand( "hl2_episodic 0\n" )
-	
+		game.ConsoleCommand("hl2_episodic 0\n")
 	end
-
+	
 	-- Force game rules such as aux power and max ammo
-	if ( hl2cex_server_force_gamerules:GetBool() ) then
-	
-		if ( !AUXPOW ) then game.ConsoleCommand( "gmod_suit 1\n" ); end
-		game.ConsoleCommand( "gmod_maxammo 0\n" )
-	
+	if hl2ce_server_force_gamerules:GetBool() then
+		if !AUXPOW then game.ConsoleCommand("gmod_suit 1\n"); end
+		game.ConsoleCommand("gmod_maxammo 0\n")	
 	end
+	
+	-- Objective Timer
+	net.Start("ObjectiveTimer")
+	net.WriteFloat(self.ObjectiveTimer or 0)
+	net.Broadcast()
+
 
 	-- Kill global states
 	-- Reasoning behind this is because changing levels would keep these known states and cause issues on other maps
 	hook.Call( "KillAllGlobalStates", GAMEMODE )
-
+	
 	-- Jeep
 	local jeep = {
 		Name = "Jeep",
@@ -389,7 +375,7 @@ function GM:Initialize()
 		}
 	}
 	list.Set( "Vehicles", "Jeep", jeep )
-
+	
 	-- Airboat
 	local airboat = {
 		Name = "Airboat Gun",
@@ -403,7 +389,7 @@ function GM:Initialize()
 		}
 	}
 	list.Set( "Vehicles", "Airboat", airboat )
-
+	
 	-- Airboat w/gun
 	local airboatGun = {
 		Name = "Airboat Gun",
@@ -417,7 +403,7 @@ function GM:Initialize()
 		}
 	}
 	list.Set( "Vehicles", "Airboat Gun", airboatGun )
-
+	
 	-- Jalopy
 	local jalopy = {
 		Name = "Jalopy",
@@ -453,7 +439,13 @@ local function MasterPlayerStartExists()
 end
 
 function GM:OnReloaded()
-print("Gamemode "..GM.Name.." ("..GM.Version..") files have been refreshed")
+	print("Gamemode "..GM.Name.." ("..GM.Version..") files have been refreshed")
+	timer.Simple(1, function()
+		for _,ply in pairs(player.GetAll()) do
+			self:NetworkString_UpdateStats(ply)
+			self:NetworkString_UpdateSkills(ply)
+		end
+	end)
 end
 
 -- Called as soon as all map entities have been spawned 
@@ -550,23 +542,19 @@ end
 
 -- Called automatically or by the console command
 function GM:NextMap()
-
-	if ( changingLevel ) then
-	
-		return
-	
-	end
+	if changingLevel then return end
 
 	changingLevel = true
 
-	net.Start( "NextMap" )
-		net.WriteFloat( CurTime() )
+	net.Start("NextMap")
+	net.WriteFloat(CurTime())
 	net.Broadcast()
 
-	timer.Simple( NEXT_MAP_TIME, function() self:GrabAndSwitch() end )
-
+	timer.Simple(NEXT_MAP_TIME, function()
+		self:GrabAndSwitch()
+	end)
 end
-concommand.Add( "hl2cex_next_map", function( ply ) if ( IsValid( ply ) && ply:IsAdmin() ) then NEXT_MAP_TIME = 0; hook.Call( "NextMap", GAMEMODE ); end end )
+concommand.Add( "hl2ce_next_map", function( ply ) if ( IsValid( ply ) && ply:IsAdmin() ) then NEXT_MAP_TIME = 0; hook.Call( "NextMap", GAMEMODE ); end end )
 
 
 -- Called when an NPC dies
@@ -579,18 +567,16 @@ function GM:OnNPCKilled( npc, killer, weapon )
 	end
 
 	-- If the killer is a player then decide what to do with their points
-	if ( IsValid( killer ) && killer:IsPlayer() && IsValid( npc ) ) then
-	
-		if ( NPC_POINT_VALUES[ npc:GetClass() ] ) then
-		
-			killer:AddFrags( NPC_POINT_VALUES[ npc:GetClass() ] )
-		
+	if IsValid(killer) && killer:IsPlayer() && IsValid(npc) then
+		if NPC_POINT_VALUES[npc:GetClass()] then
+			killer:AddFrags(NPC_POINT_VALUES[npc:GetClass()])
 		else
-		
-			killer:AddFrags( 1 )
-		
+			killer:AddFrags(1)
 		end
-	
+
+		if NPC_XP_VALUES[npc:GetClass()] then
+			killer:GiveXP(NPC_XP_VALUES[npc:GetClass()] * self.difficulty)
+		end
 	end
 
 	-- If the NPC is godlike and they die
@@ -599,6 +585,7 @@ function GM:OnNPCKilled( npc, killer, weapon )
 		if ( table.HasValue( GODLIKE_NPCS, npc:GetClass() ) ) then
 		
 			if ( IsValid( killer ) && killer:IsPlayer() ) then game.KickID( killer:UserID(), "You killed an important NPC actor!" ); end
+			PrintMessage(HUD_PRINTTALK, "Important NPC actor died!")
 			GAMEMODE:RestartMap()
 		
 		end
@@ -625,13 +612,12 @@ function GM:OnNPCKilled( npc, killer, weapon )
 	if ( IsValid( killer ) && killer:IsPlayer() ) then
 	
 		net.Start( "PlayerKilledNPC" )
-			net.WriteString( npc:GetClass() )
-			net.WriteString( weaponClass )
-			net.WriteEntity( killer )
+		net.WriteString( npc:GetClass() )
+		net.WriteString( weaponClass )
+		net.WriteEntity( killer )
 		net.Broadcast()
 	
 	end
-
 end
 
 
@@ -660,6 +646,10 @@ function GM:PlayerCanPickupWeapon( ply, wep )
 			end
 		end
 	end
+
+	if wep:GetClass() == "weapon_hl2ce_medkit" then
+		ply:PrintMessage(HUD_PRINTTALK, "Please type in console 'use weapon_hl2ce_medkit' if you want to equip medkit weapon, if you have one. (i'm so sorry about that)")
+	end
 	return true
 end
 
@@ -680,40 +670,44 @@ end
 
 -- Called when a player disconnects
 function GM:PlayerDisconnected( ply )
-
 	local plyID = ply:SteamID64() || ply:UniqueID()
-	if ( file.Exists( "half-life_2_campaign/players/"..plyID..".txt", "DATA" ) ) then
-	
-		file.Delete( "half-life_2_campaign/players/"..plyID..".txt" )
-	
+	if file.Exists(self.VaultFolder.."/players/"..plyID..".txt", "DATA") then
+		file.Delete(self.VaultFolder.."/players/"..plyID..".txt")
 	end
 
 	ply:RemoveVehicle()
 
-	if ( game.IsDedicated() && ( player.GetCount() <= 1 ) ) then
-	
+	if game.IsDedicated() && player.GetCount() <= 1 then
 		game.ConsoleCommand( "changelevel "..game.GetMap().."\n" )
-	
 	end
-
+	self:SavePlayer(ply)
 end
 
 
 -- Called just before the player's first spawn 
-function GM:PlayerInitialSpawn( ply )
-
+function GM:PlayerInitialSpawn(ply)
 	ply.startTime = CurTime()
-	ply:SetTeam( TEAM_ALIVE )
+	ply:SetTeam(TEAM_ALIVE)
+
+	ply.XP = 0
+	ply.Level = 0
+	ply.StatPoints = 0
+
+	for k, v in pairs(SkillsList) do
+		local PerkPieces = string.Explode(";", v)
+		local PerkName = PerkPieces[1]
+		ply[PerkName] = 0
+	end
 
 	-- Grab previous map info
 	local plyID = ply:SteamID64() || ply:UniqueID()
-	if ( file.Exists( "half-life_2_campaign/players/"..plyID..".txt", "DATA" ) ) then
+	if ( file.Exists( self.VaultFolder.."/players/"..plyID..".txt", "DATA" ) ) then
 	
-		ply.info = util.JSONToTable( file.Read( "half-life_2_campaign/players/"..plyID..".txt", "DATA" ) )
+		ply.info = util.JSONToTable( file.Read( self.VaultFolder.."/players/"..plyID..".txt", "DATA" ) )
 	
 		if ( ( ply.info.predicted_map != game.GetMap() ) || RESET_PL_INFO ) then
 		
-			file.Delete( "half-life_2_campaign/players/"..plyID..".txt" )
+			file.Delete( self.VaultFolder.."/players/"..plyID..".txt" )
 			ply.info = nil
 		
 		elseif ( RESET_WEAPONS ) then
@@ -725,26 +719,24 @@ function GM:PlayerInitialSpawn( ply )
 	end
 
 	-- Send initial player spawn to client
-	net.Start( "PlayerInitialSpawn" )
-		net.WriteBool( hl2cex_server_custom_playermodels:GetBool() )
-	net.Send( ply )
+	net.Start("PlayerInitialSpawn")
+	net.WriteBool(hl2ce_server_custom_playermodels:GetBool())
+	net.Send(ply)
 
 	-- Send current checkpoint position
-	if ( #checkpointPositions > 0 ) then
-	
-		net.Start( "SetCheckpointPosition" )
-			net.WriteVector( checkpointPositions[ 1 ] )
-		net.Send( ply )
-	
+	if (#checkpointPositions > 0) then
+		net.Start("SetCheckpointPosition")
+		net.WriteVector(checkpointPositions[1])
+		net.Send(ply)
 	end
 
 	-- Prompt players that they can spawn vehicles
-	if ( ALLOWED_VEHICLE ) then
-	
+	if ALLOWED_VEHICLE then
 		ply:ChatPrint( "Vehicle spawning is allowed! Press F3 (Spare 1) to spawn it." )
-	
 	end
 
+	self:LoadPlayer(ply)
+	self:NetworkString_UpdateStats(ply)
 end 
 
 
@@ -794,7 +786,7 @@ function GM:PlayerLoadout( ply )
 	end
 
 	-- Lastly give physgun to admins
-	if ( hl2cex_admin_physgun:GetBool() && ply:IsAdmin() ) then
+	if ( hl2ce_admin_physgun:GetBool() && ply:IsAdmin() ) then
 	
 		ply:Give( "weapon_physgun" )
 	
@@ -808,7 +800,7 @@ end
 -- Called when the player attempts to noclip
 function GM:PlayerNoClip( ply )
 
-	return ( ply:IsAdmin() && hl2cex_admin_noclip:GetBool() )
+	return ( ply:IsAdmin() && hl2ce_admin_noclip:GetBool() )
 
 end
 
@@ -839,7 +831,7 @@ hook.Add( "PlayerSelectSpawn", "hl2cPlayerSelectSpawn", hl2cPlayerSelectSpawn )
 function GM:PlayerSetModel( ply )
 
 	-- Stores the model as a variable part of the player
-	if ( !hl2cex_server_custom_playermodels:GetBool() && ply.info && ply.info.model ) then
+	if ( !hl2ce_server_custom_playermodels:GetBool() && ply.info && ply.info.model ) then
 	
 		ply.modelName = ply.info.model
 	
@@ -847,7 +839,7 @@ function GM:PlayerSetModel( ply )
 	
 		local modelName = player_manager.TranslatePlayerModel( ply:GetInfo( "cl_playermodel" ) )
 	
-		if ( hl2cex_server_custom_playermodels:GetBool() || ( modelName && table.HasValue( PLAYER_MODELS, string.lower( modelName ) ) ) ) then
+		if ( hl2ce_server_custom_playermodels:GetBool() || ( modelName && table.HasValue( PLAYER_MODELS, string.lower( modelName ) ) ) ) then
 		
 			ply.modelName = modelName
 		
@@ -859,7 +851,7 @@ function GM:PlayerSetModel( ply )
 	
 	end
 
-	if ( !hl2cex_server_custom_playermodels:GetBool() ) then
+	if ( !hl2ce_server_custom_playermodels:GetBool() ) then
 	
 		if ( ply:IsSuitEquipped() ) then
 		
@@ -879,7 +871,7 @@ function GM:PlayerSetModel( ply )
 	ply:SetupHands()
 
 	-- Skin, modelgroups and player color are primarily a custom playermodel thing
-	if ( hl2cex_server_custom_playermodels:GetBool() ) then
+	if ( hl2ce_server_custom_playermodels:GetBool() ) then
 	
 		ply:SetSkin( ply:GetInfoNum( "cl_playerskin", 0 ) )
 	
@@ -903,11 +895,10 @@ end
 
 
 -- Called when a player spawns 
-function GM:PlayerSpawn( ply )
-
+function GM:PlayerSpawn(ply)
 	player_manager.SetPlayerClass( ply, "player_default" )
 
-	if ( ( ( !hl2cex_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING ) && ( ply:Team() == TEAM_DEAD ) ) then
+	if ( ( ( !hl2ce_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING ) && ( ply:Team() == TEAM_DEAD ) ) then
 	
 		ply:Spectate( OBS_MODE_ROAMING )
 		ply:SetPos( ply.deathPos )
@@ -927,7 +918,7 @@ function GM:PlayerSpawn( ply )
 
 	-- Player statistics
 	ply:UnSpectate()
-	ply:ShouldDropWeapon( ( !hl2cex_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING )
+	ply:ShouldDropWeapon( ( !hl2ce_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING )
 	ply:AllowFlashlight( GetConVar( "mp_flashlight" ):GetBool() )
 	ply:SetCrouchedWalkSpeed( 0.3 )
 	hook.Call( "SetPlayerSpeed", GAMEMODE, ply, 190, 320 )
@@ -935,46 +926,38 @@ function GM:PlayerSpawn( ply )
 	hook.Call( "PlayerLoadout", GAMEMODE, ply )
 
 	-- Set stuff from last level
-	if ( ply.info ) then
-	
-		if ( ply.info.health > 0 ) then
-		
-			ply:SetHealth( ply.info.health )
-		
+	local maxhp = 100 + (3 * ply.StatVitality) -- calculate their max health
+	if ply.info then
+		if ply.info.health > 0 then
+			ply:SetHealth(ply.info.health)
 		end
 	
-		if ( ply.info.armor > 0 ) then
-		
-			ply:SetArmor( ply.info.armor )
-		
+		if ply.info.armor > 0 then
+			ply:SetArmor(ply.info.armor)
 		end
 	
-		ply:SetFrags( ply.info.score )
-		ply:SetDeaths( ply.info.deaths )
-	
+		ply:SetFrags(ply.info.score)
+		ply:SetDeaths(ply.info.deaths)
+	else
+		ply:SetHealth(maxhp)
 	end
+	ply:SetMaxHealth(maxhp)
 
 	-- Players should avoid players
-	ply:SetCustomCollisionCheck( !game.SinglePlayer() )
-	ply:SetAvoidPlayers( false )
-	ply:SetNoTarget( false )
+	ply:SetCustomCollisionCheck(!game.SinglePlayer())
+	ply:SetAvoidPlayers(false)
+	ply:SetNoTarget(false)
 
 	-- If the player died before, kill them again
-	if ( table.HasValue( deadPlayers, ply:SteamID() ) ) then
-	
-		ply:PrintMessage( HUD_PRINTTALK, "You cannot respawn now." )
-	
+	if table.HasValue(deadPlayers, ply:SteamID()) then
+		ply:PrintMessage(HUD_PRINTTALK, "You cannot respawn now.")
 		ply.deathPos = ply:EyePos()
 	
 		ply:RemoveVehicle()
-		ply:Flashlight( false )
-		ply:SetTeam( TEAM_DEAD )
-		ply:AddDeaths( 1 )
-	
+		ply:Flashlight(false)
+		ply:SetTeam(TEAM_DEAD)
 		ply:KillSilent()
-	
 	end
-
 end
 
 
@@ -1027,10 +1010,7 @@ end
 
 -- Called automatically and by the console command
 function GM:RestartMap()
-
-	if (changingLevel) then
-		return
-	end
+	if changingLevel then return end
 
 	changingLevel = true
 
@@ -1038,85 +1018,65 @@ function GM:RestartMap()
 	net.WriteFloat( CurTime() )
 	net.Broadcast()
 
-	for _, ply in pairs( player.GetAll() ) do
-		ply:SendLua( "GAMEMODE.ShowScoreboard = true" )
-	end
-
-	timer.Simple(RESTART_MAP_TIME + 0.5, function() game.ConsoleCommand( "changelevel "..game.GetMap().."\n" ) end )
+	timer.Simple(RESTART_MAP_TIME, function()
+		for k,v in pairs(player.GetAll()) do
+			self:SavePlayer(v)
+		end
+		PrintMessage(4, "Map restart in progress...")
+		timer.Simple(1, function() game.ConsoleCommand("changelevel "..game.GetMap().."\n") end)
+	end)
 
 end
-concommand.Add("hl2cex_restart_map", function( ply ) if ( IsValid( ply ) && ply:IsAdmin() ) then RESTART_MAP_TIME = 0; hook.Call( "RestartMap", GAMEMODE ); end end )
+concommand.Add("hl2ce_restart_map", function( ply ) if ( IsValid( ply ) && ply:IsAdmin() ) then RESTART_MAP_TIME = 0; hook.Call( "RestartMap", GAMEMODE ); end end )
 
 
 -- Called every time a player does damage to an npc
 function GM:ScaleNPCDamage( npc, hitGroup, dmgInfo )
-
+	local attacker = dmgInfo:GetAttacker()
 	-- Where are we hitting?
 	if ( hitGroup == HITGROUP_HEAD ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_npc_head" )
-	
 	elseif ( hitGroup == HITGROUP_CHEST ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_npc_chest" )
-	
 	elseif ( hitGroup == HITGROUP_STOMACH ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_npc_stomach" )
-	
 	elseif ( ( hitGroup == HITGROUP_LEFTARM ) || ( hitGroup == HITGROUP_RIGHTARM ) ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_npc_arm" )
-	
 	elseif ( ( hitGroup == HITGROUP_LEFTLEG ) || ( hitGroup == HITGROUP_RIGHTLEG ) ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_npc_leg" )
-	
 	else
-	
 		hitGroupScale = 1
-	
 	end
 
 	-- Calculate the damage
-	dmgInfo:ScaleDamage( hitGroupScale / difficulty )
-
+	if attacker:IsPlayer() then
+		dmgInfo:ScaleDamage((hitGroupScale * (1 + (0.01 * attacker.StatGunnery))) / self.difficulty)
+	elseif table.HasValue(FRIENDLY_NPCS, npc:GetClass()) then
+		dmgInfo:ScaleDamage(hitGroupScale * self.difficulty)
+	end
 end
 
 
 -- Scale the damage based on being shot in a hitbox 
 function GM:ScalePlayerDamage( ply, hitGroup, dmgInfo )
 
-	-- Where are we hitting?
+	-- Where are we even hitting?
 	if ( hitGroup == HITGROUP_HEAD ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_player_head" )
-	
 	elseif ( hitGroup == HITGROUP_CHEST ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_player_chest" )
-	
 	elseif ( hitGroup == HITGROUP_STOMACH ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_player_stomach" )
-	
 	elseif ( ( hitGroup == HITGROUP_LEFTARM ) || ( hitGroup == HITGROUP_RIGHTARM ) ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_player_arm" )
-	
 	elseif ( ( hitGroup == HITGROUP_LEFTLEG ) || ( hitGroup == HITGROUP_RIGHTLEG ) ) then
-	
 		hitGroupScale = GetConVarNumber( "sk_player_leg" )
-	
 	else
-	
 		hitGroupScale = 1
-	
 	end
 
 	-- Calculate the damage
-	dmgInfo:ScaleDamage( hitGroupScale * difficulty )
-
+	dmgInfo:ScaleDamage((hitGroupScale * (1 - (0.005 * ply.StatDefense))) * self.difficulty)
 end 
 
 
@@ -1203,32 +1163,24 @@ function GM:ShowSpare1( ply )
 		ply.vehicle:SetAngles( Angle( 0, plyAngle.y - 90, 0 ) )
 		ply.vehicle:Spawn()
 		ply.vehicle:Activate()
-		if ( ALLOWED_VEHICLE == "Jeep" ) then ply.vehicle:SetBodygroup( 1, 1 ) end
+		if ALLOWED_VEHICLE == "Jeep" then ply.vehicle:SetBodygroup( 1, 1 ) end
 		ply.vehicle.creator = ply
-	
 	end
-
 end
 
 
 -- Called when player wants to remove their vehicle
 function GM:ShowSpare2( ply )
-
-	if ( ( ply:Team() != TEAM_ALIVE ) || ply:InVehicle() ) then
-	
+	if ( ply:Team() != TEAM_ALIVE ) || ply:InVehicle() then
 		return
-	
 	end
 
-	if ( !ALLOWED_VEHICLE ) then
-	
+	if !ALLOWED_VEHICLE then
 		ply:PrintMessage( HUD_PRINTTALK, "You may not remove your vehicle at this time." )
 		return
-	
 	end
 
 	ply:RemoveVehicle()
-
 end
 
 
@@ -1236,36 +1188,34 @@ end
 function GM:Think()
 
 	-- Restart the map if all players are dead
-	if ( ( ( !hl2cex_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING ) && ( player.GetCount() > 0 ) && ( ( team.NumPlayers( TEAM_ALIVE ) + team.NumPlayers( TEAM_COMPLETED_MAP ) ) <= 0 ) ) then
-	
-		hook.Call( "RestartMap", GAMEMODE )
-	
+	if ( ( ( !hl2ce_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING ) || OVERRIDE_PLAYER_RESPAWNING ) && ( player.GetCount() > 0 ) && ( ( team.NumPlayers( TEAM_ALIVE ) + team.NumPlayers( TEAM_COMPLETED_MAP ) ) <= 0 ) ) then
+		if !changingLevel then
+			PrintMessage(HUD_PRINTTALK, "All players have died!")
+			hook.Call("RestartMap", GAMEMODE)
+		end
 	end
 
 	-- Change the difficulty according to number of players
-	if ( hl2cex_server_dynamic_skill_level:GetBool() && ( player.GetCount() > 0 ) && ( updateDifficulty < CurTime() ) ) then
-	
-		difficulty = math.Clamp( (player.GetCount() / 3.5), DIFFICULTY_RANGE[ 1 ], DIFFICULTY_RANGE[ 2 ] )
-		game.ConsoleCommand( "skill "..math.floor( difficulty ).."\n" )
-	
+	if ( player.GetCount() > 0 ) && ( updateDifficulty < CurTime() ) then
+		if hl2ce_server_dynamic_skill_level:GetBool() then
+			self.difficulty = math.Clamp((0.55 + (player.GetCount() / 4.7)), DIFFICULTY_RANGE[1], DIFFICULTY_RANGE[2])
+			game.ConsoleCommand("skill "..math.floor( self.difficulty ).."\n")
+		end
+
+		net.Start("updateDifficulty")
+		net.WriteFloat(self.difficulty)
+		net.Broadcast()
 		-- Do not update all the time
 		updateDifficulty = CurTime() + 1
-	
 	end
 
 	-- Open area portals
-	if ( nextAreaOpenTime <= CurTime() ) then
-	
+	if nextAreaOpenTime <= CurTime() then
 		for _, fap in pairs( ents.FindByClass( "func_areaportal" ) ) do
-		
 			fap:Fire( "Open" )
-		
 		end
-	
 		nextAreaOpenTime = CurTime() + 1
-	
 	end
-
 end
 
 
@@ -1283,26 +1233,17 @@ end
 
 -- Tell the game to update the player's playermodel
 local function UpdatePlayerModel( len, ply )
-
-	if ( IsValid( ply ) && ( ply:Team() == TEAM_ALIVE ) ) then
-	
-		hook.Call( "PlayerSetModel", GAMEMODE, ply )
-	
+	if IsValid(ply) && ply:Team() == TEAM_ALIVE then
+		hook.Call("PlayerSetModel", GAMEMODE, ply)
 	end
-
 end
-net.Receive( "UpdatePlayerModel", UpdatePlayerModel )
-
+net.Receive("UpdatePlayerModel", UpdatePlayerModel)
 
 -- Dynamic skill level console variable was changed
-local function DynamicSkillToggleCallback( name, old, new )
-
-	if ( !hl2cex_server_dynamic_skill_level:GetBool() ) then
-	
-		difficulty = DIFFICULTY_RANGE[ 1 ]
-		game.ConsoleCommand( "skill "..math.Round( difficulty ).."\n" )
-	
+local function DynamicSkillToggleCallback(name, old, new)
+	if ( !hl2ce_server_dynamic_skill_level:GetBool() ) then
+		GAMEMODE.difficulty = DIFFICULTY_RANGE[ 1 ]
+		game.ConsoleCommand( "skill "..math.Round( GAMEMODE.difficulty ).."\n" )
 	end
-
 end
-cvars.AddChangeCallback( "hl2cex_server_dynamic_skill_level", DynamicSkillToggleCallback, "DynamicSkillToggleCallback" )
+cvars.AddChangeCallback("hl2ce_server_dynamic_skill_level", DynamicSkillToggleCallback, "DynamicSkillToggleCallback")

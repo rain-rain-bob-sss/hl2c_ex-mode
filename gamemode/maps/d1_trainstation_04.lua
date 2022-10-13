@@ -1,4 +1,5 @@
 NEXT_MAP = "d1_trainstation_05"
+GM.XP_REWARD_ON_MAP_COMPLETION = 0
 
 TRIGGER_CHECKPOINT = {
 	{ Vector( -7075, -4259, 539 ), Vector( -6873, -4241, 649 ) },
