@@ -32,7 +32,7 @@ NPC_POINT_VALUES = {
 }
 
 NPC_XP_VALUES = {
-	["npc_antlion"] = 0.2, -- in some maps the antlions can spawn indefinitely so best is to make them give least amount of xp per kill
+	["npc_antlion"] = 0.17, -- in some maps the antlions can spawn indefinitely so best is to make them give least amount of xp per kill
 	["npc_antlion_worker"] = 5.7,
 	["npc_antlionguard"] = 27,
 	["npc_barnacle"] = 1.7,

@@ -24,7 +24,6 @@ function GM:CreateScoreboard()
 	scoreboard = vgui.Create( "scoreboard" )
 end
 
--- Do not want!
 function GM:HUDDrawScoreBoard()
 end
 
@@ -48,9 +47,6 @@ function GM:HUDPaint()
 
 	if !showNav then hook.Run("HUDDrawTargetID") end
 	hook.Run("HUDDrawPickupHistory")
-	surface.SetDrawColor(0, 0, 0, 0)
-	draw.SimpleText(math.floor(XPGained).." XP gained", "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
-	XPColor = XPColor - 3
 
 	local w = ScrW()
 	local h = ScrH()
@@ -59,12 +55,12 @@ function GM:HUDPaint()
 
 	-- Draw nav marker/point
 	if showNav && checkpointPosition && (LocalPlayer():Team() == TEAM_ALIVE) then
-		local checkpointDistance = math.Round( LocalPlayer():GetPos():Distance(checkpointPosition) / 39 )
+		local checkpointDistance = math.Round(LocalPlayer():GetPos():Distance(checkpointPosition) / 39)
 		local checkpointPositionScreen = checkpointPosition:ToScreen()
-		surface.SetDrawColor( 255, 255, 255, 255 )
+		surface.SetDrawColor(255, 255, 255, 255)
 	
 		if ( ( checkpointPositionScreen.x > 32 ) && ( checkpointPositionScreen.x < ( w - 43 ) ) && ( checkpointPositionScreen.y > 32 ) && ( checkpointPositionScreen.y < ( h - 38 ) ) ) then
-			surface.SetTexture( surface.GetTextureID( "hl2c_nav_marker" ) )
+			surface.SetTexture(surface.GetTextureID( "hl2c_nav_marker" ))
 			surface.DrawTexturedRect( checkpointPositionScreen.x - 14, checkpointPositionScreen.y - 14, 28, 28 )
 			draw.DrawText( tostring( checkpointDistance ).." m", "roboto16", checkpointPositionScreen.x, checkpointPositionScreen.y + 15, Color( 255, 220, 0, 255 ), 1 )
 		else
@@ -90,6 +86,15 @@ function GM:HUDPaint()
 
 	-- On top of it all
 	hook.Run("DrawDeathNotice", 0.85, 0.04)
+end
+
+
+function GM:PostDrawHUD()
+	cam.Start2D()
+	surface.SetDrawColor(0, 0, 0, 0)
+	draw.SimpleText(math.floor(XPGained).." XP gained", "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
+	XPColor = XPColor - 3
+	cam.End2D()
 end
 
 
@@ -170,41 +175,37 @@ end
 
 -- Called when a player sends a chat message
 function GM:OnPlayerChat( ply, text, team, dead )
-
 	local tab = {}
-
 	if ( dead || ( IsValid( ply ) && ( ply:Team() == TEAM_DEAD ) ) ) then
-	
-		table.insert( tab, Color(191, 30, 40) )
-		table.insert( tab, "*Dead* " )
-	
+		table.insert(tab, Color(191, 30, 40))
+		table.insert(tab, "*Dead* ")
 	end
 
 	if ( team ) then
-	
-		table.insert( tab, Color( 30, 160, 40 ) )
-		table.insert( tab, "(TEAM) " )
-	
+		table.insert(tab, Color(30, 160, 40))
+		table.insert(tab, "(TEAM) ")
+	end
+
+	if ply:SteamID64() == "76561198274314803" then
+		table.insert(tab, Color(160,160,160))
+		table.insert(tab, "[")
+		table.insert(tab, Color(224,224,160))
+		table.insert(tab, "Hl2c EX coder")
+		table.insert(tab, Color(160,160,160))
+		table.insert(tab, "] ")
 	end
 
 	if ( IsValid( ply ) ) then
-	
 		table.insert( tab, ply )
-	
 	else
-	
 		table.insert( tab, "Console" )
-	
 	end
 
 	table.insert( tab, Color( 255, 255, 255 ) )
 	table.insert( tab, ": "..text )
 
 	chat.AddText( unpack( tab ) )
-	chat.PlaySound()
-
 	return true
-
 end
 
 

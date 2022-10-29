@@ -248,7 +248,6 @@ function GM:GrabAndSwitch()
 
 	-- Store player information
 	for _, ply in pairs( player.GetAll() ) do
-	
 		local plyInfo = {}
 		local plyWeapons = ply:GetWeapons()
 	
@@ -259,22 +258,16 @@ function GM:GrabAndSwitch()
 		plyInfo.deaths = ply:Deaths()
 		plyInfo.model = ply.modelName
 		if ( IsValid( ply:GetActiveWeapon() ) ) then plyInfo.weapon = ply:GetActiveWeapon():GetClass(); end
-	
 		if ( plyWeapons && #plyWeapons > 0 ) then
-		
 			plyInfo.loadout = {}
-		
 			for _, wep in pairs( plyWeapons ) do
-			
 				plyInfo.loadout[ wep:GetClass() ] = {
 					wep:Clip1(),
 					wep:Clip2(),
 					ply:GetAmmoCount( wep:GetPrimaryAmmoType() ),
 					ply:GetAmmoCount( wep:GetSecondaryAmmoType() )
 				}
-			
 			end
-		
 		end
 	
 		local plyID = ply:SteamID64() || ply:UniqueID()
@@ -554,16 +547,30 @@ function GM:NextMap()
 		self:GrabAndSwitch()
 	end)
 end
-concommand.Add( "hl2ce_next_map", function( ply ) if ( IsValid( ply ) && ply:IsAdmin() ) then NEXT_MAP_TIME = 0; hook.Call( "NextMap", GAMEMODE ); end end )
-
+concommand.Add("hl2ce_next_map", function(ply) if ( IsValid( ply ) && ply:IsAdmin() ) then NEXT_MAP_TIME = 0; hook.Call("NextMap", GAMEMODE); else ply:PrintMessage(HUD_PRINTTALK, "You are not admin!") end end )
+concommand.Add("hl2ce_admin_respawn", function(ply)
+	if IsValid(ply) && !ply:Alive() && ply:IsAdmin() && table.HasValue(deadPlayers, ply:SteamID()) && !changingLevel then
+		table.RemoveByValue(deadPlayers, ply:SteamID())
+		ply:SetTeam(TEAM_ALIVE)
+		timer.Simple(0, function()
+			ply:Spawn()
+		end)
+		print(ply:Nick().." used respawn command!")
+	else
+		if !ply:IsAdmin() then
+			ply:PrintMessage(HUD_PRINTTALK, "You are not admin!")
+		elseif ply:Alive() || !table.HasValue(deadPlayers, ply:SteamID()) then
+			ply:PrintMessage(HUD_PRINTTALK, "You are not dead!")
+		elseif changingLevel then
+			ply:PrintMessage(HUD_PRINTTALK, "Map is currenlty being changed, you can't respawn at this time!")
+		end
+	end
+end)
 
 -- Called when an NPC dies
 function GM:OnNPCKilled( npc, killer, weapon )
-
 	if ( IsValid( killer ) && killer:IsVehicle() && IsValid( killer:GetDriver() ) && killer:GetDriver():IsPlayer() ) then
-	
 		killer = killer:GetDriver()
-	
 	end
 
 	-- If the killer is a player then decide what to do with their points
@@ -647,8 +654,8 @@ function GM:PlayerCanPickupWeapon( ply, wep )
 		end
 	end
 
-	if wep:GetClass() == "weapon_hl2ce_medkit" then
-		ply:PrintMessage(HUD_PRINTTALK, "Please type in console 'use weapon_hl2ce_medkit' if you want to equip medkit weapon, if you have one. (i'm so sorry about that)")
+	if (wep.Slot or 0) > 5 then
+		ply:PrintMessage(HUD_PRINTCONSOLE, "Please type in console 'use "..wep:GetClass().."' if you want to equip that weapon if you have one. (sorry about that)")
 	end
 	return true
 end
@@ -658,9 +665,7 @@ end
 function GM:PlayerCanPickupItem( ply, item )
 
 	if ( ply:Team() != TEAM_ALIVE ) then
-	
 		return false
-	
 	end
 
 	return true

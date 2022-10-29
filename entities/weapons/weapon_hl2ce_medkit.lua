@@ -7,7 +7,7 @@ SWEP.Author = "Uklejamini"
 SWEP.Purpose = "Heal people with your primary attack, or yourself with the secondary."
 SWEP.Instructions = "Effectiveness is increased by 2% per Medical skill point, max efficiency 120%. Remember, healing other players will give you 1/4 of health you heal!"
 
-SWEP.Slot = 6
+SWEP.Slot = 5
 SWEP.SlotPos = 4
 
 SWEP.Spawnable = true
