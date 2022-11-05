@@ -26,7 +26,7 @@ end
 -- Called when an entity touches me :D
 function ENT:StartTouch( ent )
 
-	if ( IsValid( ent ) && ent:IsPlayer() && ( ent:Team() == TEAM_ALIVE ) && ent:GetMoveType() != MOVETYPE_NOCLIP ) then
+	if ( IsValid( ent ) && ent:IsPlayer() && ( ent:Team() == TEAM_ALIVE ) && (ent:GetMoveType() != MOVETYPE_NOCLIP || ent:InVehicle())) then
 	
 		ent:SetTeam( TEAM_COMPLETED_MAP )
 	

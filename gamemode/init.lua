@@ -549,7 +549,7 @@ function GM:NextMap()
 end
 concommand.Add("hl2ce_next_map", function(ply) if ( IsValid( ply ) && ply:IsAdmin() ) then NEXT_MAP_TIME = 0; hook.Call("NextMap", GAMEMODE); else ply:PrintMessage(HUD_PRINTTALK, "You are not admin!") end end )
 concommand.Add("hl2ce_admin_respawn", function(ply)
-	if IsValid(ply) && !ply:Alive() && ply:IsAdmin() && table.HasValue(deadPlayers, ply:SteamID()) && !changingLevel then
+	if IsValid(ply) && ply:IsAdmin() && (!ply:Alive() || table.HasValue(deadPlayers, ply:SteamID())) && !changingLevel then
 		table.RemoveByValue(deadPlayers, ply:SteamID())
 		ply:SetTeam(TEAM_ALIVE)
 		timer.Simple(0, function()
@@ -804,9 +804,11 @@ end
 
 -- Called when the player attempts to noclip
 function GM:PlayerNoClip( ply )
-
-	return ( ply:IsAdmin() && hl2ce_admin_noclip:GetBool() )
-
+	if !ply:Alive() then
+		ply:PrintMessage(HUD_PRINTTALK, "You can't noclip when you are dead, can't you see?!")
+		return false
+	end
+	return ply:IsAdmin() && hl2ce_admin_noclip:GetBool()
 end
 
 
@@ -968,23 +970,17 @@ end
 
 -- Called when a player uses their flashlight
 function GM:PlayerSwitchFlashlight( ply, on )
-
 	-- Dead players cannot use it
-	if ( ( ply:Team() != TEAM_ALIVE ) && on ) then
-	
+	if ply:Team() != TEAM_ALIVE && on then
 		return false
-	
 	end
 
 	-- Handle flashlight with AUX
-	if ( ( ply:GetSuitPower() < 10 ) && on ) then
-	
+	if ply:GetSuitPower() < 10 && on then
 		return false
-	
 	end
 
-	return ( ply:IsSuitEquipped() && ply:CanUseFlashlight() )
-
+	return ply:IsSuitEquipped() && ply:CanUseFlashlight()
 end
 
 
@@ -1107,41 +1103,31 @@ end
 function GM:ShowSpare1( ply )
 
 	if ( ( ply:Team() != TEAM_ALIVE ) || ply:InVehicle() ) then
-	
 		return
-	
 	end
 
 	if ( !ALLOWED_VEHICLE ) then
-	
 		ply:PrintMessage( HUD_PRINTTALK, "You may not spawn a vehicle at this time." )
 		return
-	
 	end
 
 	for _, ent in pairs( ents.FindInSphere( ply:GetPos(), 256 ) ) do
-	
 		if ( IsValid( ent ) && ent:IsPlayer() && ( ent != ply ) ) then
-		
 			ply:PrintMessage( HUD_PRINTTALK, "There are players around you! Find an open space to spawn your vehicle." )
 			return
-		
 		end
-	
 	end
 
 	ply:RemoveVehicle()
 
 	-- Spawn the vehicle
-	if ( ALLOWED_VEHICLE ) then
+	if ALLOWED_VEHICLE then
 	
 		local vehicleList = list.Get( "Vehicles" )
 		local vehicle = vehicleList[ ALLOWED_VEHICLE ]
 	
-		if ( !vehicle ) then
-		
+		if !vehicle then
 			return
-		
 		end
 	
 		-- Create the new entity
@@ -1150,21 +1136,17 @@ function GM:ShowSpare1( ply )
 	
 		-- Set keyvalues
 		for a, b in pairs( vehicle.KeyValues ) do
-		
 			ply.vehicle:SetKeyValue( a, b )
-		
 		end
 	
 		-- Enable gun on jeep
-		if ( ALLOWED_VEHICLE == "Jeep" ) then
-		
+		if ALLOWED_VEHICLE == "Jeep" then
 			ply.vehicle:Fire( "EnableGun", "1" )
-		
 		end
 	
 		-- Set pos/angle and spawn
 		local plyAngle = ply:EyeAngles()
-		ply.vehicle:SetPos( ply:GetPos() + Vector( 0, 0, 48 ) + plyAngle:Forward() * 128 )
+		ply.vehicle:SetPos( ply:GetPos() + Vector( 0, 0, 48 ) + plyAngle:Forward() * 160 )
 		ply.vehicle:SetAngles( Angle( 0, plyAngle.y - 90, 0 ) )
 		ply.vehicle:Spawn()
 		ply.vehicle:Activate()

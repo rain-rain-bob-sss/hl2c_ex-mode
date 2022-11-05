@@ -33,7 +33,19 @@ hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 function hl2cEX_PlayerInitialSpawn(ply)
 	if !GAMEMODE.EXMode then return end
-	ply:PrintMessage(HUD_PRINTTALK, "Gimnick of the map: Don't take any damage. Beware.")
+	timer.Simple(2, function()
+		if !ply:IsValid() then return end
+		ply:PrintMessage(HUD_PRINTTALK, "Gimnick of the map: Don't take any damage. Beware.")
+		timer.Simple(3, function()
+			if !ply:IsValid() then return end
+			ply:PrintMessage(HUD_PRINTTALK, "Chapter 12")
+			timer.Simple(2.5, function()
+				if !ply:IsValid() then return end
+				ply:PrintMessage(HUD_PRINTTALK, "???????")
+			end)
+		end)
+	end)
+
 end
 hook.Add("PlayerInitialSpawn", "hl2cEX_InitialSpawn", hl2cEX_PlayerInitialSpawn)
 
