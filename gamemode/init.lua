@@ -7,6 +7,7 @@ AddCSLuaFile("cl_scoreboard_playerlist.lua")
 AddCSLuaFile("cl_scoreboard_playerrow.lua")
 AddCSLuaFile("cl_viewmodel.lua")
 AddCSLuaFile("cl_net.lua")
+AddCSLuaFile("cl_options.lua")
 AddCSLuaFile("sh_config.lua")
 AddCSLuaFile("sh_globals.lua")
 AddCSLuaFile("sh_init.lua")
@@ -1234,3 +1235,10 @@ local function DynamicSkillToggleCallback(name, old, new)
 	end
 end
 cvars.AddChangeCallback("hl2ce_server_dynamic_skill_level", DynamicSkillToggleCallback, "DynamicSkillToggleCallback")
+
+hook.Add("OnDamagedByExplosion", "HL2CE_NoEarringing", function(ply)
+	if ply:GetInfoNum("hl2ce_cl_noearringing", 0) >= 1 then
+		return true
+	end
+end)
+

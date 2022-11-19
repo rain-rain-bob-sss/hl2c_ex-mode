@@ -28,7 +28,7 @@ end
 -- Called when an entity touches it
 function ENT:StartTouch( ent )
 
-	if ( IsValid( ent ) && ent:IsPlayer() && ( ent:Team() == TEAM_ALIVE ) && !self.triggered ) then
+	if IsValid(ent) && ent:IsPlayer() && ( ent:Team() == TEAM_ALIVE ) && !self.triggered && (ent:GetMoveType() != MOVETYPE_NOCLIP || ent:InVehicle()) then
 	
 		-- Checkpoint was triggered
 		self.triggered = true

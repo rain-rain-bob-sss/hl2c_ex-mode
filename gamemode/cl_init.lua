@@ -6,6 +6,9 @@ include("cl_playermodels.lua")
 include("cl_scoreboard.lua")
 include("cl_viewmodel.lua")
 include("cl_net.lua")
+include("cl_options.lua")
+
+CreateClientConVar("hl2ce_cl_noearringing", 0, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 
 timeleft = timeleft or 0
 
@@ -33,6 +36,43 @@ net.Receive("ObjectiveTimer", function(length)
 	timeleft = net1
 end)
 
+function EasyLabel(parent, text, font, textcolor)
+	local dpanel = vgui.Create("DLabel", parent)
+	if font then
+		dpanel:SetFont(font or "DefaultFont")
+	end
+	dpanel:SetText(text)
+	dpanel:SizeToContents()
+	if textcolor then
+		dpanel:SetTextColor(textcolor)
+	end
+	dpanel:SetKeyboardInputEnabled(false)
+	dpanel:SetMouseInputEnabled(false)
+
+	return dpanel
+end
+
+function EasyButton(parent, text, xpadding, ypadding)
+	local dpanel = vgui.Create("DButton", parent)
+	if textcolor then
+		dpanel:SetFGColor(textcolor or color_white)
+	end
+	if text then
+		dpanel:SetText(text)
+	end
+	dpanel:SizeToContents()
+
+	if xpadding then
+		dpanel:SetWide(dpanel:GetWide() + xpadding * 2)
+	end
+
+	if ypadding then
+		dpanel:SetTall(dpanel:GetTall() + ypadding * 2)
+	end
+
+	return dpanel
+end
+
 
 -- Called every frame to draw the hud
 function GM:HUDPaint()
@@ -40,7 +80,6 @@ function GM:HUDPaint()
 	local timeleftmin = math.floor(timeleft / 60)
 	local timeleftsec = timeleft - (timeleftmin * 60)
 
-	draw.SimpleText("Half-Life 2 Campaign: EX Mode "..GAMEMODE.Version, "TargetIDSmall", 5, 5, Color(255,255,192,255))
 	if timeleft != nil and timeleft > 0 then
 		draw.SimpleText(timeleftsec <= 0 and "Objective: Complete the map within "..timeleftmin.." minutes! (Time left: "..math.floor(timeleft - CurTime()).."s)" or "Objective: Complete the map within "..timeleftmin.." minutes and "..timeleftsec.." seconds! (Time left: "..math.floor(timeleft - CurTime()).."s)", "TargetIDSmall", 5, 22, Color(255,255,192,255))
 	end
@@ -91,8 +130,9 @@ end
 
 function GM:PostDrawHUD()
 	cam.Start2D()
+	draw.SimpleText("Half-Life 2 Campaign: EX Mode "..GAMEMODE.Version, "TargetIDSmall", 5, 5, Color(255,255,192,255))
 	surface.SetDrawColor(0, 0, 0, 0)
-	draw.SimpleText(math.floor(XPGained).." XP gained", "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
+	draw.SimpleText(math.floor(XPGained * 100) / 100 .." XP gained", "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
 	XPColor = XPColor - 3
 	cam.End2D()
 end
@@ -276,9 +316,10 @@ function ShowHelp(len)
 		helpMenu:Remove()
 	end
 	helpButton3:SetPos(210,helpPanel:GetTall() - 35)
-	helpButton3:SetText("????")
+	helpButton3:SetText("Options")
 	helpButton3.DoClick = function()
-		chat.AddText("IN PROGRESS")
+		gamemode.Call("MakeOptions")
+		helpMenu:Remove()
 	end
 	
 	
