@@ -36,10 +36,10 @@ local DenySound = Sound( "WallHealth.Deny" )
 function SWEP:Initialize()
 	self:SetHoldType( "slam" )
 
-	if (CLIENT) then return end
+	if CLIENT then return end
 
 	timer.Create("hl2ce_medkit_ammo"..self:EntIndex(), 2, 0, function()
-		if IsValid(self) && (self:Clip1() < self.MaxAmmo) then self:SetClip1( math.min( self:Clip1() + 1, self.MaxAmmo ) ) end
+		if IsValid(self) && (self:Clip1() < self.MaxAmmo) then self:SetClip1(math.min(self:Clip1() + 1, self.MaxAmmo)) end
 	end)
 end
 

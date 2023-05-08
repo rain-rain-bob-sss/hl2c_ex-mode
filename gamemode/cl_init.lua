@@ -277,6 +277,11 @@ net.Receive("PlayerInitialSpawn", PlayerInitialSpawn)
 -- Called when restarting maps
 function RestartMap(len)
 	restartMapCountdownStart = net.ReadFloat()
+
+	if GetGlobalString("losemusic") then
+		local sound = CreateSound(LocalPlayer(), GetGlobalString("losemusic", ""))
+		sound:Play()
+	end
 end
 net.Receive("RestartMap", RestartMap)
 

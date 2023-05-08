@@ -38,10 +38,11 @@ function ENT:StartTouch( ent )
 		
 		end
 	
-		-- Freeze them and make sure they don't push people away
+		-- Freeze them and make sure they don't push people away (and also so they don't get targeted by NPC's)
 		ent:Lock()
-		ent:SetMoveType( 0 )
-		ent:SetAvoidPlayers( false )
+		ent:SetMoveType(MOVETYPE_NONE)
+		ent:SetAvoidPlayers(false)
+		ent:SetNoTarget(true)
 	
 		-- Start the nextmap countdown
 		if ( !changingLevel ) then GAMEMODE:NextMap() end

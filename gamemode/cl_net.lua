@@ -47,5 +47,5 @@ net.Receive("XPGain", function(length)
 	local xp = net.ReadFloat()
 
 	XPGained = xp
-	if XPGained != 0 then XPColor = 255 end
+	if XPGained != 0 then XPColor = 300 end
 end)

@@ -4,22 +4,22 @@ include("sh_globals.lua")
 include("sh_player.lua")
 
 -- Create console variables to make these config vars easier to access
-local hl2ce_admin_physgun = CreateConVar( "hl2ce_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY )
-local hl2ce_admin_noclip = CreateConVar( "hl2ce_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY )
-local hl2ce_server_force_gamerules = CreateConVar( "hl2ce_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2ce_server_custom_playermodels = CreateConVar( "hl2ce_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2ce_server_checkpoint_respawn = CreateConVar( "hl2ce_server_checkpoint_respawn", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2ce_server_dynamic_skill_level = CreateConVar( "hl2ce_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2ce_server_lag_compensation = CreateConVar( "hl2ce_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2ce_server_player_respawning = CreateConVar( "hl2ce_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2ce_server_jeep_passenger_seat = CreateConVar( "hl2ce_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
-local hl2ce_server_ex_mode_enabled = CreateConVar( "hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE } )
+local hl2ce_admin_physgun = CreateConVar("hl2ce_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY)
+local hl2ce_admin_noclip = CreateConVar("hl2ce_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY)
+local hl2ce_server_force_gamerules = CreateConVar("hl2ce_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_server_custom_playermodels = CreateConVar("hl2ce_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_server_checkpoint_respawn = CreateConVar("hl2ce_server_checkpoint_respawn", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_server_dynamic_skill_level = CreateConVar("hl2ce_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_server_lag_compensation = CreateConVar("hl2ce_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_server_player_respawning = CreateConVar("hl2ce_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_server_jeep_passenger_seat = CreateConVar("hl2ce_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 
 -- General gamemode information
 GM.Name = "Half-Life 2 Campaign: EX Mode"
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.3"
+GM.Version = "0.7.3a"
 
 
 -- Constants
@@ -72,9 +72,9 @@ function GM:GetReqXP(ply)
 end
 
 -- Called when a gravity gun is attempting to punt something
-function GM:GravGunPunt( ply, ent ) 
+function GM:GravGunPunt(ply, ent) 
 
-	if ( IsValid( ent ) && ent:IsVehicle() && ( ent != ply.vehicle ) && IsValid( ent.creator ) ) then
+	if (IsValid(ent) && ent:IsVehicle() && (ent != ply.vehicle) && IsValid(ent.creator)) then
 	
 		return false
 	
@@ -86,9 +86,9 @@ end
 
 
 -- Called when a physgun tries to pick something up
-function GM:PhysgunPickup( ply, ent )
+function GM:PhysgunPickup(ply, ent)
 
-	if ( string.find( ent:GetClass(), "trigger_" ) || ( ent:GetClass() == "player" ) ) then
+	if (string.find(ent:GetClass(), "trigger_") || (ent:GetClass() == "player")) then
 	
 		return false
 	
@@ -100,17 +100,17 @@ end
 
 
 -- Player input changes
-function GM:StartCommand( ply, ucmd )
+function GM:StartCommand(ply, ucmd)
 
-	if ( ucmd:KeyDown( IN_SPEED ) && IsValid( ply ) && !ply:IsSuitEquipped() ) then
+	if (ucmd:KeyDown(IN_SPEED) && IsValid(ply) && !ply:IsSuitEquipped()) then
 	
-		ucmd:RemoveKey( IN_SPEED )
+		ucmd:RemoveKey(IN_SPEED)
 	
 	end
 
-	if ( ucmd:KeyDown( IN_WALK ) && IsValid( ply ) && !ply:IsSuitEquipped() ) then
+	if (ucmd:KeyDown(IN_WALK) && IsValid(ply) && !ply:IsSuitEquipped()) then
 	
-		ucmd:RemoveKey( IN_WALK )
+		ucmd:RemoveKey(IN_WALK)
 	
 	end
 
@@ -118,17 +118,17 @@ end
 
 
 -- Players should never collide with each other or NPC's
-function GM:ShouldCollide( entA, entB )
+function GM:ShouldCollide(entA, entB)
 
 	-- Player and NPCs
-	if ( IsValid( entA ) && IsValid( entB ) && ( ( entA:IsPlayer() && ( entB:IsPlayer() || table.HasValue( GODLIKE_NPCS, entB:GetClass() ) || table.HasValue( FRIENDLY_NPCS, entB:GetClass() ) ) ) || ( entB:IsPlayer() && ( entA:IsPlayer() || table.HasValue( GODLIKE_NPCS, entA:GetClass() ) || table.HasValue( FRIENDLY_NPCS, entA:GetClass() ) ) ) ) ) then
+	if (IsValid(entA) && IsValid(entB) && ((entA:IsPlayer() && (entB:IsPlayer() || table.HasValue(GODLIKE_NPCS, entB:GetClass()) || table.HasValue(FRIENDLY_NPCS, entB:GetClass()))) || (entB:IsPlayer() && (entA:IsPlayer() || table.HasValue(GODLIKE_NPCS, entA:GetClass()) || table.HasValue(FRIENDLY_NPCS, entA:GetClass()))))) then
 	
 		return false
 	
 	end
 
 	-- Passenger seating
-	if ( IsValid( entA ) && IsValid( entB ) && ( ( entA:IsPlayer() && entA:InVehicle() && entA:GetAllowWeaponsInVehicle() && entB:IsVehicle() ) || ( entB:IsPlayer() && entB:InVehicle() && entB:GetAllowWeaponsInVehicle() && entA:IsVehicle() ) ) ) then
+	if (IsValid(entA) && IsValid(entB) && ((entA:IsPlayer() && entA:InVehicle() && entA:GetAllowWeaponsInVehicle() && entB:IsVehicle()) || (entB:IsPlayer() && entB:InVehicle() && entB:GetAllowWeaponsInVehicle() && entA:IsVehicle()))) then
 	
 		return false
 	
@@ -140,16 +140,12 @@ end
 
 
 -- Called when a player is being attacked
-function GM:PlayerShouldTakeDamage( ply, attacker )
-
-	if ( ( ply:Team() != TEAM_ALIVE ) || !ply.vulnerable || ( attacker:IsPlayer() && ( attacker != ply ) ) || ( attacker:IsVehicle() && IsValid( attacker:GetDriver() ) && attacker:GetDriver():IsPlayer() ) || table.HasValue( GODLIKE_NPCS, attacker:GetClass() ) || table.HasValue( FRIENDLY_NPCS, attacker:GetClass() ) ) then
-	
+function GM:PlayerShouldTakeDamage(ply, attacker)
+	if ((ply:Team() != TEAM_ALIVE) || !ply.vulnerable || (attacker:IsPlayer() && (attacker != ply)) || (attacker:IsVehicle() && IsValid(attacker:GetDriver()) && attacker:GetDriver():IsPlayer()) || table.HasValue(GODLIKE_NPCS, attacker:GetClass()) || table.HasValue(FRIENDLY_NPCS, attacker:GetClass())) then	
 		return false
-	
 	end
 
 	return true
-
 end
 
 
@@ -188,13 +184,13 @@ end
 
 
 -- Called after the player's think
-function GM:PlayerPostThink( ply )
+function GM:PlayerPostThink(ply)
 	-- Manage server data on the player
 	if SERVER then
-		if IsValid(ply) && ply:Alive() && ( ply:Team() == TEAM_ALIVE ) then
+		if IsValid(ply) && ply:Alive() && (ply:Team() == TEAM_ALIVE) then
 			-- Give them weapons they don't have
 			for _, ply2 in ipairs(player.GetAll()) do
-				if (ply != ply2) && ply2:Alive() && !ply:InVehicle() && !ply2:InVehicle() && IsValid(ply2:GetActiveWeapon()) && !ply:HasWeapon( ply2:GetActiveWeapon():GetClass() ) && !table.HasValue( ply.givenWeapons, ply2:GetActiveWeapon():GetClass() ) && ( ply2:GetActiveWeapon():GetClass() != "weapon_physgun" and WHITELISTED_WEAPONS[ply2:GetActiveWeapon():GetClass()] ) then
+				if (ply != ply2) && ply2:Alive() && !ply:InVehicle() && !ply2:InVehicle() && IsValid(ply2:GetActiveWeapon()) && !ply:HasWeapon(ply2:GetActiveWeapon():GetClass()) && !table.HasValue(ply.givenWeapons, ply2:GetActiveWeapon():GetClass()) && (ply2:GetActiveWeapon():GetClass() != "weapon_physgun" and WHITELISTED_WEAPONS[ply2:GetActiveWeapon():GetClass()]) then
 					ply:Give(ply2:GetActiveWeapon():GetClass())
 					table.insert(ply.givenWeapons, ply2:GetActiveWeapon():GetClass())
 				end
