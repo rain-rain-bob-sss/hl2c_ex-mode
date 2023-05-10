@@ -7,6 +7,7 @@ TRIGGER_CHECKPOINT = {
 
 TRAINSTATION_REMOVESUIT = true
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

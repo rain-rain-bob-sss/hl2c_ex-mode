@@ -4,6 +4,7 @@ NEXT_MAP = "d1_eli_01"
 
 TRIGGER_DELAYMAPLOAD = { Vector( -762, -3866, -392 ), Vector( -518, -3845, -231 ) }
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

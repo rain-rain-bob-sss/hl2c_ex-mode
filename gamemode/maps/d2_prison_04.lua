@@ -1,5 +1,6 @@
 NEXT_MAP = "d2_prison_05"
 
+if CLIENT then return end
 
 -- Player initial spawn
 function hl2cPlayerInitialSpawn( ply )

@@ -4,6 +4,7 @@ INFO_PLAYER_SPAWN = { Vector( 7512, -11398, -438 ), 0 }
 
 NEXT_MAP = "d1_canals_09"
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

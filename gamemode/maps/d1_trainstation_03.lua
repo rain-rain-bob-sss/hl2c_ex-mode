@@ -7,6 +7,7 @@ TRIGGER_CHECKPOINT = {
 
 OVERRIDE_PLAYER_RESPAWNING = true
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

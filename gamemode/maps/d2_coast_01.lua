@@ -1,5 +1,6 @@
 NEXT_MAP = "d2_coast_03"
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

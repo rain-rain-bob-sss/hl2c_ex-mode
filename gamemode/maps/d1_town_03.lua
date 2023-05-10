@@ -2,6 +2,8 @@ NEXT_MAP = "d1_town_02"
 
 TRIGGER_DELAYMAPLOAD = { Vector( -3801, -65, -3457 ), Vector( -3719, -7, -3335 ) }
 
+if CLIENT then return end
+
 if ( !file.Exists( "half-life_2_campaign/d1_town_03.txt", "DATA" ) ) then
 
 	file.Write( "half-life_2_campaign/d1_town_03.txt", "We have been to d1_town_03." )

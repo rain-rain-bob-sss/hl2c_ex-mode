@@ -1,9 +1,0 @@
---[[
-
-NO, IT WILL TAKE FOREVER TO TRANSLATE EVERYTHING.
-IT IS USED FOR SKILL DESCRIPTIONS FOR NOW.
-
-]]
-
-translate.AddLanguage("en", "English")
-

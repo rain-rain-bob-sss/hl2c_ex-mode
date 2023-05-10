@@ -130,7 +130,7 @@ end
 
 function GM:PostDrawHUD()
 	cam.Start2D()
-	draw.SimpleText("Half-Life 2 Campaign: EX Mode "..GAMEMODE.Version, "TargetIDSmall", 5, 5, Color(255,255,192,255))
+	draw.SimpleText("Half-Life 2 Campaign: EX Mode "..GAMEMODE.Version, "TargetIDSmall", 5, 5, Color(255,255,192,25))
 	surface.SetDrawColor(0, 0, 0, 0)
 	draw.SimpleText(math.floor(XPGained * 100) / 100 .." XP gained", "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
 	XPColor = XPColor - 3
@@ -285,6 +285,9 @@ function RestartMap(len)
 end
 net.Receive("RestartMap", RestartMap)
 
+if file.Exists(GM.VaultFolder.."/gamemode/maps/"..game.GetMap()..".lua", "LUA") then
+	include("maps/"..game.GetMap()..".lua")
+end
 
 -- Called by show help
 function ShowHelp(len)

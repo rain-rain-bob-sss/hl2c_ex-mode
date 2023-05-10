@@ -1,5 +1,7 @@
 ALLOWED_VEHICLE = "Jeep"
 
+if CLIENT then return end
+
 if ( file.Exists( "half-life_2_campaign/d2_coast_08.txt", "DATA" ) ) then
 
 	INFO_PLAYER_SPAWN = { Vector( 3151, 5233, 1552 ), 180 }

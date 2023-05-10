@@ -4,6 +4,7 @@ INFO_PLAYER_SPAWN = { Vector( 7824, -12136, 1856 ), 180 }
 
 NEXT_MAP = "d2_coast_07"
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

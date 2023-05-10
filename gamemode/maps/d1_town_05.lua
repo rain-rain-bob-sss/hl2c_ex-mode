@@ -4,6 +4,7 @@ TRIGGER_DELAYMAPLOAD = { Vector( -1723, 10939, 904 ), Vector( -1638, 10995, 1010
 
 TOWN_CREATE_NEW_SPAWNPOINT = true
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

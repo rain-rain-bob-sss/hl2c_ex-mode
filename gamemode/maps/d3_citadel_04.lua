@@ -5,6 +5,7 @@ TRIGGER_DELAYMAPLOAD = { Vector( -1281, -8577, 6015 ), Vector( -1151, -7743, 620
 CITADEL_ELEVATOR_CHECKPOINT1 = false
 CITADEL_ELEVATOR_CHECKPOINT2 = true
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

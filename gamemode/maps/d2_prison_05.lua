@@ -2,6 +2,7 @@ INFO_PLAYER_SPAWN = { Vector( 1439, 612, 388 ), 90 }
 
 NEXT_MAP = "d2_prison_06"
 
+if CLIENT then return end
 
 -- Player initial spawn
 function hl2cPlayerInitialSpawn( ply )

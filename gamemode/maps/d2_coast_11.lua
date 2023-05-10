@@ -2,6 +2,7 @@ NEXT_MAP = "d2_coast_12"
 
 COAST_PREVENT_CAMP_DOOR = false
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )
@@ -19,7 +20,7 @@ function hl2cPlayerSpawn( ply )
 end
 hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
-hook.Add("OnEntityCreated", "HL2cEX_AntlionVariants", function(ent)
+function hl2cOnEntityCreated(ent)
 	if !GAMEMODE.EXMode or !ent:IsNPC() then return end
 	if ent:GetClass() == "npc_antlion" then
 		ent:SetColor(Color(128,255,0,255))
@@ -36,7 +37,8 @@ hook.Add("OnEntityCreated", "HL2cEX_AntlionVariants", function(ent)
 			ent:SetHealth(1.5 * ent:Health())
 		end)
 	end
-end)
+end
+hook.Add("OnEntityCreated", "hl2cOnEntityCreated", hl2cOnEntityCreated)
 
 -- Initialize entities
 function hl2cMapEdit()
@@ -48,16 +50,17 @@ function hl2cMapEdit()
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
-
--- Accept input
-function hl2cAcceptInput( ent, input )
-
+function hl2cInitPostEntity()
 	if GAMEMODE.EXMode then
 		timer.Create("ActivateAntlionSpawningGlobal", 1, 0, function()
 			if (IsValid(ents.FindByName("antlion_expanse_spawner_1")[1])) then ents.FindByName("antlion_expanse_spawner_1")[1]:Fire("Enable") end
 		end)
 	end
+end
+hook.Add("InitPostEntity", "hl2cInitPostEntity", hl2cInitPostEntity)
 
+-- Accept input
+function hl2cAcceptInput( ent, input )
 	if ( !game.SinglePlayer() && ( ent:GetName() == "tutorial_exit_conditions" ) && ( string.lower( input ) == "enable" ) ) then
 	
 		if ( IsValid( ents.FindByName( "tutorial_follow_enemy" )[ 1 ] ) ) then ents.FindByName( "tutorial_follow_enemy" )[ 1 ]:Fire( "Trigger" ) end

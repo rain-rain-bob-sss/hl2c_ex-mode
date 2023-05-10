@@ -3,6 +3,7 @@ GM.XP_REWARD_ON_MAP_COMPLETION = 0
 
 NEXT_MAP = "d1_trainstation_03"
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

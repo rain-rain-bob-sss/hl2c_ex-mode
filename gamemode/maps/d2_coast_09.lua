@@ -2,6 +2,8 @@ ALLOWED_VEHICLE = "Jeep"
 
 NEXT_MAP = "d2_coast_10"
 
+if CLIENT then return end
+
 if ( file.Exists( "half-life_2_campaign/d2_coast_08.txt", "DATA" ) ) then
 
 	file.Delete( "half-life_2_campaign/d2_coast_08.txt" )

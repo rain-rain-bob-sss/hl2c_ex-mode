@@ -20,6 +20,7 @@ OVERRIDE_PLAYER_RESPAWNING = true
 
 CITADEL_ENDING = false
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

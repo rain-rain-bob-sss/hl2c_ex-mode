@@ -1,9 +1,12 @@
+
+
 if ( file.Exists( "half-life_2_campaign/d1_town_03.txt", "DATA" ) ) then
 
 	INFO_PLAYER_SPAWN = { Vector( -3755, -28, -3366 ), 45 }
 
 	NEXT_MAP = "d1_town_02a"
 
+	if CLIENT then return end
 
 	-- Player spawns
 	function hl2cPlayerSpawn( ply )
@@ -23,6 +26,7 @@ else
 
 	NEXT_MAP = "d1_town_03"
 
+	if CLIENT then return end
 
 	-- Player spawns
 	function hl2cPlayerSpawn( ply )

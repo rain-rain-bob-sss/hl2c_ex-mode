@@ -1,5 +1,7 @@
 NEXT_MAP = "d1_town_04"
 
+if CLIENT then return end
+
 if ( file.Exists( "half-life_2_campaign/d1_town_03.txt", "DATA" ) ) then
 
 	file.Delete( "half-life_2_campaign/d1_town_03.txt" )

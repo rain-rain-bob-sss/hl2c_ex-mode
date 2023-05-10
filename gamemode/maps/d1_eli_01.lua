@@ -7,6 +7,7 @@ TRIGGER_CHECKPOINT = {
 
 TRIGGER_DELAYMAPLOAD = { Vector( -703, 989, -2688 ), Vector( -501, 1029, -2527 ) }
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

@@ -6,6 +6,7 @@ TRIGGER_CHECKPOINT = {
 	{ Vector( 1057, -1599, 1600 ), Vector( 1104, -1397, 1707 ) }
 }
 
+if CLIENT then return end
 
 -- Player initial spawn
 function hl2cPlayerInitialSpawn( ply )

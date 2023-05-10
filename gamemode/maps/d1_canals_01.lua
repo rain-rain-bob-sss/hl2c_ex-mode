@@ -2,6 +2,7 @@ NEXT_MAP = "d1_canals_01a"
 
 CANALS_TRAIN_PREVENT_STARTFOWARD = false
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

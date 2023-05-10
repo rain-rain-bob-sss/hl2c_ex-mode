@@ -1,9 +1,7 @@
 NEXT_MAP = "d1_trainstation_02"
-GM.ObjectiveTimer = 600
 GM.XP_REWARD_ON_MAP_COMPLETION = 0
 
 RESET_PL_INFO = true
-RESTART_MAP_TIME = 25
 
 TRIGGER_CHECKPOINT = {
 	{Vector( -9386, -2488, 24 ), Vector( -9264, -2367, 92 ), true},
@@ -12,62 +10,14 @@ TRIGGER_CHECKPOINT = {
 }
 
 TRAINSTATION_LEAVEBARNEYDOOROPEN = false
-function Hl2cEXSpecialAnomaly()
-	local i = 0
-	for k,v in pairs(ents.FindByClass("npc_*")) do
-		i = i + 0.45
-		timer.Simple(i, function()
-			if !v:IsValid() then return end
-			v:EmitSound("npc/metropolice/vo/is10-108.wav")
-			v:TakeDamage(1)
-		end)
-	end
-end
 
-function Hl2cEXSpecialAnomalyForPlayer()
-	timer.Simple(5, function()
-		local i = 0
-		for k,v in pairs(player.GetAll()) do
-			i = i + 0.7
-			timer.Simple(i, function()
-				if !v:IsValid() then return end
-				v:EmitSound("npc/metropolice/vo/is10-108.wav")
-				v:TakeDamage(1)
-				v:PrintMessage(HUD_PRINTCENTER, "Is 10-108!")
-			end)
-		end
-	end)
-end
-
-hook.Add("Initialize", "Hl2cEX_Objective", function()
-	timer.Simple(1, function()
-		if GAMEMODE.EXMode then
-			timer.Create("is10-108", 35, 0, Hl2cEXSpecialAnomaly)
-
-			timer.Simple(GAMEMODE.ObjectiveTimer - CurTime(), function()
-			gamemode.Call("RestartMap")
-			PrintMessage(HUD_PRINTTALK, "OBJECTIVE FAILED!!")
-			timer.Create("HL2cEX_UnforseenConsequences1", 0, 150, Hl2cEXSpecialAnomaly)
-			timer.Create("HL2cEX_UnforseenConsequences2", 0.08, 500, Hl2cEXSpecialAnomalyForPlayer)
-			game.SetGlobalState("gordon_invulnerable", GLOBAL_OFF)
-			game.SetGlobalState("gordon_precriminal", GLOBAL_OFF)
-			end)
-		end
-	end)
-end)
+if CLIENT then return end
 
 -- Player initial spawn
 function hl2cPlayerInitialSpawn( ply )
 
 	ply:SendLua("table.RemoveByValue(GODLIKE_NPCS, \"npc_barney\")")
 	ply:SendLua("table.RemoveByValue(FRIENDLY_NPCS, \"npc_citizen\")")
-	if GAMEMODE.EXMode then
-		ply:PrintMessage(HUD_PRINTTALK, "Objective: Complete the map within 10 minutes. Good luck!")
-		net.Start("ObjectiveTimer")
-		net.WriteFloat(600)
-		net.Send(ply)
-		timer.Simple(1, function() ply:SendLua("RESTART_MAP_TIME = "..RESTART_MAP_TIME) end)
-	end
 end
 hook.Add( "PlayerInitialSpawn", "hl2cPlayerInitialSpawn", hl2cPlayerInitialSpawn )
 
@@ -76,7 +26,7 @@ hook.Add( "PlayerInitialSpawn", "hl2cPlayerInitialSpawn", hl2cPlayerInitialSpawn
 function hl2cPlayerSpawn( ply )
 
 	ply:RemoveSuit()
-	timer.Simple( 0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end )
+	timer.Simple( 0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ) end end )
 
 	if ( !game.SinglePlayer() && IsValid( PLAYER_VIEWCONTROL ) && ( PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) ) then
 	
@@ -194,30 +144,5 @@ function hl2cAcceptInput( ent, input )
 		return true
 	
 	end
-
-	if GAMEMODE.EXMode then
-		if ent == ents.FindByClass("env_entity_maker")[1] and string.lower(input) == "forcespawn" then
-			local entity = ents.FindByClass("npc_barney")[1]
-			timer.Simple(4, function()
-				if !entity or !entity:IsValid() then return end
-
-				local GL_NPCS = GODLIKE_NPCS
-				if table.HasValue(GODLIKE_NPCS, "npc_barney") then
-					table.RemoveByValue(GODLIKE_NPCS, "npc_barney")
-				end
-
-				for i=1,30 do
-					local exp = ents.Create("env_explosion")
-					exp:SetPos(entity:GetPos())
-					exp:SetKeyValue("iMagnitude", "60")
-					exp:Spawn()
-					exp:Fire("explode")
-				end
-
-				GODLIKE_NPCS = GL_NPCS
-			end)
-		end
-	end
-
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )

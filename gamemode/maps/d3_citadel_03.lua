@@ -6,6 +6,7 @@ TRIGGER_CHECKPOINT = {
 	{ Vector( 3175, 522, 2368 ), Vector( 3580, 562, 2529 ) }
 }
 
+if CLIENT then return end
 
 -- Initialize entities
 function hl2cMapEdit()

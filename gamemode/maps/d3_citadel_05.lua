@@ -5,6 +5,7 @@ NEXT_MAP_PERCENT = 1
 
 CITADEL_VEHICLE_ENTITY = nil
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

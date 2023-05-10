@@ -1,6 +1,6 @@
 "half-life_2_campaign"
 {
-	"title"			"Half-Life 2 Campaign EX"
+	"title"			"Half-Life 2 Campaign Extended"
 	"base"			"base"
 	"menusystem"	"1"
 	"workshopid"	"283549412"

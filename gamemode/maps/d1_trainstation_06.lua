@@ -2,6 +2,7 @@ INFO_PLAYER_SPAWN = { Vector( -9961, -3668, 330 ), 90 }
 
 NEXT_MAP = "d1_canals_01"
 
+if CLIENT then return end
 
 -- Initialize entities
 function hl2cMapEdit()
@@ -34,3 +35,30 @@ function hl2cMapEdit()
 
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
+
+function hl2cAcceptInput(ent, input)
+	if GAMEMODE.EXMode then
+		if ent == ents.FindByClass("env_entity_maker")[1] and string.lower(input) == "forcespawn" then
+			local entity = ents.FindByClass("npc_barney")[1]
+			timer.Simple(4, function()
+				if !entity or !entity:IsValid() then return end
+	
+				local GL_NPCS = GODLIKE_NPCS
+				if table.HasValue(GODLIKE_NPCS, "npc_barney") then
+					table.RemoveByValue(GODLIKE_NPCS, "npc_barney")
+				end
+	
+				for i=1,30 do
+					local exp = ents.Create("env_explosion")
+					exp:SetPos(entity:GetPos())
+					exp:SetKeyValue("iMagnitude", "60")
+					exp:Spawn()
+					exp:Fire("explode")
+				end
+	
+				GODLIKE_NPCS = GL_NPCS
+			end)
+		end
+	end
+end
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

@@ -4,22 +4,22 @@ include("sh_globals.lua")
 include("sh_player.lua")
 
 -- Create console variables to make these config vars easier to access
-local hl2ce_admin_physgun = CreateConVar("hl2ce_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY)
-local hl2ce_admin_noclip = CreateConVar("hl2ce_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY)
-local hl2ce_server_force_gamerules = CreateConVar("hl2ce_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_custom_playermodels = CreateConVar("hl2ce_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_checkpoint_respawn = CreateConVar("hl2ce_server_checkpoint_respawn", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_dynamic_skill_level = CreateConVar("hl2ce_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_lag_compensation = CreateConVar("hl2ce_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_player_respawning = CreateConVar("hl2ce_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_jeep_passenger_seat = CreateConVar("hl2ce_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_admin_physgun = CreateConVar("hl2ce_admin_physgun", ADMIN_NOCLIP, FCVAR_REPLICATED + FCVAR_NOTIFY)
+local hl2ce_admin_noclip = CreateConVar("hl2ce_admin_noclip", ADMIN_PHYSGUN, FCVAR_REPLICATED + FCVAR_NOTIFY)
+local hl2ce_server_force_gamerules = CreateConVar("hl2ce_server_force_gamerules", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_custom_playermodels = CreateConVar("hl2ce_server_custom_playermodels", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_checkpoint_respawn = CreateConVar("hl2ce_server_checkpoint_respawn", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_dynamic_skill_level = CreateConVar("hl2ce_server_dynamic_skill_level", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_lag_compensation = CreateConVar("hl2ce_server_lag_compensation", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_player_respawning = CreateConVar("hl2ce_server_player_respawning", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_jeep_passenger_seat = CreateConVar("hl2ce_server_jeep_passenger_seat", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 
 -- General gamemode information
-GM.Name = "Half-Life 2 Campaign: EX Mode"
+GM.Name = "Half-Life 2 Campaign: Extended" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.3a"
+GM.Version = "0.7.4"
 
 
 -- Constants
@@ -48,13 +48,10 @@ end)
 -- Create the teams that we are going to use throughout the game
 function GM:CreateTeams()
 
-	TEAM_ALIVE = 1
 	team.SetUp(TEAM_ALIVE, "ALIVE", Color(192, 192, 192, 255))
-	
-	TEAM_COMPLETED_MAP = 2
+
 	team.SetUp(TEAM_COMPLETED_MAP, "COMPLETED MAP", Color(255, 215, 0, 255))
-	
-	TEAM_DEAD = 3
+
 	team.SetUp(TEAM_DEAD, "DEAD", Color(128, 128, 128, 255))
 
 end

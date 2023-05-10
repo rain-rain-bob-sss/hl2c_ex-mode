@@ -1,9 +1,11 @@
 NEXT_MAP = "d3_citadel_02"
 
 NEXT_MAP_PERCENT = 1
+GM.XP_REWARD_ON_MAP_COMPLETION = 0.3
 
 CITADEL_VEHICLE_ENTITY = nil
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

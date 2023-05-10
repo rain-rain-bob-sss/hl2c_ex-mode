@@ -1,5 +1,6 @@
 NEXT_MAP = "d3_c17_10a"
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

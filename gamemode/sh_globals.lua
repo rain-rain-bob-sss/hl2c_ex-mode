@@ -3,6 +3,10 @@
 
 GM.VaultFolder = "hl2c_ex-mode"
 
+TEAM_ALIVE = 1
+TEAM_COMPLETED_MAP = 2
+TEAM_DEAD = 3
+
 if SERVER then
 -- Function to make all known global states dead
 	function GM:KillAllGlobalStates()

@@ -6,6 +6,7 @@ NEXT_MAP_PERCENT = 1
 
 PRISON_PREVENT_DOORS = false
 
+if CLIENT then return end
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )

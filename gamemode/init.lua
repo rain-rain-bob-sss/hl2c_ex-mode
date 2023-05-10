@@ -27,6 +27,7 @@ include("player_leveling.lua")
 
 -- Include the configuration for this map
 if file.Exists(GM.VaultFolder.."/gamemode/maps/"..game.GetMap()..".lua", "LUA") then
+	AddCSLuaFile("maps/"..game.GetMap()..".lua")
 	include("maps/"..game.GetMap()..".lua")
 end
 
@@ -96,7 +97,7 @@ end
 -- Creates a trigger delaymapload
 function GM:CreateTDML(min, max)
 	tdmlPos = max - ((max - min) / 2)
-	
+
 	local tdml = ents.Create("trigger_delaymapload")
 	tdml:SetPos(tdmlPos)
 	tdml.min = min
@@ -294,7 +295,6 @@ function GM:Initialize()
 	checkpointPositions = {}
 	nextAreaOpenTime = 0
 	startingWeapons = {}
-	updateDifficulty = 0
 
 	self.XP_REWARD_ON_MAP_COMPLETION = self.XP_REWARD_ON_MAP_COMPLETION or 1 -- because it would call true if it was false, we use other values
 	self.difficulty = 1
@@ -347,12 +347,6 @@ function GM:Initialize()
 		if !AUXPOW then game.ConsoleCommand("gmod_suit 1\n"); end
 		game.ConsoleCommand("gmod_maxammo 0\n")	
 	end
-	
-	-- Objective Timer
-	net.Start("ObjectiveTimer")
-	net.WriteFloat(self.ObjectiveTimer or 0)
-	net.Broadcast()
-
 
 	-- Kill global states
 	-- Reasoning behind this is because changing levels would keep these known states and cause issues on other maps
@@ -490,47 +484,32 @@ function GM:InitPostEntity()
 	end
 
 	-- Setup TRIGGER_DELAYMAPLOAD
-	if (TRIGGER_DELAYMAPLOAD) then
-	
-		GAMEMODE:CreateTDML(TRIGGER_DELAYMAPLOAD[ 1 ], TRIGGER_DELAYMAPLOAD[ 2 ])
-	
+	if TRIGGER_DELAYMAPLOAD then
+		GAMEMODE:CreateTDML(TRIGGER_DELAYMAPLOAD[1], TRIGGER_DELAYMAPLOAD[2])
+
 		for _, tcl in pairs(ents.FindByClass("trigger_changelevel")) do
-		
 			tcl:Remove()
-		
 		end
-	
 	else
-	
 		for _, tcl in pairs(ents.FindByClass("trigger_changelevel")) do
-		
 			if (tcl.map == NEXT_MAP) then
-			
 				local tclMin, tclMax = tcl:WorldSpaceAABB()
 				GAMEMODE:CreateTDML(tclMin, tclMax)
-			
 			end
 			tcl:Remove()
-		
 		end
-	
 	end
 	table.insert(checkpointPositions, tdmlPos)
 
 	-- Remove all triggers that cause the game to "end"
 	for _, trig in pairs(ents.FindByClass("trigger_*")) do
-	
-		if (trig:GetName() == "fall_trigger") then
-		
+		if trig:GetName() == "fall_trigger" then
 			trig:Remove()
-		
 		end
-	
 	end
 
 	-- Call a map edit (used by map lua hooks)
 	hook.Call("MapEdit", GAMEMODE)
-
 end
 
 
@@ -632,31 +611,29 @@ end
 -- Called when a player tries to pickup a weapon
 local gmod_maxammo = GetConVar("gmod_maxammo")
 function GM:PlayerCanPickupWeapon(ply, wep)
-
-	if ((ply:Team() != TEAM_ALIVE) || (ADMINISTRATOR_WEAPONS[ wep:GetClass() ] && !ply:IsAdmin())) then
+	local wepclass = wep:GetClass()
+	if ((ply:Team() != TEAM_ALIVE) || (ADMINISTRATOR_WEAPONS[wepclass] && !ply:IsAdmin())) then
 		return false
 	end
 
-	-- This prevents melee weapons disappearing
-	if ((wep:GetPrimaryAmmoType() <= 0) && ply:HasWeapon(wep:GetClass())) then
+	if ((wep:GetPrimaryAmmoType() <= 0) && ply:HasWeapon(wepclass)) then
 		return false
 	end
 
-	-- Garry's Mod doesn't seem to handle this itself so yeah
 	if !gmod_maxammo:GetBool() then
 		if (wep:GetPrimaryAmmoType() > 0) then
-			if ply:HasWeapon(wep:GetClass() && (ply:GetAmmoCount(wep:GetPrimaryAmmoType()) >= game.GetAmmoMax(wep:GetPrimaryAmmoType()))) then
+			if ply:HasWeapon(wepclass) && (ply:GetAmmoCount(wep:GetPrimaryAmmoType()) >= game.GetAmmoMax(wep:GetPrimaryAmmoType())) then
 				return false
 			end
 		elseif (wep:GetSecondaryAmmoType() > 0) then
-			if (ply:HasWeapon(wep:GetClass()) && (ply:GetAmmoCount(wep:GetSecondaryAmmoType()) >= game.GetAmmoMax(wep:GetSecondaryAmmoType()))) then
+			if ply:HasWeapon(wepclass) && (ply:GetAmmoCount(wep:GetSecondaryAmmoType()) >= game.GetAmmoMax(wep:GetSecondaryAmmoType())) then
 				return false
 			end
 		end
 	end
 
 	if (tonumber(wep.Slot) or 0) > 5 then
-		ply:PrintMessage(HUD_PRINTCONSOLE, "Please type in console 'use "..wep:GetClass().."' if you want to equip that weapon if you have one. (sorry about that)")
+		ply:PrintMessage(HUD_PRINTCONSOLE, "Please type in console 'use "..wepclass.."' if you want to equip that weapon if you have one. (sorry about that)")
 	end
 	return true
 end
@@ -705,6 +682,11 @@ function GM:PlayerInitialSpawn(ply)
 		ply[PerkName] = 0
 	end
 
+	-- Objective Timer
+	net.Start("ObjectiveTimer")
+	net.WriteFloat(self.ObjectiveTimer or 0)
+	net.Broadcast()
+	
 	-- Grab previous map info
 	local plyID = ply:SteamID64() || ply:UniqueID()
 	if (file.Exists(self.VaultFolder.."/players/"..plyID..".txt", "DATA")) then
@@ -1171,7 +1153,7 @@ function GM:ShowSpare2(ply)
 	ply:RemoveVehicle()
 end
 
-
+local updateDifficulty = 0
 -- Called every frame 
 function GM:Think()
 
