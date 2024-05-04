@@ -1012,7 +1012,12 @@ function GM:RestartMap()
 			self:SavePlayer(v)
 		end
 		PrintMessage(4, "Map restart in progress...")
-		timer.Simple(1, function() game.ConsoleCommand("changelevel "..game.GetMap().."\n") end)
+		--timer.Simple(1, function() game.ConsoleCommand("changelevel "..game.GetMap().."\n") end)
+		game.CleanUpMap( false, { "env_fire", "entityflame", "_firesmoke" } )
+		for k,v in pairs(player.GetAll()) do
+			v:KillSlient()
+			v:Spawn()
+		end
 	end)
 
 end
