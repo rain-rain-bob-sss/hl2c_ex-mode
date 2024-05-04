@@ -437,7 +437,7 @@ function GM:OnReloaded()
 end
 
 -- Called as soon as all map entities have been spawned 
-function GM:InitPostEntity()
+function GM:MapEntitiesSpawned()
 
 	-- Remove old spawn points
 	if (MasterPlayerStartExists()) then
@@ -511,7 +511,12 @@ function GM:InitPostEntity()
 	-- Call a map edit (used by map lua hooks)
 	hook.Call("MapEdit", GAMEMODE)
 end
-
+function GM:InitPostEntity()
+	self:MapEntitiesSpawned()
+end
+function GM:PostCleanupMap()
+	self:MapEntitiesSpawned()
+end
 
 -- Called automatically or by the console command
 function GM:NextMap()
