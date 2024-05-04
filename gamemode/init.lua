@@ -1022,7 +1022,7 @@ function GM:RestartMap()
 		--timer.Simple(1, function() game.ConsoleCommand("changelevel "..game.GetMap().."\n") end)
 		game.CleanUpMap( false, { "env_fire", "entityflame", "_firesmoke" } )
 		for k,v in pairs(player.GetAll()) do
-			v:KillSlient()
+			v:KillSilent()
 			v:Spawn()
 		end
 	end)
