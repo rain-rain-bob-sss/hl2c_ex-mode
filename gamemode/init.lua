@@ -1019,12 +1019,23 @@ function GM:RestartMap()
 			self:SavePlayer(v)
 		end
 		PrintMessage(4, "Map restart in progress...")
-		--timer.Simple(1, function() game.ConsoleCommand("changelevel "..game.GetMap().."\n") end)
-		game.CleanUpMap( false, { "env_fire", "entityflame", "_firesmoke" } )
-		for k,v in pairs(player.GetAll()) do
-			v:KillSilent()
-			v:Spawn()
-		end
+		timer.Simple(4, function() 
+			net.Start("RestartMap")
+			net.WriteFloat(-1)
+			net.Broadcast()
+			game.CleanUpMap( false, { "env_fire", "entityflame", "_firesmoke" } )
+			FORCE_PLAYER_RESPAWNING=true
+			for k,v in pairs(player.GetAll()) do
+				table.RemoveByValue(deadPlayers, v:SteamID())
+				v:KillSilent()
+				v:SetTeam(TEAM_ALIVE)
+				timer.Simple(0, function()
+					v:Spawn()
+				end)
+			end
+			changingLevel=false
+			FORCE_PLAYER_RESPAWNING=false
+		end)
 	end)
 
 end
@@ -1240,4 +1251,3 @@ hook.Add("OnDamagedByExplosion", "HL2CE_NoEarringing", function(ply)
 		return true
 	end
 end)
-
