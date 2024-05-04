@@ -52,6 +52,13 @@ local hl2ce_server_lag_compensation = CreateConVar("hl2ce_server_lag_compensatio
 local hl2ce_server_player_respawning = CreateConVar("hl2ce_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 local hl2ce_server_jeep_passenger_seat = CreateConVar("hl2ce_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+COldGetConvar=COldGetConvar or GetConvar
+function GetConvar(n)
+	if(string.StartsWith(n,"hl2c_"))then
+		return COldGetConvar("hl2ce"..string.sub(n,5))
+	end
+	return COldGetConvar(n)
+end
 
 -- Precache all the player models ahead of time
 for _, playerModel in pairs(PLAYER_MODELS) do
