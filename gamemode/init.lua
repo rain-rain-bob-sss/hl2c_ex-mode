@@ -52,6 +52,13 @@ local hl2ce_server_lag_compensation = CreateConVar("hl2ce_server_lag_compensatio
 local hl2ce_server_player_respawning = CreateConVar("hl2ce_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 local hl2ce_server_jeep_passenger_seat = CreateConVar("hl2ce_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+COldGetConvar=COldGetConvar or GetConvar
+function GetConvar(n)
+	if(string.StartsWith(n,"hl2c_"))then
+		return COldGetConvar("hl2ce"..string.sub(n,5))
+	end
+	return COldGetConvar(n)
+end
 
 -- Precache all the player models ahead of time
 for _, playerModel in pairs(PLAYER_MODELS) do
@@ -437,7 +444,7 @@ function GM:OnReloaded()
 end
 
 -- Called as soon as all map entities have been spawned 
-function GM:InitPostEntity()
+function GM:MapEntitiesSpawned()
 
 	-- Remove old spawn points
 	if (MasterPlayerStartExists()) then
@@ -511,7 +518,12 @@ function GM:InitPostEntity()
 	-- Call a map edit (used by map lua hooks)
 	hook.Call("MapEdit", GAMEMODE)
 end
-
+function GM:InitPostEntity()
+	self:MapEntitiesSpawned()
+end
+function GM:PostCleanupMap()
+	self:MapEntitiesSpawned()
+end
 
 -- Called automatically or by the console command
 function GM:NextMap()
@@ -1007,7 +1019,23 @@ function GM:RestartMap()
 			self:SavePlayer(v)
 		end
 		PrintMessage(4, "Map restart in progress...")
-		timer.Simple(1, function() game.ConsoleCommand("changelevel "..game.GetMap().."\n") end)
+		timer.Simple(4, function() 
+			net.Start("RestartMap")
+			net.WriteFloat(-1)
+			net.Broadcast()
+			game.CleanUpMap( false, { "env_fire", "entityflame", "_firesmoke" } )
+			FORCE_PLAYER_RESPAWNING=true
+			for k,v in pairs(player.GetAll()) do
+				table.RemoveByValue(deadPlayers, v:SteamID())
+				v:KillSilent()
+				v:SetTeam(TEAM_ALIVE)
+				timer.Simple(0, function()
+					v:Spawn()
+				end)
+			end
+			changingLevel=false
+			FORCE_PLAYER_RESPAWNING=false
+		end)
 	end)
 
 end
@@ -1223,4 +1251,3 @@ hook.Add("OnDamagedByExplosion", "HL2CE_NoEarringing", function(ply)
 		return true
 	end
 end)
-
