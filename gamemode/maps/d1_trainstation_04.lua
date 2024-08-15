@@ -9,6 +9,17 @@ TRIGGER_CHECKPOINT = {
 if CLIENT then return end
 
 -- Player spawns
+
+hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
+	if !GAMEMODE.EXMode then return end
+	timer.Simple(1, function()
+		-- ply:SendLua([[chat.AddText("You take greatly increased damage to bullets up to 6x more on this map.") chat.AddText("Take shelter!")]])
+		ply:PrintMessage(3, "You take greatly increased damage to bullets up to 13x more on this map.")
+		ply:PrintMessage(3, "Take shelter!")
+	end)
+end)
+
+
 function hl2cPlayerSpawn( ply )
 
 	ply:RemoveSuit()
@@ -98,3 +109,12 @@ function hl2cAcceptInput( ent, input )
 
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+
+function hl2cEntityTakeDamage(ent, dmginfo)
+	if !GAMEMODE.EXMode then return end
+	local attacker = dmginfo:GetAttacker()
+	if attacker:IsValid() and attacker:IsNPC() and ent:IsPlayer() and dmginfo:IsBulletDamage() then
+		dmginfo:ScaleDamage(13)
+	end
+end
+hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", hl2cEntityTakeDamage)

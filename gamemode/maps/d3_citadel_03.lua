@@ -1,4 +1,6 @@
 NEXT_MAP = "d3_citadel_04"
+GM.XpGainOnNPCKillMul = 0.35
+GM.DifficultyGainOnNPCKillMul = 0.5
 
 RESET_WEAPONS = true
 
@@ -34,8 +36,8 @@ function hl2cAcceptInput( ent, input )
 
 	if ( ( ent:GetName() == "strip_stop" ) && ( string.lower( input ) == "trigger" ) ) then
 	
-		SetGlobalBool( "SUPER_GRAVITY_GUN", true )
-	
+		game.SetGlobalState("super_phys_gun", GLOBAL_ON)
+
 		for _, ply in pairs( team.GetPlayers( TEAM_ALIVE ) ) do
 		
 			if ( IsValid( ply ) && ply:Alive() ) then
@@ -55,7 +57,7 @@ hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 -- Every frame or tick
 function hl2cThink()
 
-	if ( GetGlobalBool( "SUPER_GRAVITY_GUN" ) ) then
+	if game.GetGlobalState("super_phys_gun") == GLOBAL_ON then
 	
 		for _, ent in pairs( ents.FindByClass( "weapon_physcannon" ) ) do
 		

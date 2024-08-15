@@ -2,7 +2,7 @@ ALLOWED_VEHICLE = "Jeep"
 
 if CLIENT then return end
 
-if ( file.Exists( "half-life_2_campaign/d2_coast_08.txt", "DATA" ) ) then
+if ( file.Exists( "hl2c_eternal/d2_coast_08.txt", "DATA" ) ) then
 
 	INFO_PLAYER_SPAWN = { Vector( 3151, 5233, 1552 ), 180 }
 	NEXT_MAP = "d2_coast_09"
@@ -40,7 +40,7 @@ function hl2cMapEdit()
 	ents.FindByName( "player_spawn_items_maker" )[ 1 ]:Remove()
 	ents.FindByName( "jeep_filter" )[ 1 ]:Fire( "AddOutput", "filterclass prop_vehicle_jeep_old" )
 
-	if ( file.Exists( "half-life_2_campaign/d2_coast_08.txt", "DATA" ) ) then
+	if ( file.Exists( "hl2c_eternal/d2_coast_08.txt", "DATA" ) ) then
 	
 		for _, ent in pairs( ents.FindByName( "bridge_field_02" ) ) do
 		

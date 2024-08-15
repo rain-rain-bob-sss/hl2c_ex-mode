@@ -72,7 +72,7 @@ function SWEP:PrimaryAttack()
 		if ent:IsPlayer() then
 			self.Owner:SetHealth(math.min(self.Owner:GetMaxHealth(), self.Owner:Health() + need * 0.25))
 			self.Owner:GiveXP(need * 0.35)
-		elseif table.HasValue(FRIENDLY_NPCS, ent:GetClass()) then
+		elseif ent:IsFriendlyNPC() then
 			self.Owner:SetHealth(math.min(self.Owner:GetMaxHealth(), self.Owner:Health() + need * 0.2))
 			self.Owner:GiveXP(need * 0.28)
 		end

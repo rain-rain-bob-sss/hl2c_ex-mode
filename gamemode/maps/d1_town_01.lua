@@ -25,7 +25,7 @@ function hl2cAcceptInput( ent, input )
 			if (IsValid(ents.FindByName("crushtrap_02_switch_01")[1])) then ents.FindByName("crushtrap_02_switch_01")[1]:Use(game.GetWorld()) end
 		end)
 	end
-	
+
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 
@@ -33,6 +33,6 @@ hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 function hl2cMapEdit()
 
 	ents.FindByName( "player_spawn_template" )[ 1 ]:Remove()
-
+	
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )

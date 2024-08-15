@@ -52,10 +52,11 @@ NPC_XP_VALUES = {
 	["npc_manhack"] = 2.1,
 	["npc_metropolice"] = 4.4,
 	["npc_ministrider"] = 2,
-	["npc_poisonzombie"] = 9.1,
 	["npc_stalker"] = 3,
 	["npc_strider"] = 16,
 	["npc_zombie"] = 3.4,
+	["npc_zombine"] = 5.1,
+	["npc_poisonzombie"] = 9.1,
 	["npc_zombie_torso"] = 2.1,
 }
 
@@ -146,22 +147,60 @@ VULNERABLE_TIME = 10
 
 -- Only administrators can hold these weapons (Default: weapon_physgun)
 ADMINISTRATOR_WEAPONS = {
-	[ "weapon_physgun" ] = true,
-	[ "weapon_base" ] = true,
-	[ "weapon_flechettegun" ] = true
+	"weapon_physgun",
+	"weapon_base",
+	"weapon_flechettegun",
 }
 
 --Give shared weapons. If weapon is in list, gives everyone else the same gun. 
 WHITELISTED_WEAPONS = {
-	["weapon_crowbar"] = true,
-	["weapon_physcannon"] = true,
-	["weapon_pistol"] = true,
-	["weapon_357"] = true,
-	["weapon_smg1"] = true,
-	["weapon_ar2"] = true,
-	["weapon_shotgun"] = true,
-	["weapon_crossbow"] = true,
-	["weapon_frag"] = true,
-	["weapon_rpg"] = true,
-	["weapon_bugbait"] = true
+	"weapon_crowbar",
+	"weapon_physcannon",
+	"weapon_pistol",
+	"weapon_357",
+	"weapon_smg1",
+	"weapon_ar2",
+	"weapon_shotgun",
+	"weapon_crossbow",
+	"weapon_frag",
+	"weapon_rpg",
+	"weapon_bugbait"
+}
+
+GM.SkillsInfo = {
+	["Gunnery"] = {
+		Name = "Gunnery",
+		Description = "+1% damage dealt with firearms",
+		DescriptionEndless = "+1% damage dealt with firearms",
+	},
+
+	["Defense"] = {
+		Name = "Defense",
+		Description = "+0.5% damage resistance from enemy bullets",
+		DescriptionEndless = "+0.5% damage resistance from enemy bullets",
+	},
+
+	["Medical"] = {
+		Name = "Medical",
+		Description = "+0.1 to regen / +2% effectiveness to medkits",
+		DescriptionEndless = "+5 health"
+	},
+
+	["Vitality"] = {
+		Name = "Vitality",
+		Description = "+1 health",
+		DescriptionEndless = "+5 health"
+	},
+
+}
+
+GM.PerksData = {
+	["healthboost"] = {
+		Name = "Health Boost",
+		Description = "Increases health by 5",
+		DescriptionEndless = "Increases health by 30",
+		Cost = 1,
+		PrestigeReq = 1,
+		PrestigeType = "prestige"
+	}
 }

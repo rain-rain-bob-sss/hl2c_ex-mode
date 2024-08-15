@@ -6,6 +6,7 @@ TRIGGER_CHECKPOINT = {
 }
 
 TRAINSTATION_REMOVESUIT = true
+MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = true
 
 if CLIENT then return end
 
@@ -119,6 +120,33 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 		return true
 	
+	end
+
+	if GAMEMODE.EXMode and ent:GetName() == "lab01_lcs" and string.lower(input) == "start" then
+		timer.Simple(1.5, function() PrintMessage(3, "Chapter 2") end)
+		timer.Simple(3.5, function() PrintMessage(3, "The brand new Teleporter Mark VII") end)
+	end
+
+	if GAMEMODE.EXMode and ent:GetName() == "get_suit_math_1" and string.lower(input) == "add" and activator:IsPlayer() then
+		PrintMessage(3, activator:Nick().." took the HEV suit")
+		for _, ply in pairs(player.GetAll()) do
+			ply:SetPos(Vector( -10366, -4719, 330 ) )
+		end
+	end
+
+	if GAMEMODE.EXMode and ent:GetName() == "blamarr_break_monitor_1" and string.lower(input) == "playsound" then
+		local GL_NPCS = GODLIKE_NPCS
+		GODLIKE_NPCS = {}
+		for i=1,30 do
+			local exp = ents.Create("env_explosion")
+			exp:SetPos(ent:GetPos())
+			exp:SetKeyValue("iMagnitude", "3000")
+			exp:Spawn()
+			exp:Fire("explode")
+		end
+
+		GODLIKE_NPCS = GL_NPCS
+		ent:Remove()
 	end
 
 end

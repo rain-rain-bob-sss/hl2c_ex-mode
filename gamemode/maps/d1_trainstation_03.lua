@@ -6,8 +6,18 @@ TRIGGER_CHECKPOINT = {
 }
 
 OVERRIDE_PLAYER_RESPAWNING = true
+MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = true
 
 if CLIENT then return end
+
+
+hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
+	if !GAMEMODE.EXMode then return end
+	timer.Simple(1, function()
+		ply:PrintMessage(3, "The combine are still hostile and effect is still active even on this map.")
+		ply:PrintMessage(3, "Keep running.")
+	end)
+end)
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )
@@ -70,3 +80,14 @@ function hl2cAcceptInput( ent, input )
 
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+
+function hl2cEntityTakeDamage(ent, dmginfo)
+	if !GAMEMODE.EXMode then return end
+	local attacker = dmginfo:GetAttacker()
+	local activewep = attacker:IsValid() and attacker:IsNPC() and attacker:GetActiveWeapon() or NULL
+	if attacker:IsValid() and attacker:IsNPC() and activewep:IsValid() and activewep:GetClass() == "weapon_stunstick" then
+		ent:SetHealth(0)
+		dmginfo:SetDamage(9e9)
+	end
+end
+hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", hl2cEntityTakeDamage)

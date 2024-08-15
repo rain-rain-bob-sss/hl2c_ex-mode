@@ -1,4 +1,6 @@
 INFO_PLAYER_SPAWN = { Vector( -2489, -1292, 580 ), 90 }
+GM.XpGainOnNPCKillMul = 0.35
+GM.DifficultyGainOnNPCKillMul = 0.5
 
 NEXT_MAP_PERCENT = 101
 
@@ -65,8 +67,6 @@ end)
 function hl2cMapEdit()
 
 	game.SetGlobalState( "super_phys_gun", GLOBAL_ON )
-
-	SetGlobalBool( "SUPER_GRAVITY_GUN", true )
 
 	game.ConsoleCommand( "physcannon_tracelength 850\n" )
 	game.ConsoleCommand( "physcannon_maxmass 850\n" )
@@ -198,8 +198,8 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 
 	if ( !game.SinglePlayer() && ( ent:GetName() == "relay_portalfinalexplodeshake" ) && ( string.lower( input ) == "trigger" ) ) then
 	
-		SUPER_GRAVITY_GUN = false
-	
+		game.SetGlobalState("super_phys_gun", GLOBAL_OFF)
+
 		game.ConsoleCommand( "physcannon_tracelength 250\n" )
 		game.ConsoleCommand( "physcannon_maxmass 250\n" )
 		game.ConsoleCommand( "physcannon_pullforce 4000\n" )
@@ -208,7 +208,8 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 
 	if ( !game.SinglePlayer() && ( ent:GetName() == "relay_breenwins" ) && ( string.lower( input ) == "trigger" ) ) then
 	
-		hook.Call( "RestartMap", GAMEMODE )
+		gamemode.Call("RestartMap")
+		PrintMessage(3, "You failed to complete this map. (Dr. Breen has escaped)")
 	
 	end
 
@@ -252,7 +253,7 @@ hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 -- Every frame or tick
 function hl2cThink()
 
-	if ( GetGlobalBool( "SUPER_GRAVITY_GUN" ) ) then
+	if game.GetGlobalState("super_phys_gun") == GLOBAL_ON then
 	
 		for _, ent in ipairs( ents.FindByClass( "weapon_physcannon" ) ) do
 		

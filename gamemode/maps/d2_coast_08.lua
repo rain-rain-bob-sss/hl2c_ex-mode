@@ -55,9 +55,9 @@ function hl2cAcceptInput( ent, input )
 		end
 		GAMEMODE:CreateSpawnPoint( Vector( 2991, -6946, 1932 ), 0 )
 	
-		if ( !file.Exists( "half-life_2_campaign/d2_coast_08.txt", "DATA" ) ) then
+		if ( !file.Exists( "hl2c_eternal/d2_coast_08.txt", "DATA" ) ) then
 		
-			file.Write( "half-life_2_campaign/d2_coast_08.txt", "We have been to d2_coast_08 and pressed the button." )
+			file.Write( "hl2c_eternal/d2_coast_08.txt", "We have been to d2_coast_08 and pressed the button." )
 		
 		end
 	

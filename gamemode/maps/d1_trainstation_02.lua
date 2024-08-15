@@ -6,6 +6,16 @@ NEXT_MAP = "d1_trainstation_03"
 if CLIENT then return end
 
 -- Player spawns
+hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
+	if !GAMEMODE.EXMode then return end
+	timer.Simple(1, function()
+		-- ply:SendLua([[chat.AddText("Combine in this map are hostile and will always oneshot on hit.") chat.AddText("Run for your life.")]])
+		ply:PrintMessage(3, "Combine in this map are hostile and will always oneshot on hit.")
+		ply:PrintMessage(3, "Run for your life.")
+	end)
+end)
+
+-- Player spawns
 function hl2cPlayerSpawn( ply )
 
 	ply:RemoveSuit()
@@ -26,3 +36,14 @@ function hl2cMapEdit()
 	end
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
+
+function hl2cEntityTakeDamage(ent, dmginfo)
+	if !GAMEMODE.EXMode then return end
+	local attacker = dmginfo:GetAttacker()
+	local activewep = attacker:IsValid() and attacker.GetActiveWeapon and attacker:GetActiveWeapon() or NULL
+	if attacker:IsValid() and attacker:IsNPC() and activewep:IsValid() and activewep:GetClass() == "weapon_stunstick" then
+		ent:SetHealth(0)
+		dmginfo:SetDamage(9e9)
+	end
+end
+hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", hl2cEntityTakeDamage)

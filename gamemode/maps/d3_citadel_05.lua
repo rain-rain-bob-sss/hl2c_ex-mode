@@ -35,8 +35,6 @@ function hl2cMapEdit()
 
 	game.SetGlobalState( "super_phys_gun", GLOBAL_ON )
 
-	SetGlobalBool( "SUPER_GRAVITY_GUN", true )
-
 	game.ConsoleCommand( "physcannon_tracelength 850\n" )
 	game.ConsoleCommand( "physcannon_maxmass 850\n" )
 	game.ConsoleCommand( "physcannon_pullforce 8000\n" )
@@ -106,7 +104,7 @@ hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 -- Every frame or tick
 function hl2cThink()
 
-	if ( GetGlobalBool( "SUPER_GRAVITY_GUN" ) ) then
+	if ( game.GetGlobalState("super_phys_gun") == GLOBAL_ON ) then
 	
 		for _, ent in pairs( ents.FindByClass( "weapon_physcannon" ) ) do
 		

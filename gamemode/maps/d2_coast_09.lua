@@ -4,9 +4,9 @@ NEXT_MAP = "d2_coast_10"
 
 if CLIENT then return end
 
-if ( file.Exists( "half-life_2_campaign/d2_coast_08.txt", "DATA" ) ) then
+if ( file.Exists( "hl2c_eternal/d2_coast_08.txt", "DATA" ) ) then
 
-	file.Delete( "half-life_2_campaign/d2_coast_08.txt" )
+	file.Delete( "hl2c_eternal/d2_coast_08.txt" )
 
 end
 

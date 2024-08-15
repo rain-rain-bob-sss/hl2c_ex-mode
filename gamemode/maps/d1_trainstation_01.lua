@@ -144,5 +144,44 @@ function hl2cAcceptInput( ent, input )
 		return true
 	
 	end
+
+	if GAMEMODE.EXMode and ent:GetName() == "scene2_flash_mode_2" and string.lower(input) == "enablerefire" then
+		timer.Simple(0.08, function()
+			if !ent:IsValid() then return end
+			ent:Fire("trigger")
+		end)
+	end
+
+	if GAMEMODE.EXMode and ent:GetName() == "scene4_start" and string.lower(input) == "enablerefire" then
+		timer.Simple(3, function() PrintMessage(3, "Chapter 1") end)
+		timer.Simple(math.Rand(6.5,7.5), function() PrintMessage(3, "The new beginnings") end)
+		ents.FindByName("scene2_flash_mode_2")[1]:Fire("kill")
+	end
+
+	if GAMEMODE.EXMode and ent:GetName() == "storage_room_door" then
+		local entity = ents.FindByClass("npc_barney")[1]
+		if !entity or !entity:IsValid() then return end
+
+		for i=1,30 do
+			local exp = ents.Create("env_explosion")
+			exp:SetPos(entity:GetPos())
+			exp:SetKeyValue("iMagnitude", "250")
+			exp:Spawn()
+			exp:Fire("explode")
+		end
+	end
+
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+
+-- Accept input
+function hl2cOnNPCKilled( ent, attacker )
+
+	if GAMEMODE.EXMode then
+		if ent:GetName() == "barney" then
+			PrintMessage(3, "you fucked")
+		end
+	end
+
+end
+hook.Add( "OnNPCKilled", "hl2cOnNPCKilled", hl2cOnNPCKilled )

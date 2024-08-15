@@ -21,10 +21,8 @@ function GM:LoadPlayer(ply)
         ply.Level = 1
         ply.StatPoints = 0
          
-        for k, v in pairs(SkillsList) do
-            local TheStatPieces = string.Explode(";", v)
-            local TheStatName = TheStatPieces[1]
-            ply[TheStatName] = 0
+        for k, v in pairs(self.SkillsInfo) do
+            ply["Stat"..k] = 0
         end
  
         print("Created a new profile for "..ply:Nick() .." (UniqueID: "..ply:UniqueID()..")")
@@ -45,10 +43,8 @@ function GM:SavePlayer(ply)
 	Data["StatPoints"] = ply.StatPoints
 
 
-	for k, v in pairs(SkillsList) do
-		local TheStatPieces = string.Explode(";", v)
-		local TheStatName = TheStatPieces[1]
-		Data[TheStatName] = ply[TheStatName]
+	for k, v in pairs(self.SkillsInfo) do
+		Data["Stat"..k] = ply["Stat"..k]
 	end
 
 

@@ -47,6 +47,8 @@ function hl2cAcceptInput(ent, input)
 				if table.HasValue(GODLIKE_NPCS, "npc_barney") then
 					table.RemoveByValue(GODLIKE_NPCS, "npc_barney")
 				end
+
+				entity:SetHealth(0)
 	
 				for i=1,30 do
 					local exp = ents.Create("env_explosion")

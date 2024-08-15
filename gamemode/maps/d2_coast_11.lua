@@ -20,6 +20,12 @@ function hl2cPlayerSpawn( ply )
 end
 hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
+hook.Add("PlayerInitialSpawn", "hl2cPlayerInitialSpawn", function(ply)
+	timer.Simple(5, function()
+		ply:PrintMessage(3, "Pretty sure you know where this is going..")
+	end)
+end)
+
 function hl2cOnEntityCreated(ent)
 	if !GAMEMODE.EXMode or !ent:IsNPC() then return end
 	if ent:GetClass() == "npc_antlion" then

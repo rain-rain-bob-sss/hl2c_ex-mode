@@ -5,15 +5,15 @@ local PANEL = {}
 -- Apply the scheme of things
 function PANEL:ApplySchemeSettings()
 
-	self.nameLabel:SetFont( "roboto16Bold" )
+	self.nameLabel:SetFont( "Roboto16" )
 
-	self.statusLabel:SetFont( "roboto16Bold" )
+	self.statusLabel:SetFont( "Roboto16" )
 
-	self.scoreLabel:SetFont( "roboto16Bold" )
+	self.scoreLabel:SetFont( "Roboto16" )
 
-	self.deathsLabel:SetFont( "roboto16Bold" )
+	self.deathsLabel:SetFont( "Roboto16" )
 
-	self.pingLabel:SetFont( "roboto16Bold" )
+	self.pingLabel:SetFont( "Roboto16" )
 
 end
 

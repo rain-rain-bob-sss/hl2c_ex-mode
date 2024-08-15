@@ -2,10 +2,14 @@
 
 
 function GM:NetworkString_UpdateStats(ply)
-    net.Start("UpdateStats")
+    net.Start("hl2c_updatestats")
     net.WriteFloat(ply.XP)
     net.WriteFloat(ply.Level)
     net.WriteFloat(ply.StatPoints)
+    net.WriteFloat(ply.Prestige)
+    net.WriteFloat(ply.PrestigePoints)
+    net.WriteFloat(ply.Eternity)
+    net.WriteFloat(ply.EternityPoints)
     net.Send(ply)
 end
 
@@ -18,7 +22,7 @@ function GM:NetworkString_UpdateSkills(ply)
     net.Send(ply)
 end
 
-net.Receive("UpdateStats", function(length, client)
+net.Receive("hl2c_updatestats", function(length, client)
     local s1 = net.ReadString()
     if s1 == "reloadstats" then
         GAMEMODE:NetworkString_UpdateStats(client)

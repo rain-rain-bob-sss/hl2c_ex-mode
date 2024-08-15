@@ -1,6 +1,6 @@
 
 
-if ( file.Exists( "half-life_2_campaign/d1_town_03.txt", "DATA" ) ) then
+if ( file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
 
 	INFO_PLAYER_SPAWN = { Vector( -3755, -28, -3366 ), 45 }
 

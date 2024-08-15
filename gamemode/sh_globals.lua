@@ -1,7 +1,23 @@
 -- Used to reset all the global states to dead state
 -- Also used to set globals
 
-GM.VaultFolder = "hl2c_ex-mode"
+GM.VaultFolder = "hl2c_eternal"
+
+
+-- Max Leveling values
+
+MAX_LEVEL = 1000000
+
+--[[Hl2c Endless Mode:
+Significantly increases skills pwoer.
+In Non-Endless Mode, perks have limited functionality, Eternity perks and further do not work.
+Difficulty is gained by killing NPC's. Gaining +0.25% difficulty for each XP gained from NPC.
+Difficulty can be far harder than you'd expect. Limit: 1e100x difficulty.
+XP gain is also reduced to 40%.
+
+Turns Hl2c into extremely unbalanced and one of the most unfair gamemodes of all time, what did you expect?
+]]
+GM.EndlessMode = true
 
 TEAM_ALIVE = 1
 TEAM_COMPLETED_MAP = 2

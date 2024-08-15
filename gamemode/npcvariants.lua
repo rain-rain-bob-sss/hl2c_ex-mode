@@ -18,7 +18,7 @@ function AntlionGuardAURA()
 				effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
 				util.Effect("zw_master_strike", effectdata)
 			elseif (v:IsNPC() or v:IsPlayer()) && v:GetClass() != "npc_antlionguard" then
-				if v:Health() < 0 then return end
+				if v:Health() < 0 then continue end
 				v:TakeDamage(1, ent)
 				if v:IsPlayer() and v:Alive() then
 					v:PrintMessage(4, "YOU ARE BEING DAMAGED BY ANTLION GUARD VARIANT,\nGET AWAY FROM IT!!")
@@ -30,83 +30,94 @@ function AntlionGuardAURA()
 	end
 end
 
+-- Priority hook function
 function HL2cEX_NPCVariantSpawn(ent)
 	if !GAMEMODE.EXMode or !ent:IsNPC() then return end
 
 	ent.VariantType = math.random(1,2)
-	if ent:GetClass() == "npc_metropolice" then
+	if ent:GetClass() == "npc_metropolice" then -- Elite variant - Increased damage and Health. (No manhack spawn and launched to the killer upon death)
 		if ent.VariantType == 1 then
 			ent.ent_Color = Color(128,128,255)
 			ent.ent_MaxHealthMul = 1.3
 			ent.ent_HealthMul = 1.3
+			ent.XPGainMult = 1.2
+		elseif ent.VariantType == 2 then -- Deathbringer variant - 0.9x health and damage, Special: Launches a manhack towards the player upon dying, dealing 7x damage on its' first slashing hit, damage then decreases by 0.65x for every hit inflicted, down to 0.5x
+			ent.ent_Color = Color(255,128,192)
+			ent.ent_MaxHealthMul = 0.9
+			ent.ent_HealthMul = 0.9
 		end
-	elseif ent:GetClass() == "npc_combine_s" then
+	elseif ent:GetClass() == "npc_combine_s" then -- Destructive variant - deals more damage but more fragile
 		if ent.VariantType == 1 then
 			ent.ent_Color = Color(255,128,128)
-			ent.ent_MaxHealthMul = 0.4
-			ent.ent_HealthMul = 0.4
+			ent.ent_MaxHealthMul = 0.7
+			ent.ent_HealthMul = 0.7
 
-		elseif ent.VariantType == 2 then
+		elseif ent.VariantType == 2 then -- Boost health for normal soldiers
 			ent.ent_MaxHealthMul = 1.2
 			ent.ent_HealthMul = 1.2
+			ent.XPGainMult = 2.2
 		end
-	elseif ent:GetClass() == "npc_zombie" then
+	elseif ent:GetClass() == "npc_manhack" then
+	elseif ent:GetClass() == "npc_zombie" then -- Explosive variant of regular zombies that explodes upon its' death (Explosions can be chained)
 		if ent.VariantType == 1 then
 			ent.ent_Color = Color(255,128,128)
 			ent.ent_MaxHealthMul = 0.6
 			ent.ent_HealthMul = 0.6
 		end
-	elseif ent:GetClass() == "npc_fastzombie" then
+	elseif ent:GetClass() == "npc_fastzombie" then -- Infective variant of Fast zombies can deal damage over time
 		if ent.VariantType == 1 then
 			ent.ent_Color = Color(255,128,128)
 			ent.ent_MaxHealthMul = 0.7
 			ent.ent_HealthMul = 0.7
 		end
-	elseif ent:GetClass() == "npc_antlionguard" then
+	elseif ent:GetClass() == "npc_zombine" then -- Tanky Zombine variant (Deals less damage but has much more health)
+		if ent.VariantType == 1 then
+			ent.ent_Color = Color(255,128,255)
+			ent.ent_MaxHealthMul = 2.2
+			ent.ent_HealthMul = 2.2
+		end
+	elseif ent:GetClass() == "npc_antlionguard" then -- Healer Antlion Guard that slowly heals nearby antlions! (But is rarer!)
 		ent.VariantType = math.random(1,5) --make medical antlion guard variant less common
 		if ent.VariantType == 5 then
 			ent.ent_Color = Color(0,255,0)
 			ent.ent_MaxHealthMul = 2
 			ent.ent_HealthMul = 2
+			ent.XPGainMult = 2.2
 		end
 	elseif ent:GetClass() == "npc_cscanner" or ent:GetClass() == "npc_clawscanner" then
 		if ent.VariantType == 1 then
-			ent.ent_color = Color(255,128,128)
+			ent.ent_Color = Color(255,128,128)
 		end
 	elseif ent:GetClass() == "npc_barnacle" then
-		if ent.VariantType == 1 then
+		ent.VariantType = math.random(1,3) -- Barnacle has 3 variants
+		if ent.VariantType == 1 then -- 1. Deadly variant - Deals triple damage, but can die faster
 			ent.ent_MaxHealthMul = 0.6
 			ent.ent_HealthMul = 0.6
 			ent.ent_Color = Color(255,128,128)
-		else
-			ent.ent_MaxHealthMul = 1.5
-			ent.ent_HealthMul = 1.5
+		elseif ent.VariantType == 2 then -- 2. Bulky variant - Can take up a lot of damage, but cannot resist single hit of crowbar
+			ent.ent_MaxHealthMul = 13.8
+			ent.ent_HealthMul = 13.8
+			ent.ent_Color = Color(128,128,255)
+		else -- 3. Regular - Has 1.4x health, other stats are normal
+			ent.ent_MaxHealthMul = 1.4
+			ent.ent_HealthMul = 1.4
 		end
 	end
-
-	timer.Simple(0, function()
-		if ent.ent_MaxHealthMul then
-			ent:SetMaxHealth(ent.ent_MaxHealthMul * ent:Health())
-		end
-		if ent.ent_HealthMul then
-			ent:SetHealth(ent.ent_HealthMul * ent:Health())
-		end
-		if ent.ent_Color then
-			ent:SetColor(ent.ent_Color)
-		end
-	end)
 end
 hook.Add("OnEntityCreated", "HL2cEX_NPCVariantsSpawned", HL2cEX_NPCVariantSpawn, HOOK_HIGH)
 
-function HL2cEX_NPCVariantKilled(ent)
+function HL2cEX_NPCVariantKilled(ent, attacker)
 	if !GAMEMODE.EXMode then return end
 	if ent:GetClass() == "npc_zombie" then
 		if ent.VariantType == 1 then
-			local entdrop = ents.Create("npc_handgrenade")
+			local entdrop = ents.Create("env_explosion")
+			entdrop:SetOwner(attacker)
+			entdrop:SetKeyValue("iMagnitude", 45)
 			entdrop:SetPos(ent:GetPos() + Vector(0, 0, 30))
 			entdrop:SetAngles(ent:GetAngles())
 			entdrop:Spawn()
 			entdrop:Activate()
+			entdrop:Fire("explode")
 			local effectdata = EffectData()
 			effectdata:SetOrigin(ent:GetPos() + Vector(0, 0, 60))
 			util.Effect("zw_master_strike", effectdata)
@@ -127,12 +138,16 @@ function HL2cEX_NPCVariantKilled(ent)
 			entdrop:Activate()
 		end
 	elseif ent:GetClass() == "npc_metropolice" then
-		if ent.VariantType == 2 and math.random(1,100) < 40 then
+		if ent.VariantType == 2 and math.random(1,100) < 45 then
 			local entdrop = ents.Create("npc_manhack")
+			entdrop.VariantType = 3 -- Spawn in a special manhack variant - Damage increased up to 7x on first hit but next hit will deal a weaker attack down to 0.5x damage
+			entdrop.NextDamageMul = 5.5
 			entdrop:SetPos(ent:GetPos() + Vector(0, 0, 50))
 			entdrop:SetAngles(ent:GetAngles())
+			entdrop.ent_Color = Color(128,192,255)
 			entdrop:Spawn()
 			entdrop:Activate()
+			entdrop:GetPhysicsObject():SetVelocityInstantaneous((attacker:GetPos() - entdrop:GetPos()) * 2)
 		end
 		
 	elseif ent:GetClass() == "npc_antlionguard" then
@@ -159,12 +174,21 @@ function HL2cEX_NPCVariantKilled(ent)
 end
 hook.Add("OnNPCKilled", "HL2cEX_NPCVariantsKilled", HL2cEX_NPCVariantKilled)
 
-function HL2cEX_NPCVariantTakeDamage(target, dmginfo)
+function HL2cEX_NPCVariantTakeDamage(ent, dmginfo)
 	if !GAMEMODE.EXMode then return end
 	local dmg, attacker = dmginfo:GetDamage(), dmginfo:GetAttacker()
 	if attacker:GetClass() == "npc_metropolice" then
 		if attacker.VariantType == 1 then
 			dmginfo:ScaleDamage(1.5)
+		elseif attacker.VariantType == 2 then
+			dmginfo:ScaleDamage(0.9)
+		end
+	elseif attacker:GetClass() == "npc_manhack" then
+		if attacker.VariantType == 3 then
+			local dmgmul = attacker.NextDamageMul
+			timer.Simple(0, function()
+				attacker.NextDamageMul = math.max(0.5, dmgmul * 0.65)
+			end)
 		end
 	elseif attacker:GetClass() == "npc_combine_s" then
 		if attacker.VariantType == 1 then
@@ -173,8 +197,8 @@ function HL2cEX_NPCVariantTakeDamage(target, dmginfo)
 	elseif attacker:GetClass() == "npc_fastzombie" then
 		if attacker.VariantType == 1 then
 			if dmginfo:GetDamageType() != DMG_DIRECT then
-				timer.Create("FastZombieDamage_"..target:EntIndex(), 1, 5, function()
-					if !target:IsValid() then return end
+				timer.Create("FastZombieDamage_"..ent:EntIndex(), 1, 5, function()
+					if !ent:IsValid() then return end
 					local d = DamageInfo()
 					d:SetDamage(1)
 					if attacker:IsValid() then
@@ -183,13 +207,15 @@ function HL2cEX_NPCVariantTakeDamage(target, dmginfo)
 						d:SetAttacker(game.GetWorld())
 					end
 					d:SetDamageType(DMG_DIRECT)
-					target:TakeDamageInfo(d)
+					ent:TakeDamageInfo(d)
 				end)
 				dmginfo:ScaleDamage(0.5)
-			elseif !target:IsPlayer() then
+			elseif !ent:IsPlayer() then
 				dmginfo:ScaleDamage(2)
 			end
 		end
+	elseif attacker:GetClass() == "npc_zombine" then
+		dmginfo:ScaleDamage(0.6)
 	elseif attacker:GetClass() == "npc_headcrab" then
 		dmginfo:SetDamageType(DMG_FALL)
 		dmginfo:ScaleDamage(1.4)
@@ -198,8 +224,15 @@ function HL2cEX_NPCVariantTakeDamage(target, dmginfo)
 		dmginfo:ScaleDamage(1.2)
 	elseif attacker:GetClass() == "npc_antlionguard" then
 		dmginfo:ScaleDamage(2.25)
-	elseif attacker:GetClass() == "npc_barnacle" and attacker.VariantType == 1 then
-		dmginfo:ScaleDamage(3)
+	elseif attacker:GetClass() == "npc_barnacle" then
+		if attacker.VariantType == 1 then
+			dmginfo:ScaleDamage(3)
+		elseif attacker.VariantType == 2 then
+			dmginfo:ScaleDamage(0.5)
+		end
+	end
+
+	if ent:GetClass() == "npc_barnacle" then
 	end
 end
 hook.Add("EntityTakeDamage", "damagemodshook", HL2cEX_NPCVariantTakeDamage)

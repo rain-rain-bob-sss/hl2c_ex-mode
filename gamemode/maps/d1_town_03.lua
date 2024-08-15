@@ -4,9 +4,9 @@ TRIGGER_DELAYMAPLOAD = { Vector( -3801, -65, -3457 ), Vector( -3719, -7, -3335 )
 
 if CLIENT then return end
 
-if ( !file.Exists( "half-life_2_campaign/d1_town_03.txt", "DATA" ) ) then
+if ( !file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
 
-	file.Write( "half-life_2_campaign/d1_town_03.txt", "We have been to d1_town_03." )
+	file.Write( "hl2c_eternal/d1_town_03.txt", "We have been to d1_town_03." )
 
 end
 

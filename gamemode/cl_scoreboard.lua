@@ -9,10 +9,10 @@ local PANEL = {}
 -- Apply the scheme of things
 function PANEL:ApplySchemeSettings()
 
-	self.hostnameLabel:SetFont( "roboto16" )
+	self.hostnameLabel:SetFont( "Roboto16" )
 	self.hostnameLabel:SetTextColor( Color( 255, 220, 0, 255 ) )
 
-	self.numPlayersLabel:SetFont( "roboto16" )
+	self.numPlayersLabel:SetFont( "Roboto16" )
 	self.numPlayersLabel:SetTextColor( Color( 255, 220, 0, 255 ) )
 
 end
