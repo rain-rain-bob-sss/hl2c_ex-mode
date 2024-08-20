@@ -16,7 +16,7 @@ function GM:LoadServerData()
             local value = TheLine[2]
 
             if data == "Difficulty" then
-                self:SetDifficulty(value)
+                self:SetDifficulty(value, true)
             end
         end
     end
@@ -24,7 +24,7 @@ end
 
 function GM:SaveServerData()
     local Data = {}
-	Data["Difficulty"] = self:GetDifficulty()
+	Data["Difficulty"] = self:GetDifficulty(true)
 
     local StringToWrite = ""
 	for k, v in pairs(Data) do

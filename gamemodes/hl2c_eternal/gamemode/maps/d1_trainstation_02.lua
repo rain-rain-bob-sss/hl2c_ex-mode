@@ -5,6 +5,8 @@ NEXT_MAP = "d1_trainstation_03"
 
 if CLIENT then return end
 
+local activated
+
 -- Player spawns
 hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
 	if !GAMEMODE.EXMode then return end
@@ -30,6 +32,7 @@ function hl2cMapEdit()
 	if GAMEMODE.EXMode then
 		game.SetGlobalState( "gordon_precriminal", GLOBAL_OFF )
 		game.SetGlobalState( "gordon_invulnerable", GLOBAL_OFF )
+		activated = nil
 	else
 		game.SetGlobalState( "gordon_precriminal", GLOBAL_ON )
 		game.SetGlobalState( "gordon_invulnerable", GLOBAL_ON )
@@ -47,3 +50,35 @@ function hl2cEntityTakeDamage(ent, dmginfo)
 	end
 end
 hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", hl2cEntityTakeDamage)
+
+
+local function CreateMetropolice(pos, ang, target)
+	local npc = ents.Create("npc_metropolice")
+	npc:Give("weapon_stunstick")
+	npc:SetPos(pos)
+	npc:SetAngles(ang)
+	npc:Spawn()
+	npc:SetEnemy(target)
+	npc:UpdateEnemyMemory(target, target:GetPos())
+end
+
+hook.Add("AcceptInput", "hl2cAcceptInput", function(ent, input, activator)
+	local names = {"lcs_CupCop_Pass", "lcs_CupCop_Fail"}
+	if GAMEMODE.EXMode and table.HasValue(names, ent:GetName()) and string.lower(input) == "start" and not activated then
+		local ang = Angle(0,0,0)
+		local pl = player.GetAll()[1]
+		CreateMetropolice(Vector(-4388, -720, 64), ang, pl)
+		CreateMetropolice(Vector(-4388, -800, 64), ang, pl)
+		CreateMetropolice(Vector(-4388, -880, 64), ang, pl)
+
+		ang = Angle(0, 90, 0)
+		CreateMetropolice(Vector(-3728, -1640, 64), ang, pl)
+		CreateMetropolice(Vector(-3824, -1640, 64), ang, pl)
+		
+		ang = Angle(0, -90, 0)
+		CreateMetropolice(Vector(-3420, -1760, 64), ang, pl)
+		CreateMetropolice(Vector(-3328, -1760, 64), ang, pl)
+		CreateMetropolice(Vector(-3236, -1760, 64), ang, pl)
+		activated = true
+	end
+end)

@@ -25,3 +25,13 @@ function hl2cMapEdit()
 
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
+
+
+hook.Add("AcceptInput", "hl2cAcceptInput", function(ent, input)
+	if ent:GetName() == "relay_achievement_heli_1" and string.lower(input) == "trigger" then
+		for _,ply in pairs(player.GetAll()) do
+			ply:GiveXP(369)
+		end
+		print("heli died")
+	end
+end)

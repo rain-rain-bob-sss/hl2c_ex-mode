@@ -55,7 +55,6 @@ function HL2cEX_NPCVariantSpawn(ent)
 		elseif ent.VariantType == 2 then -- Boost health for normal soldiers
 			ent.ent_MaxHealthMul = 1.2
 			ent.ent_HealthMul = 1.2
-			ent.XPGainMult = 2.2
 		end
 	elseif ent:GetClass() == "npc_manhack" then
 	elseif ent:GetClass() == "npc_zombie" then -- Explosive variant of regular zombies that explodes upon its' death (Explosions can be chained)
@@ -70,14 +69,15 @@ function HL2cEX_NPCVariantSpawn(ent)
 			ent.ent_MaxHealthMul = 0.7
 			ent.ent_HealthMul = 0.7
 		end
-	elseif ent:GetClass() == "npc_zombine" then -- Tanky Zombine variant (Deals less damage but has much more health)
+	elseif ent:GetClass() == "npc_zombine" then -- Tanky Zombine variant (Deals less damage but has much more health) Still very vulnerable to fire
 		if ent.VariantType == 1 then
 			ent.ent_Color = Color(255,128,255)
 			ent.ent_MaxHealthMul = 2.2
 			ent.ent_HealthMul = 2.2
+			ent.XPGainMult = 1.3
 		end
 	elseif ent:GetClass() == "npc_antlionguard" then -- Healer Antlion Guard that slowly heals nearby antlions! (But is rarer!)
-		ent.VariantType = math.random(1,5) --make medical antlion guard variant less common
+		ent.VariantType = math.random(1,5) --make antlion guard variant less common
 		if ent.VariantType == 5 then
 			ent.ent_Color = Color(0,255,0)
 			ent.ent_MaxHealthMul = 2
@@ -140,7 +140,7 @@ function HL2cEX_NPCVariantKilled(ent, attacker)
 	elseif ent:GetClass() == "npc_metropolice" then
 		if ent.VariantType == 2 and math.random(1,100) < 45 then
 			local entdrop = ents.Create("npc_manhack")
-			entdrop.VariantType = 3 -- Spawn in a special manhack variant - Damage increased up to 7x on first hit but next hit will deal a weaker attack down to 0.5x damage
+			entdrop.VariantType = 3 -- Spawn in a special manhack variant - Damage increased up to 5.5x on first hit but next hit will deal a weaker attack down to 0.5x damage
 			entdrop.NextDamageMul = 5.5
 			entdrop:SetPos(ent:GetPos() + Vector(0, 0, 50))
 			entdrop:SetAngles(ent:GetAngles())

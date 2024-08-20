@@ -71,5 +71,14 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
+	if GAMEMODE.EXMode and ent:GetName() == "lcs_leon_radios3" and string.lower(input) == "start" then
+		PrintMessage(3, "You may skip this cutscene.")
+		local entity = ents.FindByName("citizen_warehouse_door_0")[1]
+		if entity and entity:IsValid() then
+			entity:Fire("Unlock")
+			entity:Fire("Open")
+		end
+	end
+
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )

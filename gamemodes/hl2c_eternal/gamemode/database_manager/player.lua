@@ -12,8 +12,9 @@ function GM:LoadPlayer(ply)
  
         for k, v in pairs(DataPieces) do
             local TheLine = string.Explode(";", v) -- convert txt string to stats table
- 
-            ply[TheLine[1]] = TheLine[2]  -- dump all their stats into their player table
+            local val = TheLine[2]
+
+            ply[TheLine[1]] = tonumber(val) or val  -- dump all their stats into their player table
         end
   
     else
@@ -41,6 +42,10 @@ function GM:SavePlayer(ply)
 	Data["XP"] = ply.XP
 	Data["Level"] = ply.Level
 	Data["StatPoints"] = ply.StatPoints
+	Data["Prestige"] = ply.Prestige
+	Data["PrestigePoints"] = ply.PrestigePoints
+	Data["Eternity"] = ply.Eternity
+	Data["EternityPoints"] = ply.EternityPoints
 
 
 	for k, v in pairs(self.SkillsInfo) do

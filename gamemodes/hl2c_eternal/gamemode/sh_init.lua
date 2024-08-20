@@ -17,12 +17,13 @@ local hl2c_server_lag_compensation = CreateConVar("hl2c_server_lag_compensation"
 local hl2c_server_player_respawning = CreateConVar("hl2c_server_player_respawning", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger_seat", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficulty", 0, FCVAR_REPLICATED + FCVAR_ARCHIVE)
 
 -- General gamemode information
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.9"
+GM.Version = "0.7.9.9"
 
 
 -- Constants
@@ -62,27 +63,26 @@ end
 function GM:GetReqXP(ply)
 	local basexpreq = 152
 	local addxpperlevel = 27
-	local morelvlreq = 1.1715
+	local morelvlreq = 1.0715
 	
 	local totalxpreq = math.floor(basexpreq + (ply.Level  * addxpperlevel) ^ morelvlreq)
 
 	if ply.Level >= 250 then
 		totalxpreq = totalxpreq * math.max(1 + (ply.Level-250) * 0.05, 1)
 	end
+	if ply.Level >= 1000 then
+		totalxpreq = totalxpreq * math.max(1, 1.0046^(ply.Level-1000))
+	end
 	return math.Round(totalxpreq)
 end
 
 -- Called when a gravity gun is attempting to punt something
 function GM:GravGunPunt(ply, ent) 
-
 	if (IsValid(ent) && ent:IsVehicle() && (ent != ply.vehicle) && IsValid(ent.creator)) then
-	
 		return false
-	
 	end
 
 	return true
-
 end 
 
 
@@ -98,19 +98,13 @@ end
 
 -- Player input changes
 function GM:StartCommand(ply, ucmd)
-
 	if (ucmd:KeyDown(IN_SPEED) && IsValid(ply) && !ply:IsSuitEquipped()) then
-	
 		ucmd:RemoveKey(IN_SPEED)
-	
 	end
 
 	if (ucmd:KeyDown(IN_WALK) && IsValid(ply) && !ply:IsSuitEquipped()) then
-	
 		ucmd:RemoveKey(IN_WALK)
-	
 	end
-
 end
 
 
@@ -119,20 +113,15 @@ function GM:ShouldCollide(entA, entB)
 
 	-- Player and NPCs
 	if (IsValid(entA) && IsValid(entB) && ((entA:IsPlayer() && (entB:IsPlayer() || entB:IsGodlikeNPC() or entB:IsFriendlyNPC())) || (entB:IsPlayer() && (entA:IsPlayer() || entA:IsGodlikeNPC() || entA:IsFriendlyNPC())))) then
-	
 		return false
-	
 	end
 
 	-- Passenger seating
 	if (IsValid(entA) && IsValid(entB) && ((entA:IsPlayer() && entA:InVehicle() && entA:GetAllowWeaponsInVehicle() && entB:IsVehicle()) || (entB:IsPlayer() && entB:InVehicle() && entB:GetAllowWeaponsInVehicle() && entA:IsVehicle()))) then
-	
 		return false
-	
 	end
 
 	return true
-
 end
 
 
@@ -197,72 +186,88 @@ function GM:PlayerPostThink(ply)
 end
 
 
+-- why i'm using GlobalString instead of Float value:
+-- Allows to be broadcasted to client with numbers like 2^128 (3.40e38) and above until 2^1024 (1.79e308) values
 
-function GM:SetDifficulty(val)
-	SetGlobalFloat("hl2c_difficulty", val)
+function GM:SetDifficulty(val, noncvar)
+	local diffcvarvalue = tonumber(hl2ce_server_force_difficulty:GetString()) or 0
+
+	if noncvar or diffcvarvalue <= 0 then
+		SetGlobalString("hl2c_difficulty", tostring(math.Clamp(val, 0.3, 1e150)))
+	end
 end
 
-function GM:GetDifficulty()
-	return GetGlobalFloat("hl2c_difficulty", 1)
+-- Why 1e150 max difficulty? -- It might seem possible to go further.. But damage is only limited to 3.40e38. After that value it overflows to infinity.
+
+function GM:GetDifficulty(noncvar)
+	local str = GetGlobalString("hl2c_difficulty", 1)
+	local diffcvarvalue = tonumber(hl2ce_server_force_difficulty:GetString()) or 1
+
+	if not noncvar and diffcvarvalue > 0 then
+		return math.Clamp(diffcvarvalue, 0.3, 1e150)
+	end
+
+	return math.Clamp(tonumber(str), 0.3, 1e150)
 end
 
 
-function FormatNumber(val, round)
+function FormatNumber(val, roundval)
 	local log10_value = math.floor(math.log10(val))
 
 	local txt
 	local negative = val < 0
+	roundval = roundval or 2
 	val = math.abs(val)
 	if val >= math.huge then return val end
 	if val >= 1e33 then
 		val = val / (10^log10_value)
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .."e"..log10_value
+		txt = math.floor(val*(10^roundval))/(10^roundval) .."e"..log10_value
 	elseif val >= 1e30 then
 		val = val / 1e30
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." No"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." No"
 	elseif val >= 1e27 then
 		val = val / 1e27
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." Oc"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." Oc"
 	elseif val >= 1e24 then
 		val = val / 1e24
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." Sp"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." Sp"
 	elseif val >= 1e21 then
 		val = val / 1e21
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." Sx"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." Sx"
 	elseif val >= 1e18 then
 		val = val / 1e18
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." Qt"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." Qt"
 	elseif val >= 1e15 then
 		val = val / 1e15
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." Qa"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." Qa"
 	elseif val >= 1e12 then
 		val = val / 1e12
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." T"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." T"
 	elseif val >= 1e9 then
 		val = val / 1e9
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." B"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." B"
 	elseif val >= 1e6 then
 		val = val / 1e6
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." M"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." M"
 	elseif val >= 1e3 then
 		val = val / 1e3
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .." K"
+		txt = math.floor(val*(10^roundval))/(10^roundval) .." K"
 	elseif val == 0 then txt = 0
 	elseif val > -(10^-(roundval or 1)) and val < 10^-(roundval or 1) then
 		val = val / (10^log10_value)
 
-		txt = math.floor(val*(10^(roundval or 2)))/(10^(roundval or 2)) .."e-"..math.abs(log10_value)
+		txt = math.floor(val*(10^roundval))/(10^roundval) .."e-"..math.abs(log10_value)
 	end
 
 	if negative then

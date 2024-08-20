@@ -23,11 +23,17 @@ hook.Add("MapEdit", "hl2cMapEdit", hl2cMapEdit)
 
 local allowunlock
 function hl2cAcceptInput(ent, input)
-    if string.lower(input) == "scriptplayerdeath" then -- Can break the sequences
+    if !game.SinglePlayer() and string.lower(input) == "scriptplayerdeath" then -- Can break the sequences
         return true
     end
 
-    if ent:GetName() == "lcs_al_vanride_end01" and string.lower(input) == "start" then
+    if ent:GetName() == "relay_givegravgun_1" and string.lower(input) == "trigger" then
+        for _,ply in pairs(player.GetAll()) do
+            ply:Give("weapon_physcannon")
+        end
+    end
+
+    if !game.SinglePlayer() and ent:GetName() == "lcs_al_vanride_end01" and string.lower(input) == "start" then
         for _,ply in pairs(player.GetAll()) do
             -- ply:ExitVehicle()
             if not ply:InVehicle() then
@@ -47,7 +53,7 @@ function hl2cAcceptInput(ent, input)
         allowunlock = true
     end
 
-    if string.lower(ent:GetName()) == "van" and string.lower(input) == "unlock" and allowunlock then
+    if !game.SinglePlayer() and string.lower(ent:GetName()) == "van" and string.lower(input) == "unlock" and allowunlock then
         for _,ply in pairs(player.GetAll()) do
             if ply:InVehicle() then
                 ply:ExitVehicle()

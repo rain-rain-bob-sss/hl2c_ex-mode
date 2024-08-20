@@ -63,7 +63,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput( ent, input, activator )
 
 	if ( !game.SinglePlayer() && ( ent:GetClass() == "point_viewcontrol" ) ) then
 	
@@ -156,6 +156,61 @@ function hl2cAcceptInput( ent, input )
 		timer.Simple(3, function() PrintMessage(3, "Chapter 1") end)
 		timer.Simple(math.Rand(6.5,7.5), function() PrintMessage(3, "The new beginnings") end)
 		ents.FindByName("scene2_flash_mode_2")[1]:Fire("kill")
+	end
+
+	if GAMEMODE.EXMode and ent:GetName() == "ss_luggagedrop_1" and string.lower(input) == "beginsequence" then
+		for a=1,4 do
+			for b=1,4 do
+				for c=1,4 do
+					local prop = ents.Create("prop_physics")
+					prop:SetPos(activator:GetPos() + Vector(-25+10*a,-25+10*b,80+(-25+10*c)))
+					prop:SetModel("models/props_c17/SuitCase001a.mdl")
+					prop:Spawn()
+					local phys = prop:GetPhysicsObject()
+					if phys and phys:IsValid() then
+						phys:Wake()
+					end
+				end
+			end
+		end
+	end
+
+	if GAMEMODE.EXMode and GAMEMODE:GetDifficulty() > 100 and ent:GetName() == "ss_luggagedrop_2" and string.lower(input) == "beginsequence" then
+		local randommodels = {
+			"models/props_junk/watermelon01.mdl",
+			"models/props_junk/GlassBottle01a.mdl",
+			"models/props_junk/gascan001a.mdl",
+			"models/props_junk/garbage_glassbottle001a.mdl",
+			"models/props_lab/citizenradio.mdl",
+			"models/props_c17/oildrum001_explosive.mdl",
+			"models/props_c17/doll01.mdl",
+			"models/props_interiors/pot01a.mdl",
+			"models/weapons/w_alyx_gun.mdl",
+			"models/weapons/w_annabelle.mdl",
+			"models/weapons/w_crowbar.mdl",
+			"models/props_junk/sawblade001a.mdl"
+		}
+
+		for a=1,5 do
+			for b=1,5 do
+				for c=1,4 do
+					local prop = ents.Create("prop_physics")
+					prop:SetPos(activator:GetPos() + Vector(-45+15*a,-45+15*b,100+(-35+15*c)))
+					prop:SetModel(table.Random(randommodels))
+					prop:Spawn()
+					local phys = prop:GetPhysicsObject()
+					if phys and phys:IsValid() then
+						phys:Wake()
+						phys:SetVelocityInstantaneous(Vector(math.Rand(-200,200), math.Rand(-200,200), math.Rand(-200,200)))
+					end
+				end
+			end
+		end
+	end
+
+	if GAMEMODE.EXMode and ent:GetName() == "luggage_push_explosion1" and string.lower(input) == "explode" then
+		activator:SetHealth(0)
+		activator:TakeDamage(1) -- kill it
 	end
 
 	if GAMEMODE.EXMode and ent:GetName() == "storage_room_door" then

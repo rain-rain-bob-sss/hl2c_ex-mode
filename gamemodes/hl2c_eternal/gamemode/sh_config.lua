@@ -32,32 +32,32 @@ NPC_POINT_VALUES = {
 }
 
 NPC_XP_VALUES = {
-	["npc_antlion"] = 0.17, -- in some maps the antlions can spawn indefinitely so best is to make them give least amount of xp per kill
-	["npc_antlion_worker"] = 5.7,
-	["npc_antlionguard"] = 27,
-	["npc_barnacle"] = 1.7,
-	["npc_combinedropship"] = 12,
-	["npc_combinegunship"] = 9.5,
-	["npc_combine_s"] = 5.7,
-	["npc_cscanner"] = 1.5,
-	["npc_clawscanner"] = 1.6,
-	["npc_fastzombie"] = 3.8,
-	["npc_fastzombie_torso"] = 2.7,
-	["npc_headcrab"] = 0.6,
-	["npc_headcrab_fast"] = 0.8,
-	["npc_headcrab_black"] = 1.2,
-	["npc_headcrab_poison"] = 1.2,
-	["npc_helicopter"] = 11,
-	["npc_hunter"] = 14.1,
-	["npc_manhack"] = 2.1,
-	["npc_metropolice"] = 4.4,
-	["npc_ministrider"] = 2,
-	["npc_stalker"] = 3,
-	["npc_strider"] = 16,
-	["npc_zombie"] = 3.4,
-	["npc_zombine"] = 5.1,
-	["npc_poisonzombie"] = 9.1,
-	["npc_zombie_torso"] = 2.1,
+	["npc_antlion"] = 0.87, -- in some maps the antlions can spawn indefinitely so best is to make them give least amount of xp per kill
+	-- ["npc_antlion_worker"] = 21.7, -- doesn't work
+	["npc_antlionguard"] = 155,
+	["npc_barnacle"] = 11.7,
+	["npc_combinedropship"] = 63,
+	["npc_combinegunship"] = 66,
+	["npc_combine_s"] = 33.5,
+	["npc_cscanner"] = 6.4,
+	["npc_clawscanner"] = 7.1,
+	["npc_fastzombie"] = 19.5,
+	["npc_fastzombie_torso"] = 11.2,
+	["npc_headcrab"] = 3.1,
+	["npc_headcrab_fast"] = 3.9,
+	["npc_headcrab_black"] = 5.2,
+	["npc_headcrab_poison"] = 5.2,
+	["npc_helicopter"] = 55,
+	["npc_hunter"] = 70,
+	["npc_manhack"] = 9.5,
+	["npc_metropolice"] = 22.4,
+	["npc_ministrider"] = 15,
+	["npc_stalker"] = 18,
+	["npc_strider"] = 218,
+	["npc_zombie"] = 16,
+	["npc_zombine"] = 27.6,
+	["npc_poisonzombie"] = 42.7,
+	["npc_zombie_torso"] = 11.8,
 }
 
 -- Exclude these NPCs from lag compensation
@@ -141,8 +141,8 @@ PLAYER_MODELS = {
 }
 
 
--- Number of seconds before a player is vulnerable after they spawn (Default: 10)
-VULNERABLE_TIME = 10
+-- Number of seconds before a player is vulnerable after they spawn (Default: 5)
+VULNERABLE_TIME = 5
 
 
 -- Only administrators can hold these weapons (Default: weapon_physgun)
@@ -171,19 +171,25 @@ GM.SkillsInfo = {
 	["Gunnery"] = {
 		Name = "Gunnery",
 		Description = "+1% damage dealt with firearms",
-		DescriptionEndless = "+1% damage dealt with firearms",
+		DescriptionEndless = "+3% damage dealt with firearms",
 	},
 
 	["Defense"] = {
 		Name = "Defense",
-		Description = "+0.5% damage resistance from enemy bullets",
-		DescriptionEndless = "+0.5% damage resistance from enemy bullets",
+		Description = "+0.8% damage resistance from enemy bullets",
+		DescriptionEndless = "+2.5% damage resistance from enemy bullets",
 	},
 
 	["Medical"] = {
 		Name = "Medical",
-		Description = "+0.1 to regen / +2% effectiveness to medkits",
-		DescriptionEndless = "+5 health"
+		Description = "+2% effectiveness to medkits",
+		DescriptionEndless = "+5% effectiveness to medkits"
+	},
+
+	["Surgeon"] = {
+		Name = "Surgeon",
+		Description = "+2% max ammo to medkits / +2% increased medkit recharge speed",
+		DescriptionEndless = "+10% max ammo to medkits / +10% increased medkit recharge speed"
 	},
 
 	["Vitality"] = {
@@ -192,15 +198,115 @@ GM.SkillsInfo = {
 		DescriptionEndless = "+5 health"
 	},
 
+	["Knowledge"] = {
+		Name = "Knowledge",
+		Description = "+3% xp gain",
+		DescriptionEndless = "+5% xp gain"
+	},
+
 }
 
 GM.PerksData = {
-	["healthboost"] = {
+	["healthboost_1"] = {
 		Name = "Health Boost",
 		Description = "Increases health by 5",
-		DescriptionEndless = "Increases health by 30",
+		DescriptionEndless = "Increases health by 60",
 		Cost = 1,
 		PrestigeReq = 1,
-		PrestigeType = "prestige"
-	}
+		PrestigeLevel = 1
+	},
+
+	["damageboost_1"] = {
+		Name = "Damage Boost",
+		Description = "+3% damage dealt",
+		DescriptionEndless = "+38% damage dealt",
+		Cost = 1,
+		PrestigeReq = 1,
+		PrestigeLevel = 1
+	},
+
+	["damageresistanceboost_1"] = {
+		Name = "Damage Resistance Boost",
+		Description = "+4% boost to damage resistance",
+		DescriptionEndless = "+30% boost to damage resistance",
+		Cost = 1,
+		PrestigeReq = 1,
+		PrestigeLevel = 1
+	},
+
+	["antipoison_1"] = {
+		Name = "Anti-Poison",
+		Description = "Reduces damage taken from poison headcrabs by half (reduced up to 25 damage)",
+		DescriptionEndless = "Reduces damage taken from poison headcrabs by half (reduced up to 100 damage)",
+		Cost = 1,
+		PrestigeReq = 2,
+		PrestigeLevel = 1
+	},
+
+	["difficult_decision_1"] = {
+		Name = "Difficult Decision",
+		Description = "+25% personal difficulty (Functions same as difficulty, but only affects you, ignores the difficulty cap.)\nDoesn't work yet",
+		DescriptionEndless = "+50% difficulty gain on NPC kill",
+		Cost = 1,
+		PrestigeReq = 2,
+		PrestigeLevel = 1
+	},
+
+	["critical_damage_1"] = {
+		Name = "Critical Damage I",
+		Description = "7% chance to deal 1.2x damage",
+		DescriptionEndless = "12% chance to deal 2.2x damage",
+		Cost = 2,
+		PrestigeReq = 4,
+		PrestigeLevel = 1
+	},
+
+	["better_knowledge_1"] = {
+		Name = "Better Knowledge",
+		Description = "+40% xp gain from NPC kills",
+		DescriptionEndless = "2.35x xp gain from NPC kills if difficulty is above 650%.\n+10% boost to bonus xp on map completion, Knowledge skill +2% xp gain per point.",
+		Cost = 3,
+		PrestigeReq = 6,
+		PrestigeLevel = 1
+	},
+
+	["vampiric_killer_1"] = {
+		Name = "Vampiric Killer",
+		Description = "You gain +2 HP upon killing an NPC.",
+		DescriptionEndless = "You gain +4% health upon killing an NPC. Recovers max of 50 HP.",
+		Cost = 5,
+		PrestigeReq = 10,
+		PrestigeLevel = 1
+	},
+
+
+	-- Eternity
+
+	["damage_of_eternity_2"] = {
+		Name = "Damage of Eternity",
+		Description = "Does nothing.",
+		DescriptionEndless = "Has 15% chance to triple the damage and convert the damage done to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
+		Cost = 1,
+		PrestigeReq = 1,
+		PrestigeLevel = 2
+	},
+
+	["difficult_decision_2"] = {
+		Name = "A very difficult decision",
+		Description = "Doesn't do anything.",
+		DescriptionEndless = "2.25x difficulty gain per NPC kill",
+		Cost = 1,
+		PrestigeReq = 2,
+		PrestigeLevel = 2
+	},
+
+	["critical_damage_2"] = {
+		Name = "Critical Damage II",
+		Description = "Doesn't do anything.",
+		DescriptionEndless = "Improves Critical Damage I perk, chance 12% -> 19% and damage 2.2x -> 2.5x.\nAlso grants a 6% chance to inflict super critical hit, granting 4x damage!.",
+		Cost = 2,
+		PrestigeReq = 4,
+		PrestigeLevel = 2
+	},
+
 }

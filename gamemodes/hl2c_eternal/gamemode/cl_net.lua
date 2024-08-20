@@ -1,27 +1,25 @@
 
 net.Receive("hl2c_updatestats", function(length)
-    local pl = LocalPlayer()
+    local ply = LocalPlayer()
     
-    pl.XP = net.ReadFloat()
-    pl.Level = net.ReadFloat()
-    pl.StatPoints = net.ReadFloat()
-    pl.Prestige = net.ReadFloat()
-    pl.PrestigePoints = net.ReadFloat()
-    pl.Eternity = net.ReadFloat()
-    pl.EternityPoints = net.ReadFloat()
+    ply.XP = net.ReadFloat()
+    ply.Level = net.ReadFloat()
+    ply.StatPoints = net.ReadFloat()
+    ply.Prestige = net.ReadFloat()
+    ply.PrestigePoints = net.ReadFloat()
+    ply.Eternity = net.ReadFloat()
+    ply.EternityPoints = net.ReadFloat()
 end)
 
 net.Receive("UpdateSkills", function(length)
-    local s1 = net.ReadFloat()
-    local s2 = net.ReadFloat()
-    local s3 = net.ReadFloat()
-    local s4 = net.ReadFloat()
+    local ply = LocalPlayer()
 
-    local pl = LocalPlayer()
-    pl.StatDefense = s1
-    pl.StatGunnery = s2
-    pl.StatMedical = s3
-    pl.StatVitality = s4
+    ply.StatDefense = net.ReadFloat()
+    ply.StatGunnery = net.ReadFloat()
+    ply.StatMedical = net.ReadFloat()
+    ply.StatSurgeon = net.ReadFloat()
+    ply.StatVitality = net.ReadFloat()
+    ply.StatKnowledge = net.ReadFloat()
 end)
 
 XPGained = 0

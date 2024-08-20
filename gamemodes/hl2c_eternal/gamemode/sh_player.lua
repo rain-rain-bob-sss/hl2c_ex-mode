@@ -25,16 +25,39 @@ function meta:RemoveVehicle()
 
 end
 
-function meta:GetMaxXPGainMul()
-	return self.Eternity >= 1 and 75 or self.Prestige >= 1 and 35 or 15
+function meta:GetMaxDifficultyXPGainMul()
+	return self:HasEternityUnlocked() and 250 or self:HasPrestigeUnlocked() and 75 or 25
 end
+
+function meta:GetSkillAmount(stat)
+	if GAMEMODE.NoProgressionAdvantage then return 0 end
+	return math.Clamp(self["Stat"..stat] or 0, 0, GAMEMODE.EndlessMode and 1e6 or 10)
+end
+
+function meta:HasPerkUnlocked(perk)
+	return self.UnlockedPerks[perk]
+end
+
+function meta:HasPerkActive(perk)
+	local perkdata = GAMEMODE.PerksData[perk]
+
+	if GAMEMODE.NoProgressionAdvantage then return false end
+
+	return self:HasPerkUnlocked(perk) and not table.HasValue(self.DisabledPerks, perk) and (GAMEMODE.EndlessMode or perkdata.PrestigeLevel < 2)
+end
+
+
 
 
 function meta:CanLevelup()
-	return self.XP >= GAMEMODE:GetReqXP(self) and self.Level < MAX_LEVEL
+	return self.XP >= GAMEMODE:GetReqXP(self)
 end
 
 function meta:CanPrestige()
+	return self.Level >= MAX_LEVEL and self.XP >=GAMEMODE:GetReqXP(self)
+end
+
+function meta:CanEternity()
 	return false
 end
 

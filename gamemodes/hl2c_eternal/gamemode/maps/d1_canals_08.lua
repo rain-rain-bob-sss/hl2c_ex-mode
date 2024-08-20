@@ -16,6 +16,17 @@ function hl2cPlayerSpawn( ply )
 end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
+local function CreateMetropolice(pos, ang, wep, target)
+	local npc = ents.Create("npc_metropolice")
+	npc:Give(wep)
+	npc:SetPos(pos)
+	npc:SetAngles(ang)
+	npc:Spawn()
+	if target and target:IsValid() then
+		npc:SetEnemy(target)
+		npc:UpdateEnemyMemory(target, target:GetPos())
+	end
+end
 
 -- Initialize entities
 function hl2cMapEdit()
@@ -25,3 +36,13 @@ function hl2cMapEdit()
 
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
+
+hook.Add("AcceptInput", "hl2cAcceptInput", function(ent, input)
+	if GAMEMODE.EXMode and ent:GetName() == "door_warehouse_basement" and string.lower(input) == "unlock" then
+		PrintMessage(3, "You prefer going the hard way? Alright.")
+
+		local ang = Angle(0, 90, 0)
+		CreateMetropolice(Vector(-756, -860, -576), ang, "weapon_smg1")
+		CreateMetropolice(Vector(-836, -860, -576), ang, "weapon_smg1")
+	end
+end)

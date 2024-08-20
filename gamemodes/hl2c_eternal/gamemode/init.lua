@@ -239,6 +239,7 @@ end
 function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Gets the attacker
 	local attacker = dmgInfo:GetAttacker()
+	local damage = dmgInfo:GetDamage()
 
 	-- Godlike NPCs take no damage ever
 	if (IsValid(ent) && table.HasValue(GODLIKE_NPCS, ent:GetClass())) and not MAP_FORCE_NO_FRIENDLIES then
@@ -260,32 +261,70 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Crowbar and Stunstick should follow skill level
 	if (IsValid(ent) && IsValid(attacker) && attacker:IsPlayer()) then
 		if (IsValid(attacker:GetActiveWeapon()) && ((attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB))) then
-			dmgInfo:SetDamage(GetConVar("sk_plr_dmg_crowbar"):GetFloat())
+			damage = GetConVar("sk_plr_dmg_crowbar"):GetFloat()
 		elseif IsValid(attacker:GetActiveWeapon()) && attacker:GetActiveWeapon():GetClass() == "weapon_stunstick" && dmgInfo:GetDamageType() == DMG_CLUB then
-			dmgInfo:SetDamage(GetConVar("sk_plr_dmg_stunstick"):GetFloat())
+			damage = GetConVar("sk_plr_dmg_stunstick"):GetFloat()
 		end
 	end
 
 	if attacker.NextDamageMul and (ent:IsNPC() or ent:IsPlayer()) then
-		dmgInfo:ScaleDamage(attacker.NextDamageMul)
+		damage = damage * attacker.NextDamageMul
 		attacker.NextDamageMul = nil
 	end
 
-	if attacker:IsPlayer() and dmgInfo:IsBulletDamage() then
-		dmgInfo:ScaleDamage(1 + (0.01 * attacker.StatGunnery))
+	local damagemul,damageresistancemul = 1,1
+	local attackerisworld = attacker:GetClass() == "trigger_hurt" or attacker:GetClass() == "trigger_waterydeath"
+
+	if attacker:IsPlayer() then
+		if dmgInfo:IsBulletDamage() then
+			damagemul = damagemul * (1 + ((self.EndlessMode and 0.03 or 0.01) * attacker:GetSkillAmount("Gunnery")))
+		end
+
+		if attacker:HasPerkActive("damageboost_1") then
+			damagemul = damagemul * (1 + (self.EndlessMode and 0.38 or 0.03))
+		end
+
+		if attacker:HasPerkActive("critical_damage_1") and math.random(100) <= (self.EndlessMode and 12 or 7) then
+			damagemul = damagemul * (self.EndlessMode and 2.2 or 1.2)
+		end
+
+		damage = damage * damagemul
 	end
 
-	if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() and (attacker:GetClass() ~= "npc_headcrab_poison" and attacker:GetClass() ~= "npc_headcrab_black") then
-		dmgInfo:ScaleDamage(math.sqrt(self:GetDifficulty())) --could be square rooted
-		-- dmgInfo:ScaleDamage(self:GetDifficulty()) --could be square rooted
-	elseif ent:IsNPC() then
-		if ent:GetClass() == "npc_combinegunship" then
-			dmgInfo:ScaleDamage(1 / math.log10(self:GetDifficulty()))
-		else
-			dmgInfo:ScaleDamage(1 / math.sqrt(self:GetDifficulty()))
+	if ent:IsPlayer() and not attackerisworld then
+		if dmgInfo:IsBulletDamage() then
+			damageresistancemul = damageresistancemul * (1 + ((self.EndlessMode and 0.025 or 0.008) * ent:GetSkillAmount("Defense")))
 		end
-		-- dmgInfo:ScaleDamage(1 / self:GetDifficulty())
+
+		if ent:HasPerkActive("damageresistanceboost_1") then
+			damageresistancemul = damageresistancemul * (1 + (self.EndlessMode and 0.3 or 0.04))
+		end
+
+		damage = damage / damageresistancemul
 	end
+
+
+	if ent:IsPlayer() and attacker:IsValid() and attackerisworld then
+		damage = damage * math.max(1, ent:GetMaxHealth()*0.01)
+	end
+
+	local ispoisonheadcrab = attacker:GetClass() == "npc_headcrab_poison" or attacker:GetClass() == "npc_headcrab_black"
+	if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() then
+		if not ispoisonheadcrab then
+			damage = damage * math.sqrt(self:GetDifficulty()) --could be square rooted
+		elseif ent:IsPlayer() and ent:HasPerkActive("antipoison_1") then
+			damage = damage - math.min(self.EndlessMode and 100 or 25, ent:Health()/2)
+		end
+	end
+	if ent:IsNPC() and not ent:IsFriendlyNPC() then
+		if ent:GetClass() == "npc_combinegunship" then
+			damage = damage / math.log10(self:GetDifficulty())
+		else
+			damage = damage / math.sqrt(self:GetDifficulty())
+		end
+	end
+
+	dmgInfo:SetDamage(damage)
 end
 
 
@@ -316,6 +355,7 @@ function GM:GrabAndSwitch()
 		plyInfo.score = ply:Frags()
 		plyInfo.deaths = ply:Deaths()
 		plyInfo.model = ply.modelName
+		plyInfo.SessionStats = ply.SessionStats
 		if (IsValid(ply:GetActiveWeapon())) then plyInfo.weapon = ply:GetActiveWeapon():GetClass(); end
 		if (plyWeapons && #plyWeapons > 0) then
 			plyInfo.loadout = {}
@@ -371,10 +411,11 @@ function GM:Initialize()
 	util.AddNetworkString("XPGain")
 	util.AddNetworkString("UpdateSkills")
 	util.AddNetworkString("UpgradePerk")
-	util.AddNetworkString("updateDifficulty")
 
 	util.AddNetworkString("hl2c_playerready")
 	util.AddNetworkString("hl2c_updatestats")
+	util.AddNetworkString("hl2ce_prestige")
+	util.AddNetworkString("hl2ce_unlockperk")
 	
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
@@ -613,14 +654,19 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			killer:AddFrags(1)
 		end
 
+
+
 		if NPC_XP_VALUES[npc:GetClass()] then
+			-- Too many local this is fine.
 			local xp,difficulty = NPC_XP_VALUES[npc:GetClass()], self:GetDifficulty()
 			local npckillxpmul,npckilldiffgainmul = self.XpGainOnNPCKillMul or 1, self.DifficultyGainOnNPCKillMul or 1
 			local npcxpmul = npc.XPGainMult or 1
 
-			local gainfromdifficultymul = math.min(difficulty, killer:GetMaxXPGainMul())
-			killer:GiveXP(NPC_XP_VALUES[npc:GetClass()] * gainfromdifficultymul * npckillxpmul * npcxpmul)
-			self:SetDifficulty(difficulty + xp*0.005*npckilldiffgainmul)
+			local gainfromdifficultymul = math.min(difficulty, killer:GetMaxDifficultyXPGainMul())
+			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and self:GetDifficulty() >= 6.50 and 2.35 or !self.EndlessMode and 1.4) or 1
+			local xpmul = gainfromdifficultymul * npckillxpmul * npcxpmul * better_knowledge_gain
+			killer:GiveXP(NPC_XP_VALUES[npc:GetClass()] * xpmul)
+			self:SetDifficulty(difficulty + xp*0.0005*npckilldiffgainmul)
 		end
 	end
 
@@ -731,7 +777,7 @@ function GM:PlayerInitialSpawn(ply)
 	ply:SetTeam(TEAM_ALIVE)
 
 	ply.XP = 0
-	ply.Level = 0
+	ply.Level = 1
 	ply.StatPoints = 0
 
 	ply.Prestige = 0
@@ -754,31 +800,36 @@ function GM:PlayerInitialSpawn(ply)
 		ply["Stat"..k] = 0
 	end
 
-	ply.Perks = {}
+	ply.UnlockedPerks = {}
+	ply.DisabledPerks = {}
+
+
+	ply.MapStats = {}
+	ply.SessionStats = {}
+
+	-- Grab previous map info
+	local plyID = ply:SteamID64() || ply:UniqueID()
+	if (file.Exists(self.VaultFolder.."/players/"..plyID..".txt", "DATA")) then
+		ply.info = util.JSONToTable(file.Read(self.VaultFolder.."/players/"..plyID..".txt", "DATA"))
+		if ((ply.info.predicted_map != game.GetMap()) || RESET_PL_INFO) then
+			file.Delete(self.VaultFolder.."/players/"..plyID..".txt")
+			ply.info = nil
+		elseif (RESET_WEAPONS) then
+			ply.info.loadout = nil
+		end
+	end
+
+	ply:SetFrags(0)
+	ply:SetDeaths(0)
+
+	self:LoadPlayer(ply)
+
 
 	-- Objective Timer
 	net.Start("ObjectiveTimer")
 	net.WriteFloat(self.ObjectiveTimer or 0)
 	net.Broadcast()
 	
-	-- Grab previous map info
-	local plyID = ply:SteamID64() || ply:UniqueID()
-	if (file.Exists(self.VaultFolder.."/players/"..plyID..".txt", "DATA")) then
-	
-		ply.info = util.JSONToTable(file.Read(self.VaultFolder.."/players/"..plyID..".txt", "DATA"))
-	
-		if ((ply.info.predicted_map != game.GetMap()) || RESET_PL_INFO) then
-		
-			file.Delete(self.VaultFolder.."/players/"..plyID..".txt")
-			ply.info = nil
-		
-		elseif (RESET_WEAPONS) then
-		
-			ply.info.loadout = nil
-		
-		end
-	
-	end
 
 	-- Send initial player spawn to client
 	net.Start("PlayerInitialSpawn")
@@ -797,7 +848,6 @@ function GM:PlayerInitialSpawn(ply)
 		ply:ChatPrint("Vehicle spawning is allowed! Press F3 (Spare 1) to spawn it.")
 	end
 
-	self:LoadPlayer(ply)
 	self:NetworkString_UpdateStats(ply)
 end 
 
@@ -867,9 +917,10 @@ end
 -- Called when the player attempts to noclip
 function GM:PlayerNoClip(ply)
 	if !ply:Alive() then
-		ply:PrintMessage(HUD_PRINTTALK, "You can't noclip when you are dead, can't you see?!")
+		-- ply:PrintMessage(HUD_PRINTTALK, "You can't noclip when you are dead, can't you see?!")
 		return false
 	end
+
 	return ply:IsAdmin() && hl2c_admin_noclip:GetBool()
 end
 
@@ -995,7 +1046,11 @@ function GM:PlayerSpawn(ply)
 	gamemode.Call("PlayerLoadout", ply)
 
 	-- Set stuff from last level
-	local maxhp = 100 + (3 * ply.StatVitality) -- calculate their max health
+	local maxhp = 100 + ((self.EndlessMode and 5 or 1) * ply:GetSkillAmount("Vitality")) -- calculate their max health
+	if ply:HasPerkActive("healthboost_1") then
+		maxhp = maxhp + (self.EndlessMode and 60 or 5)
+	end
+
 	if ply.info then
 		if ply.info.health > 0 then
 			ply:SetHealth(ply.info.health)
@@ -1003,6 +1058,10 @@ function GM:PlayerSpawn(ply)
 	
 		if ply.info.armor > 0 then
 			ply:SetArmor(ply.info.armor)
+		end
+
+		if ply.info.Stats then
+			
 		end
 	
 		ply:SetFrags(ply.info.score)
@@ -1112,6 +1171,18 @@ function GM:RestartMap()
 end
 concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then RESTART_MAP_TIME = 0; hook.Call("RestartMap", GAMEMODE); end end)
 
+function GM:FailMap(ply) -- ply argument is the one who caused the map to fail, giving them most penalty
+	self:RestartMap()
+
+	if ply and ply:IsValid() and ply:IsPlayer() then
+		local xploss = ply.MapStats.XPGained + 100
+		ply.XP = ply.XP - xploss
+
+		ply:PrintMessage(3, "Don't cause the map to fail bruh.")
+		ply:PrintMessage(3, "Lost "..xploss.." XP.")
+	end
+end
+
 
 -- Called every time a player does damage to an npc
 function GM:ScaleNPCDamage(npc, hitGroup, dmgInfo)
@@ -1154,7 +1225,6 @@ function GM:ScalePlayerDamage(ply, hitGroup, dmgInfo)
 	end
 
 	-- Calculate the damage
-	dmgInfo:ScaleDamage(hitGroupScale * (1 - (0.005 * ply.StatDefense)))
 end 
 
 
@@ -1189,13 +1259,11 @@ function GM:ShowSpare1(ply)
 	end
 
 	for _, ent in pairs(ents.FindInSphere(ply:GetPos(), 256)) do
-		if (IsValid(ent) && ent:IsPlayer() && (ent != ply)) then
+		if IsValid(ent) and ent:IsPlayer() and ent:Alive() and ent != ply then
 			ply:PrintMessage(HUD_PRINTTALK, "There are players around you! Find an open space to spawn your vehicle.")
 			return
 		end
 	end
-
-	ply:RemoveVehicle()
 
 	-- Spawn the vehicle
 	if ALLOWED_VEHICLE then
@@ -1207,6 +1275,16 @@ function GM:ShowSpare1(ply)
 			return
 		end
 	
+		local plyAngle = ply:EyeAngles()
+		local spawnpos = ply:GetPos() + Vector(0, 0, 48) + plyAngle:Forward() * 160
+
+		if not util.IsInWorld(spawnpos) then
+			ply:ChatPrint("Insufficient space for spawning in a vehicle!")
+			return
+		end
+
+		ply:RemoveVehicle()
+
 		-- Create the new entity
 		ply.vehicle = ents.Create(vehicle.Class)
 		ply.vehicle:SetModel(vehicle.Model)
@@ -1222,8 +1300,7 @@ function GM:ShowSpare1(ply)
 		end
 	
 		-- Set pos/angle and spawn
-		local plyAngle = ply:EyeAngles()
-		ply.vehicle:SetPos(ply:GetPos() + Vector(0, 0, 48) + plyAngle:Forward() * 160)
+		ply.vehicle:SetPos(spawnpos)
 		ply.vehicle:SetAngles(Angle(0, plyAngle.y - 90, 0))
 		ply.vehicle:Spawn()
 		ply.vehicle:Activate()
@@ -1247,7 +1324,6 @@ function GM:ShowSpare2(ply)
 	ply:RemoveVehicle()
 end
 
-local updateDifficulty = 0
 -- Called every frame 
 function GM:Think()
 
@@ -1263,7 +1339,7 @@ function GM:Think()
 	end
 
 	-- Change the difficulty according to number of players
-	if player.GetCount() > 0 && (updateDifficulty < CurTime()) then
+	if player.GetCount() > 0 then
 		if self.EndlessMode then
 			game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
 		elseif hl2c_server_dynamic_skill_level:GetBool() then
@@ -1336,10 +1412,14 @@ function GM:AcceptInput(ent, input, activator, caller, value)
 		"func_areaportal",
 		"func_tracktrain"
 	}
-	if table.HasValue(blacklist, class) then return end
+	if string.lower(input) == "sethealth" and value == "0" and ent:IsPlayer() then
+		ent:SetHealth(0)
+		ent:TakeDamage(0)
+	end
+	-- if table.HasValue(blacklist, class) then return end
 
-	local col = string.sub(class, 1, 6) == "logic_" and Color(255,255,128) or class == "func_tracktrain" and Color(128,128,255) or string.sub(class, 1, 4) == "env_" and Color(128,255,128) or Color(255,128,128)
-	MsgC(col, ent, "    ", input, "    ", activator, "    ", caller, "    ", value, "    ", ent:GetName(), "\n")
+	-- local col = string.sub(class, 1, 6) == "logic_" and Color(255,255,128) or class == "func_tracktrain" and Color(128,128,255) or string.sub(class, 1, 4) == "env_" and Color(128,255,128) or Color(255,128,128)
+	-- MsgC(col, ent, "    ", input, "    ", activator, "    ", caller, "    ", value, "    ", ent:GetName(), "\n")
 end
 
 

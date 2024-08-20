@@ -28,7 +28,7 @@ SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
 
 SWEP.HealAmount = 10
-SWEP.MaxAmmo = 60 -- Max ammo
+SWEP.MaxAmmo = 100 -- Max ammo
 
 local HealSound = Sound( "HealthKit.Touch" )
 local DenySound = Sound( "WallHealth.Deny" )
@@ -39,7 +39,10 @@ function SWEP:Initialize()
 	if CLIENT then return end
 
 	timer.Create("hl2ce_medkit_ammo"..self:EntIndex(), 2, 0, function()
-		if IsValid(self) && (self:Clip1() < self.MaxAmmo) then self:SetClip1(math.min(self:Clip1() + 1, self.MaxAmmo)) end
+		if IsValid(self) && (self:Clip1() < self.MaxAmmo) then
+			local owner = self:GetOwner()
+			self:SetClip1(math.min(self:Clip1() + 1 + ((GAMEMODE.EndlessMode and 0.1 or 0.02) * owner:GetSkillAmount("Surgeon")), self.MaxAmmo + (self.MaxAmmo * ((GAMEMODE.EndlessMode and 0.1 or 0.02) * owner:GetSkillAmount("Surgeon")))))
+		end
 	end)
 end
 
@@ -62,8 +65,8 @@ function SWEP:PrimaryAttack()
 
 	local ent = tr.Entity
 
-	local need = self.HealAmount + (self.HealAmount * (0.02 * self.Owner.StatMedical))
-	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), self.HealAmount + (self.HealAmount * (0.02 * self.Owner.StatMedical)) ) end
+	local need = self.HealAmount + (self.HealAmount * ((GAMEMODE.EndlessMode and 0.05 or 0.02) * self.Owner:GetSkillAmount("Medical")))
+	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), self.HealAmount + (self.HealAmount * ((GAMEMODE.EndlessMode and 0.05 or 0.02) * self.Owner:GetSkillAmount("Medical"))) ) end
 
 	if ( IsValid( ent ) && self:Clip1() >= need && ( ent:IsPlayer() or ent:IsNPC() ) && ent:Health() < ent:GetMaxHealth() ) then
 

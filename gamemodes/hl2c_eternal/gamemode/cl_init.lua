@@ -142,7 +142,7 @@ function GM:HUDPaint()
 		end
 	end
 
-	if pl:Alive() then
+	if pl:Alive() and pl:IsSuitEquipped() then
 		local hp,ap = pl:Health(),pl:Armor()
 		local mhp,map = pl:GetMaxHealth(), pl:GetMaxArmor()
 
@@ -286,6 +286,10 @@ function GM:PlayerReady()
 	ply.RebirthPoints = 0
 	ply.Ascensions = 0
 	ply.AscensionPoints = 0
+
+
+	ply.UnlockedPerks = {}
+	ply.DisabledPerks = {}
 end
 
 function GM:SpawnMenuEnabled()
@@ -392,24 +396,54 @@ end
 
 -- Called by show help
 function ShowHelp(len)
-	local helpText = "-= ABOUT THIS GAMEMODE =-\nWelcome to Half-Life 2 Campaign EX!\nThis gamemode is based on Half-Life 2 Campaign made by Jai 'Choccy' Fox,\nwith new stuff like Leveling, Skills and more!\n\n-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nNot only Difficulty increases, but also XP gaining multiplier."
+	local helpText = "-= ABOUT THIS GAMEMODE =-\nWelcome to Half-Life 2 Campaign EX!\nThis gamemode is based on Half-Life 2 Campaign made by Jai 'Choccy' Fox,\nwith new stuff like Leveling, Skills and more!\n\n-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nDifficulty increases along with XP gain."
 	
 	local helpEXMode = GAMEMODE.EXMode and "EX Mode is enabled! Expect Map objectives, NPC variants and chaos here!" or "EX Mode is disabled!"
+	local helpEndlessMode = GAMEMODE.EndlessMode and "\nEndless Mode is enabled. Difficulty cap is increased drastically. Progression eventually becomes exponential." or "\nEndless Mode is disabled. Difficulty is limited, Skills and Perks have limited functionality."
 
 	local helpMenu = vgui.Create("DFrame")
 	local helpPanel = vgui.Create("DPanel", helpMenu)
 	local helpLabel = vgui.Create("DLabel", helpPanel)
+	local helpLabel2 = vgui.Create("DLabel", helpPanel)
+	local adminbutton
+	local pl = LocalPlayer()
 
-	helpLabel:SetText(helpText.."\n"..helpEXMode)
-	helpLabel:SetTextColor(GAMEMODE.EXMode and Color(224,48,48,255) or Color(0,64,0,255))
+	if pl:IsAdmin() then
+		adminbutton = vgui.Create("DButton", helpPanel)
+	end
+
+	helpLabel:SetText(helpText)
+	helpLabel:SetTextColor(Color(0,64,0,255))
 	helpLabel:SetPos(7, 5)
 	helpLabel:SizeToContents()
-	
+
 	local w, h = helpLabel:GetSize()
-	helpMenu:SetSize(math.max(380, w + 13), math.max(259, h + 73))
+	helpLabel2:SetText(helpEXMode..helpEndlessMode)
+	helpLabel2:SetTextColor(GAMEMODE.EXMode and Color(224,48,48,255) or Color(0,64,0,255))
+	helpLabel2:SetPos(7, h + 5)
+	helpLabel2:SizeToContents()
+
+	local w2, h2 = helpLabel2:GetSize()
+	helpMenu:SetSize(math.max(380, w + 13), math.max(259, h + h2 + 73))
 	helpPanel:StretchToParent( 5, 28, 5, 5 )
 
-	
+	if adminbutton and adminbutton:IsValid() then
+		adminbutton:SetPos(10, h + h2 + 10)
+		adminbutton:SetSize(120, 20)
+		adminbutton:SetText("Admin Mode")
+		adminbutton:SetTextColor(Color(0,0,255))
+		adminbutton.DoClick = function()
+			GAMEMODE.AdminMode = !GAMEMODE.AdminMode
+
+			chat.AddText(GAMEMODE.AdminMode and "enabled" or "disabled")
+
+			helpMenu:Remove()
+		end
+		adminbutton.Paint = function(self, width, height)
+			surface.SetDrawColor(Color(0,0,155,100))
+			surface.DrawRect(0, 0, width, height)
+		end
+	end
 	
 	helpMenu:SetTitle( "Help" )
 	helpMenu:Center()
@@ -448,9 +482,9 @@ function GM:ShowSkills()
 		for k, v in SortedPairs(self.SkillsInfo) do
 			local LabelDefense = vgui.Create("DLabel")
 			LabelDefense:SetPos(50, 50)
-			LabelDefense:SetText(translate.Get(k)..": "..tostring(pl["Stat"..k]))
+			LabelDefense:SetText(v.Name..": "..tostring(pl["Stat"..k]))
 			LabelDefense:SetTextColor(color_black)
-			LabelDefense:SetToolTip(translate.Get(k.."_d"))
+			LabelDefense:SetToolTip(v.Name.."\n\nIn Non-Endless Mode:\n"..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
 			LabelDefense:SizeToContents()
 			skillsForm:AddItem(LabelDefense)
 
@@ -458,8 +492,8 @@ function GM:ShowSkills()
 			Button:SetPos(50, 100)
 			Button:SetSize(15, 20)
 			Button:SetTextColor(color_black)
-			Button:SetText("Increase "..translate.Get(k).." by 1 point")
-			Button:SetToolTip(translate.Get(k.."_d"))
+			Button:SetText("Increase "..v.Name.." by 1 point")
+			Button:SetToolTip(v.Name.."\n\nIn Non-Endless Mode:\n"..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
 			Button.DoClick = function(Button)
 				net.Start("UpgradePerk")
 				net.WriteString(k)
@@ -548,182 +582,6 @@ function SetCheckpointPosition( len )
 end
 net.Receive( "SetCheckpointPosition", SetCheckpointPosition )
 
-local perksvgui
-GM.LocalPerks = GM.LocalPerks or {}
-
-function GM:PerksMenu()
-	-- Yes.
-	local me = LocalPlayer()
-
-	if IsValid(perksvgui) then perksvgui:Remove() end
-	perksvgui = vgui.Create("DFrame")
-	perksvgui:SetSize(900, 660)
-	perksvgui:Center()
-	perksvgui:SetTitle("")
-	perksvgui:SetDraggable(false)
-	perksvgui:SetVisible(true)
-	perksvgui:SetAlpha(0)
-	perksvgui:AlphaTo(255, 1, 0)
-	perksvgui:ShowCloseButton(true)
-	perksvgui:MakePopup()
-	perksvgui.Paint = function(this)
-		draw.RoundedBox(2, 0, 0, this:GetWide(), this:GetTall(), Color(0, 0, 0, 200))
-		surface.SetDrawColor(150, 150, 0,255)
-		surface.DrawOutlinedRect(0, 0, this:GetWide(), this:GetTall())
-	end
-	perksvgui.Think = function(this)
-		if input.IsKeyDown(KEY_ESCAPE) and gui.IsGameUIVisible() then
-			timer.Simple(0, function()
-				this:Remove()
-			end)
-			gui.HideGameUI()
-		end
-	end
-
-	local sheet = vgui.Create("DPropertySheet", perksvgui)
-	sheet:SetPos(5, 25)
-	sheet:SetSize(875, perksvgui:GetTall() - 35)
-	sheet.Paint = function(panel)
-		for k, v in pairs(panel.Items) do
-			if (!v.Tab) then continue end
-			v.Tab.Paint = function(this,w,h)
-				draw.RoundedBox(0, 0, 0, w, h, Color(50,50,25))
-			end
-		end
-	end
-
-	local perklist = vgui.Create("DPanelList")
-	perklist:SetSize(850, perksvgui:GetTall() - 25)
-	perklist:SetPos(5, 25)
-	perklist:EnableVerticalScrollbar(true)
-	perklist:EnableHorizontal(true)
-
-
-	local LWeight = vgui.Create("DLabel", perksvgui)
-	LWeight:SetFont("TargetIDSmall")
-	LWeight:SetPos(10, 3)
-	LWeight:SetText("Perk points: ".. 0)
-	LWeight:SizeToContents()
-	local x,y = LWeight:GetSize()
-	LWeight:SetSize(math.min(x, 350), 25)
-	LWeight:SetColor(Color(255,255,255,255))
-	LWeight:SetMouseInputEnabled(true)
-	LWeight:SetToolTip("Perk points are required to unlock perk!\nThey can be gained by prestiging")
-	LWeight.Think = function(panel)
-		local txt = "Perk points: ".. 0
-		if panel:GetText() == txt then return end
-		panel:SetText(txt)
-		LWeight:SizeToContents()
-		local x,y = LWeight:GetSize()
-		LWeight:SetSize(math.min(x, 350), 25)
-	end
-
-
-
-
-	--------------------------------------------supplies-------------------------------------------------------------
-	
-
-	local hoverdesc = vgui.Create("DLabel", perksvgui)
-	hoverdesc:SetFont("TargetIDSmall")
-	hoverdesc:SetPos(150, 0)
-	hoverdesc:SetText("Note: Hover your cursor over perks' description with white color for more info")
-	hoverdesc:SizeToContents()
-	local x,y = hoverdesc:GetSize()
-	hoverdesc:SetSize(810, 30)
-
-	for k, v in SortedPairsByMemberValue(GAMEMODE.PerksData, "PrestigeReq") do
-		local perkpanel = vgui.Create("DPanel")
-		perkpanel:SetPos(5, 5)
-        local size_x,size_y = 810,150
-		perkpanel:SetSize(size_x, size_y)
-		perkpanel.Paint = function(panel) -- Paint function
-			draw.RoundedBoxEx(8,1,1,panel:GetWide()-2,panel:GetTall()-2,
-			self.LocalPerks[k] and Color(40, 200, 40, 25) or v.PrestigeReq > me.Prestige and Color(75, 75, 75, 50) or Color(200, 40, 40, 25),
-			false, false, false, false)
-			surface.SetDrawColor(50, 50, 50, 255)
-			surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
-		end
-
-		local perkname = vgui.Create("DLabel", perkpanel)
-		perkname:SetFont("TargetID")
-		perkname:SetPos(0, 10)
-		perkname:SetText(v.Name)
-		if v.GetTextColor then
-			perkname:SetTextColor(v.GetTextColor())
-		end
-		perkname.Think = function(panel)
-			if v.KeepUpdatingColor and v.GetTextColor then
-				panel:SetTextColor(v.GetTextColor())
-			end
-		end
-		perkname:SizeToContents()
-        local x,y = perkname:GetSize()
-		perkname:SetSize(math.min(size_x - 20, x), y)
-		perkname:CenterHorizontal()
-
-		local perkdesc = vgui.Create("DLabel", perkpanel)
-		perkdesc:SetFont("TargetIDSmall")
-		perkdesc:SetPos(0, 35)
-		perkdesc:SetText(self.EndlessMode and v.EndlessDescription or v.Description)
-		perkdesc:SetMouseInputEnabled(true)
-		if v.AddDescription then
-			perkdesc:SetTextColor(Color(255,255,255))
-			perkdesc:SetToolTip(v.AddDescription)
-		else
-			perkdesc:SetTextColor(Color(155,155,155))
-		end
-		perkdesc:SizeToContents()
-        local x,y = perkdesc:GetSize()
-		perkdesc:SetSize(math.min(size_x - 20, x), 35)
-		perkdesc:SetWrap(true)
-		perkdesc:CenterHorizontal()
-
-		local perkcost = vgui.Create("DLabel", perkpanel)
-		perkcost:SetFont("TargetIDSmall")
-		perkcost:SetText("Points cost: "..v.Cost)
-        perkcost:SetPos(10, 72)
-		perkcost:SetSize(size_x - 20, 15)
-		perkcost:SetWrap(true)
-		perkcost:SetColor(Color(155,155,255,255))
-
-		local perkprestige = vgui.Create("DLabel", perkpanel)
-		perkprestige:SetFont("TargetIDSmall")
-		perkprestige:SetPos(10, 89)
-		perkprestige:SetSize(size_x - 20, 15)
-		perkprestige:SetText("Prestige need: "..v.PrestigeReq)
-		perkprestige:SetWrap(true)
-		perkprestige:SetColor(Color(255,155,155,255))
-
-
-		local perkapply = vgui.Create("DButton", perkpanel)
-		perkapply:SetSize(size_x - 20, 30)
-		perkapply:SetPos(10, size_y - 35)
-		perkapply:SetText(self.LocalPerks[k] and "Unlocked" or v.PrestigeReq > (me.Prestige) and "Not enough prestige" or "Unlock")
-		perkapply.Think = function(panel)
-			local txt = self.LocalPerks[k] and "Unlocked" or v.PrestigeReq > me.Prestige and "Not enough prestige" or "Unlock"
-			if panel:GetText() == txt then return end
-			panel:SetText(txt)	
-		end
-		perkapply:SetTextColor(Color(255, 255, 255, 255))
-		perkapply.Paint = function(panel)
-			surface.SetDrawColor(0, 150, 0, 255)
-			surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
-			draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), v.PrestigeReq > me.Prestige and Color(75, 75, 75, 130) or Color(0, 50, 0, 130))
-		end
-		perkapply.DoClick = function(panel)
-			net.Start("tea_perksunlock")
-			net.WriteString(k)
-			net.SendToServer()
-		end
-		perklist:AddItem(perkpanel)
-	end
-
-
-
-	sheet:AddSheet("Perks", perklist, "icon16/star.png", false, false, "Perks are additional buffs provided in survival\nChoose which perk you should unlock first!\n\nNote: Perk choices are permanent and can't be reset!")
-end
-
 
 local function SpawnMenuOpen(self)
 	if ( !hook.Call( "SpawnMenuOpen", self ) ) then return end
@@ -759,25 +617,34 @@ local function ContextMenuClose(self)
 end
 
 function GM:OnSpawnMenuOpen()
-	-- SpawnMenuOpen(self)
+	local pl = LocalPlayer()
+	if self.AdminMode then
+		SpawnMenuOpen(self)
+	end
 end
 
 function GM:OnSpawnMenuClose()
-	-- SpawnMenuClose(self)
+	local pl = LocalPlayer()
+	if self.AdminMode then
+		SpawnMenuClose(self)
+	end
 end
 
 
 
 function GM:OnContextMenuOpen()
-	-- ContextMenuOpen(self)
-
-	self:CMenu()
+	if self.AdminMode then
+		ContextMenuOpen(self)
+	else
+		self:CMenu()
+	end
 end
 
 function GM:OnContextMenuClose()
-	-- ContextMenuClose(self)
-
-	if ContextMenu and ContextMenu:IsValid() then
+	
+	if self.AdminMode then
+		ContextMenuClose(self)
+	elseif ContextMenu and ContextMenu:IsValid() then
 		ContextMenu:Close()
 	end
 end

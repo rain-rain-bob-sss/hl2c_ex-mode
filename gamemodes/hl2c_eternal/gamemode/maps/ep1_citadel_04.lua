@@ -15,6 +15,13 @@ end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 
+hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", function(ent, dmginfo)
+	local atk = dmginfo:GetAttacker()
+	if not ent:IsPlayer() and atk:GetClass() == "npc_rollermine" then
+		dmginfo:SetDamage(math.huge)
+	end
+end)
+
 -- Initialize entities
 function hl2cMapEdit()
 
@@ -29,8 +36,8 @@ local hastriggered
 
 -- Accept input
 function hl2cAcceptInput( ent, input )
-	if ent == ents.FindByName("trigger_alyx_close_airlock")[1] and string.lower(input) == "enable" and not hastriggered then
-		ents.FindByName("alyx")[1]:SetPos(Vector( 3388, 12196, 3604 ))
+	if ent:GetName() == "trigger_alyx_close_airlock" and string.lower(input) == "enable" and not hastriggered then
+		ents.FindByName("alyx")[1]:SetPos(Vector( 3388, 12192, 3604 ))
 		hastriggered = true
 	end
 end

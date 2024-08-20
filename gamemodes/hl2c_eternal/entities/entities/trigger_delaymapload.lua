@@ -48,12 +48,24 @@ function ENT:StartTouch( ent )
 		if ( !changingLevel ) then GAMEMODE:NextMap() end
 	
 		-- Let everyone know that someone entered the loading section
-		local xp = math.Round(math.Rand(4,7)) * math.min(GAMEMODE:GetDifficulty(), ent:GetMaxXPGainMul())
+		local txp = 0
+		local xp = math.Round(math.Rand(4,7)) * math.min(GAMEMODE:GetDifficulty(), ent:GetMaxDifficultyXPGainMul())
 		PrintMessage( HUD_PRINTTALK, Format( "%s completed the map (%s) [%i of %i]", ent:Name(), string.ToMinutesSeconds( CurTime() - ent.startTime ), team.NumPlayers( TEAM_COMPLETED_MAP ), self.playersAlive))
 		if (GAMEMODE.XP_REWARD_ON_MAP_COMPLETION or 1) > 0 then
 			xp = xp * GAMEMODE.XP_REWARD_ON_MAP_COMPLETION
-			ent:GiveXP(xp)
-			ent:PrintMessage(HUD_PRINTTALK, Format("Gained %i XP for completing this map", xp))
+			txp = txp + xp
+		end
+		if ent.MapStats.GainedXP then
+			xp = math.floor(ent.MapStats.GainedXP * 0.15)
+			txp = txp + xp
+		end
+
+		if txp ~= 0 then
+			ent:GiveXP(txp, true)
+			ent:PrintMessage(HUD_PRINTTALK, Format("You were given additional %i XP for completing this map.", txp))
+		end
+
+		if ent.MapStats then -- Map stats display after completing the map
 		end
 	end
 end

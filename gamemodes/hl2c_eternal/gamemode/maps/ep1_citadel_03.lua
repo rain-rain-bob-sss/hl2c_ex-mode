@@ -20,6 +20,16 @@ end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 
+hook.Add("Think", "hl2cThink", function()
+	if game.GetGlobalState("super_phys_gun") == GLOBAL_ON then
+		for _, ent in pairs( ents.FindByClass( "weapon_*" ) ) do
+			if ( IsValid( ent ) && ent:IsWeapon() && ( ent:GetClass() != "weapon_physcannon" ) && ( !IsValid( ent:GetOwner() ) || ( IsValid( ent:GetOwner() ) && ent:GetOwner():IsPlayer() ) ) ) then
+				ent:Remove()
+			end
+		end
+	end
+end)
+
 -- Initialize entities
 function hl2cMapEdit()
 
@@ -34,6 +44,16 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 -- Accept input
 function hl2cAcceptInput( ent, input )
+	if ent:GetName() == "beam_core_death" and string.lower(input) == "turnon" then
+		timer.Create("ep1_citadel_03_deathbeam_off", 1, 1, function()
+			ent:Fire("turnoff")
+		end)
+	end
+	if ent:GetName() == "super_phys_gun" and string.lower(input) == "turnoff" then
+		for _,ply in pairs(player.GetAll()) do
+			ply:SetArmor(0)
+		end
+	end
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 
