@@ -1,6 +1,4 @@
-NEXT_MAP = "ep1_c17_01"
-
-TRIGGER_DELAYMAPLOAD = {Vector(4513, 3530, 1904), Vector(4658, 3636, 2026)}
+NEXT_MAP = "ep1_c17_02b"
 
 if CLIENT then return end
 
@@ -9,8 +7,14 @@ function hl2cPlayerSpawn( ply )
 	ply:Give("weapon_physcannon")
 	ply:Give("weapon_pistol")
 	ply:Give("weapon_shotgun")
+	ply:Give("weapon_smg1")
+	ply:Give("weapon_frag")
 end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+
+function hl2cPlayerInitialSpawn(ply)
+end
+hook.Add( "PlayerInitialSpawn", "hl2cPlayerInitialSpawn", hl2cPlayerInitialSpawn )
 
 
 -- Initialize entities

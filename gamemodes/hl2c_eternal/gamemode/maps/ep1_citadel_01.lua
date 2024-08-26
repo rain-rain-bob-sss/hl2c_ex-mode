@@ -15,7 +15,7 @@ hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", function(ent, dmginfo)
 	local atk = dmginfo:GetAttacker()
-	if (ent:GetClass() == "npc_combine_s" or atk:GetClass() == "npc_rollermine") and not atk:IsPlayer() then
+	if (ent:GetClass() == "npc_combine_s" or atk:GetClass() == "npc_rollermine" or atk:GetClass() == "npc_cscanner") and not atk:IsPlayer() then
 		dmginfo:SetDamage(math.huge)
 	end
 end)
@@ -32,13 +32,17 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput( ent, input, activator, caller, value )
     if not game.SinglePlayer() and string.lower(input) == "scriptplayerdeath" then -- Might potentially break sequences
         return true
     end
 
-	if not game.SinglePlayer() and ent:GetName() == "door_rollertraining" and string.lower(input) == "setanimation" then
+	if not game.SinglePlayer() and ent:GetName() == "door_rollertraining" and string.lower(input) == "setanimation" and (value == "close" or value == "idle_close") then
+		print("no")
 		return true
+	end
+
+	if not game.SinglePlayer() and ent:GetName() == "brush_combineshieldwall4" and string.lower(input) == "enable" then
 	end
 
 end

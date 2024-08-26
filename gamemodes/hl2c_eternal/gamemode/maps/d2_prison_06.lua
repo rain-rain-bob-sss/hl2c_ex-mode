@@ -1,6 +1,6 @@
 NEXT_MAP = "d2_prison_07"
 
-TRIGGER_DELAYMAPLOAD = { Vector( 420, 58, 9 ), Vector( 455, 157, 114 ) }
+-- TRIGGER_DELAYMAPLOAD = { Vector( 420, 58, 9 ), Vector( 455, 157, 114 ) }
 
 TRIGGER_CHECKPOINT = {
 	{ Vector( 1415, 595, -192 ), Vector( 1456, 757, -31 ) }
@@ -69,6 +69,17 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 		return true
 	
+	end
+
+	if string.lower(ent:GetName()) == "trigger_start_eli_scene_1" then
+		local alyx = ents.FindByName("alyx")[1]
+		alyx:SetPos(Vector(374, 200, 0))
+	end
+
+	if string.lower(ent:GetName()) == "sound_elipod_move_1" and string.lower(input) == "startscripting" then
+		for _,ply in pairs(player.GetAll()) do
+			ply:SetPos(Vector(500, 100, 0))
+		end
 	end
 
 end

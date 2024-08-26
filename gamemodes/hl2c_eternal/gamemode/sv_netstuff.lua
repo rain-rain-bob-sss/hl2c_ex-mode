@@ -24,39 +24,49 @@ function GM:NetworkString_UpdateSkills(ply)
     net.Send(ply)
 end
 
-net.Receive("hl2c_updatestats", function(length, client)
+function GM:NetworkString_UpdatePerks(ply)
+    net.Start("hl2ce_updateperks")
+    net.WriteTable(ply.UnlockedPerks)
+    net.Send(ply)
+end
+
+net.Receive("hl2c_updatestats", function(length, ply)
     local s1 = net.ReadString()
     if s1 == "reloadstats" then
-        GAMEMODE:NetworkString_UpdateStats(client)
-        GAMEMODE:NetworkString_UpdateSkills(client)
+        GAMEMODE:NetworkString_UpdateStats(ply)
+        GAMEMODE:NetworkString_UpdateSkills(ply)
+    	GAMEMODE:NetworkString_UpdatePerks(ply)
     end 
 end)
 
-net.Receive("UpgradePerk", function(length, client)
-    local ply = client
+net.Receive("UpgradePerk", function(length, ply)
 	local perk = net.ReadString()
+    local count = net.ReadUInt(32)
 	local perk2 = "Stat"..perk
+
+    local curpoints = ply.StatPoints
+    local limit = ply:HasPrestigeUnlocked() and 35 or 20
+
+    count = math.min(limit - ply[perk2], curpoints)
 
     if tonumber(ply.StatPoints) < 1 then
         ply:PrintMessage(HUD_PRINTTALK, "You need Skill Points to upgrade this skill!")
 		return false
 	end
 
-    if tonumber(ply[perk2]) >= 20 then
+    if tonumber(ply[perk2]) >= limit then
         ply:PrintMessage(HUD_PRINTTALK, "You have reached the max amount of points for this skill!")
 		return false
 	end
 
-	ply[perk2] = ply[perk2] + 1
-	ply.StatPoints = ply.StatPoints - 1
-    ply:PrintMessage(HUD_PRINTTALK, "Increased "..perk.." by 1 point!")
+	ply[perk2] = ply[perk2] + count
+	ply.StatPoints = ply.StatPoints - count
+    ply:PrintMessage(HUD_PRINTTALK, "Increased "..perk.." by "..count.." point!")
     GAMEMODE:NetworkString_UpdateStats(ply)
     GAMEMODE:NetworkString_UpdateSkills(ply)
 end)
 
 net.Receive("hl2ce_unlockperk", function(len, ply)
-    if true then return end -- perks still locked
-
     local name = net.ReadString()
     local perk = GAMEMODE.PerksData[name]
     if !perk then return end
@@ -78,7 +88,11 @@ net.Receive("hl2ce_unlockperk", function(len, ply)
 
     ply:PrintMessage(3, "Perk Unlocked: "..perk.Name)
     ply.UnlockedPerks[name] = true
+    
 
+    GAMEMODE:NetworkString_UpdateSkills(ply)
+    GAMEMODE:NetworkString_UpdateStats(ply)
+	GAMEMODE:NetworkString_UpdatePerks(ply)
 end)
 
 net.Receive("hl2ce_prestige", function(len, ply)

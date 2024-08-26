@@ -22,6 +22,12 @@ net.Receive("UpdateSkills", function(length)
     ply.StatKnowledge = net.ReadFloat()
 end)
 
+net.Receive("hl2ce_updateperks", function(length)
+    local ply = LocalPlayer()
+
+    ply.UnlockedPerks = net.ReadTable()
+end)
+
 XPGained = 0
 XPGainedTotal = 0
 XPColor = 0

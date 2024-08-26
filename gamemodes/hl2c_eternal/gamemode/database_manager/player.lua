@@ -12,9 +12,14 @@ function GM:LoadPlayer(ply)
  
         for k, v in pairs(DataPieces) do
             local TheLine = string.Explode(";", v) -- convert txt string to stats table
+            local variable = TheLine[1]
             local val = TheLine[2]
 
-            ply[TheLine[1]] = tonumber(val) or val  -- dump all their stats into their player table
+            if variable == "UnlockedPerks" then
+                ply.UnlockedPerks = util.JSONToTable(val)
+                continue
+            end
+            ply[variable] = tonumber(val) or val  -- dump all their stats into their player table
         end
   
     else
@@ -36,6 +41,7 @@ end
 
 function GM:SavePlayer(ply)
     if (ply.LastSave or 0) >= CurTime() then return end
+    if self.DisableDataSave then return end
     ply.LastSave = CurTime() + 5
 
 	local Data = {}
@@ -46,6 +52,7 @@ function GM:SavePlayer(ply)
 	Data["PrestigePoints"] = ply.PrestigePoints
 	Data["Eternity"] = ply.Eternity
 	Data["EternityPoints"] = ply.EternityPoints
+	Data["UnlockedPerks"] = util.TableToJSON(ply.UnlockedPerks)
 
 
 	for k, v in pairs(self.SkillsInfo) do

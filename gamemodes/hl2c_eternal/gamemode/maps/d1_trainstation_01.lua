@@ -226,6 +226,10 @@ function hl2cAcceptInput( ent, input, activator )
 		end
 	end
 
+	if GAMEMODE.EXMode and ent:GetName() == "intro_music" and string.lower(input) == "playsound" then
+		BroadcastLua([[LocalPlayer():EmitSound("*#music/hl1_song3.mp3", 0, 100)]]) -- bruh hl1 intro song instead of hl2 intro one? yes, what did you expect
+		return true
+	end
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 

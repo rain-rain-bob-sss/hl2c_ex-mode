@@ -21,6 +21,8 @@ function GM:CMenu()
 		y = y + y_add
 		draw.DrawText("Level: "..math.floor(pl.Level), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
+		draw.DrawText("Skill Points: "..math.floor(pl.StatPoints), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		y = y + y_add
 
 		if pl:HasPrestigeUnlocked() then
 			draw.DrawText("Prestige: "..FormatNumber(math.floor(pl.Prestige)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
@@ -264,15 +266,15 @@ function GM:PerksMenu()
 	local perkpoints = vgui.Create("DLabel", perksvgui)
 	perkpoints:SetFont("TargetIDSmall")
 	perkpoints:SetPos(10, 3)
-	perkpoints:SetText("Perk points: ".. 0)
+	perkpoints:SetText("Prestige points: "..ply.PrestigePoints)
 	perkpoints:SizeToContents()
 	local x,y = perkpoints:GetSize()
 	perkpoints:SetSize(math.min(x, 350), 25)
 	perkpoints:SetColor(Color(255,255,255,255))
-	perkpoints:SetMouseInputEnabled(true)
-	perkpoints:SetToolTip("")
+	-- perkpoints:SetMouseInputEnabled(true)
+	-- perkpoints:SetToolTip("")
 	perkpoints.Think = function(panel)
-		local txt = "Perk points: ".. 0
+		local txt = "Prestige points: "..ply.PrestigePoints
 		if panel:GetText() == txt then return end
 		panel:SetText(txt)
 		perkpoints:SizeToContents()
@@ -285,15 +287,15 @@ function GM:PerksMenu()
 
 	--------------------------------------------supplies-------------------------------------------------------------
 	
-
+/*
 	local hoverdesc = vgui.Create("DLabel", perksvgui)
 	hoverdesc:SetFont("TargetIDSmall")
 	hoverdesc:SetPos(150, 0)
-	hoverdesc:SetText("Note: Hover your cursor over perks' description with white color for more info")
+	hoverdesc:SetText("")
 	hoverdesc:SizeToContents()
 	local x,y = hoverdesc:GetSize()
 	hoverdesc:SetSize(810, 30)
-
+*/
 
 	local function MakePerks(panel, prestige)
 		for k, v in SortedPairsByMemberValue(GAMEMODE.PerksData, "PrestigeReq") do
@@ -383,6 +385,9 @@ function GM:PerksMenu()
 				draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), v.PrestigeReq > GetPrestige(ply) and Color(75, 75, 75, 130) or Color(0, 50, 0, 130))
 			end
 			perkapply.DoClick = function(panel)
+				net.Start("hl2ce_unlockperk")
+				net.WriteString(k)
+				net.SendToServer()
 			end
 			panel:AddItem(perkpanel)
 		end
@@ -464,15 +469,16 @@ function GM:MakePrestigePanel()
 		net.WriteString("prestige")
 		net.SendToServer()
 	end))
-	list:AddItem(MakeText(self.PrestigePanel, "Prestige will reset all your levels, XP and skills, but you will gain +10% boost to xp gain (every prestige) and a perk point.\nPrestigin will also unlock new perks after time.", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Prestige will reset all your levels, XP and skills, but you will gain +25% boost to xp gain (every prestige) and a perk point.\nPrestigin will also unlock new perks after time.", "TargetIDSmall"))
 	list:AddItem(MakeText(self.PrestigePanel, "You must reach Level "..MAX_LEVEL.." and reach max XP for the next level in order to prestige.", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Prestiging for the first time will permanently increase skill points gain to 2 per level and will increase skills max level to 35.", "TargetIDSmall"))
 
 	list:AddItem(MakeButton("Eternity", 0, 0, function()
 		net.Start("hl2ce_prestige")
 		net.WriteString("eternity")
 		net.SendToServer()
 	end))
-	list:AddItem(MakeText(self.PrestigePanel, "Eternity to reset your levels, XP, skills, prestiges and prestige perks, but you gain a +50% boost to xp gain (every eternity) and\nEternity point. Eternity perks are more powerful than regular perks.", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Eternity to reset your levels, XP, skills, prestiges and prestige perks, but you gain a +175% boost to xp gain (every eternity) and\nEternity point. Eternity perks are more powerful than regular perks.", "TargetIDSmall"))
 	list:AddItem(MakeText(self.PrestigePanel, "Must reach max xp needed for next level, level "..MAX_LEVEL.." at "..MAX_PRESTIGE.." prestiges in order to Eternity", "TargetIDSmall"))
 
 end

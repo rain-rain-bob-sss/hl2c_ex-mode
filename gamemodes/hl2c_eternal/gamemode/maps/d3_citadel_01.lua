@@ -130,7 +130,8 @@ function hl2cAcceptInput( ent, input )
 	if ( !game.SinglePlayer() && ( ent:GetName() == "zapper_fade" ) && ( string.lower( input ) == "fade" ) ) then
 	
 		hook.Call( "RestartMap", GAMEMODE )
-		PrintMessage(3, "You failed the map. (You took wrong the wrong pod.)")
+		-- PrintMessage(3, "You failed the map. (You took wrong the wrong pod.)")
+		PrintMessage(3, "BRUHHHHHHHHHHH YOU TOOK THE WRONG POD WHAT IS WRONG WITH YOU?!")
 	
 	end
 

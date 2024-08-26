@@ -1,8 +1,8 @@
 NEXT_MAP = "ep1_c17_00"
 
--- TRIGGER_CHECKPOINT = {
-	-- { Vector( 364, 1764, -2730 ), Vector( 549, 1787, -2575 ) }
--- }
+TRIGGER_CHECKPOINT = {
+	{ Vector( 3448, -88, 3440 ), Vector( 3652, -252, 3540  ) }
+}
 
 -- TRIGGER_DELAYMAPLOAD = { Vector( 5120, 4840, -6720 ), Vector( 5136, 4480, -6480) }
 
@@ -37,7 +37,10 @@ local hastriggered
 -- Accept input
 function hl2cAcceptInput( ent, input )
 	if ent:GetName() == "trigger_alyx_close_airlock" and string.lower(input) == "enable" and not hastriggered then
-		ents.FindByName("alyx")[1]:SetPos(Vector( 3388, 12192, 3604 ))
+		local alyx = ents.FindByName("alyx")[1]
+		alyx:SetPos(Vector( 3388, 12646, 3604 ))
+		alyx:SetLastPosition(Vector( 3388, 11750, 3604 ))
+		alyx:SetSchedule( SCHED_FORCED_GO_RUN )
 		hastriggered = true
 	end
 end

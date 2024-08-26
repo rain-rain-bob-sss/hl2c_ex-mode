@@ -52,7 +52,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "barney_nexusahead_lcs_relay" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ent:GetName() == "barney_nexusahead_lcs_relay" && string.lower( input ) == "trigger" then
 	
 		ents.FindByName( "barney" )[ 1 ]:SetPos( Vector( -2930, 6463, 257 ) )
 		ents.FindByName( "barney" )[ 1 ]:SetLastPosition( Vector( -2579.804443, 6482.348633, 512.03125 ) )

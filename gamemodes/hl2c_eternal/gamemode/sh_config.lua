@@ -34,7 +34,7 @@ NPC_POINT_VALUES = {
 NPC_XP_VALUES = {
 	["npc_antlion"] = 0.87, -- in some maps the antlions can spawn indefinitely so best is to make them give least amount of xp per kill
 	-- ["npc_antlion_worker"] = 21.7, -- doesn't work
-	["npc_antlionguard"] = 155,
+	["npc_antlionguard"] = 285,
 	["npc_barnacle"] = 11.7,
 	["npc_combinedropship"] = 63,
 	["npc_combinegunship"] = 66,
@@ -171,13 +171,13 @@ GM.SkillsInfo = {
 	["Gunnery"] = {
 		Name = "Gunnery",
 		Description = "+1% damage dealt with firearms",
-		DescriptionEndless = "+3% damage dealt with firearms",
+		DescriptionEndless = "+3% damage dealt with firearms\nAbove Gunnery Level 15: +2.5% damage dealt with non-firearms per point",
 	},
 
 	["Defense"] = {
 		Name = "Defense",
 		Description = "+0.8% damage resistance from enemy bullets",
-		DescriptionEndless = "+2.5% damage resistance from enemy bullets",
+		DescriptionEndless = "+2.5% damage resistance from enemy bullets\nAbove Level 15: +2% damage resistance all sources but guns",
 	},
 
 	["Medical"] = {
@@ -209,8 +209,8 @@ GM.SkillsInfo = {
 GM.PerksData = {
 	["healthboost_1"] = {
 		Name = "Health Boost",
-		Description = "Increases health by 5",
-		DescriptionEndless = "Increases health by 60",
+		Description = "Increases health by 15",
+		DescriptionEndless = "Increases health by 85",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 1
@@ -218,8 +218,8 @@ GM.PerksData = {
 
 	["damageboost_1"] = {
 		Name = "Damage Boost",
-		Description = "+3% damage dealt",
-		DescriptionEndless = "+38% damage dealt",
+		Description = "+6% damage dealt",
+		DescriptionEndless = "+47% damage dealt",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 1
@@ -227,8 +227,8 @@ GM.PerksData = {
 
 	["damageresistanceboost_1"] = {
 		Name = "Damage Resistance Boost",
-		Description = "+4% boost to damage resistance",
-		DescriptionEndless = "+30% boost to damage resistance",
+		Description = "+7% boost to damage resistance",
+		DescriptionEndless = "+57% boost to damage resistance",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 1
@@ -236,8 +236,8 @@ GM.PerksData = {
 
 	["antipoison_1"] = {
 		Name = "Anti-Poison",
-		Description = "Reduces damage taken from poison headcrabs by half (reduced up to 25 damage)",
-		DescriptionEndless = "Reduces damage taken from poison headcrabs by half (reduced up to 100 damage)",
+		Description = "Reduces damage taken from poison headcrabs by half (reduces up to 25 damage)",
+		DescriptionEndless = "Reduces damage taken from poison headcrabs by half (reduces up to 100 damage)",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 1
@@ -246,7 +246,7 @@ GM.PerksData = {
 	["difficult_decision_1"] = {
 		Name = "Difficult Decision",
 		Description = "+25% personal difficulty (Functions same as difficulty, but only affects you, ignores the difficulty cap.)\nDoesn't work yet",
-		DescriptionEndless = "+50% difficulty gain on NPC kill",
+		DescriptionEndless = "+50% difficulty gain on NPC kill, increases xp gain by 15%",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 1

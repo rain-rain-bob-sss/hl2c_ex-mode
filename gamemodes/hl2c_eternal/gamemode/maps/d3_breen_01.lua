@@ -231,6 +231,10 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	if ( !game.SinglePlayer() && ( ent:GetName() == "view_gman_end_1" ) && ( string.lower( input ) == "enable" ) ) then
 	
 		hook.Call( "NextMap", GAMEMODE )
+
+		for _,ply in pairs(player.GetAll()) do
+			gamemode.Call("PlayerCompletedCampaign", ply)
+		end
 	
 	end
 
@@ -244,6 +248,12 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 		return true
 	
+	end
+
+	if ent:GetClass() == "citadel_scene_br_dead1" and string.lower(input) == "trigger" then
+	end
+
+	if ent:GetClass() == "logic_portal_final_end_2" and string.lower(input) == "trigger" then
 	end
 
 end

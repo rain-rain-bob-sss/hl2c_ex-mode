@@ -8,6 +8,7 @@ include("cl_viewmodel.lua")
 include("cl_net.lua")
 include("cl_options.lua")
 include("cl_perksmenu.lua")
+include("cl_prestige.lua")
 
 CreateClientConVar("hl2ce_cl_noearringing", 0, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 
@@ -328,6 +329,7 @@ function GM:OnPlayerChat( ply, text, team, dead )
 		table.insert(tab, "(TEAM) ")
 	end
 
+/*
 	if ply:SteamID64() == "76561198274314803" then
 		table.insert(tab, Color(160,160,160))
 		table.insert(tab, "[")
@@ -336,6 +338,7 @@ function GM:OnPlayerChat( ply, text, team, dead )
 		table.insert(tab, Color(160,160,160))
 		table.insert(tab, "] ")
 	end
+*/
 
 	if ( IsValid( ply ) ) then
 		table.insert( tab, ply )
@@ -456,14 +459,32 @@ function GM:ShowSkills()
 	local skillsMenu = vgui.Create("DFrame")
 	local skillsPanel = vgui.Create("DPanel", skillsMenu)
 	local skillsText = vgui.Create("DLabel", skillsPanel)
+	local skillsText2 = vgui.Create("DLabel", skillsPanel)
+	local skillsText3 = vgui.Create("DLabel", skillsPanel)
 	local skillsForm = vgui.Create("DPanelList", skillsPanel)
 
 	skillsText:SetText("Unspent skill points: "..math.floor(pl.StatPoints))
 	skillsText:SetTextColor(color_black)
 	skillsText:SetPos(5, 5)
 	skillsText:SizeToContents()
+	skillsText.Think = function(this)
+		local txt = "Unspent skill points: "..math.floor(pl.StatPoints)
+		if txt == this:GetText() then return end
+		this:SetText(txt)
+		this:SizeToContents()
+	end
 
-	skillsMenu:SetSize(233, 188)
+	skillsText2:SetText("Right click to spend a desired amount of SP on a skill")
+	skillsText2:SetTextColor(color_black)
+	skillsText2:SetPos(5, 20)
+	skillsText2:SizeToContents()
+
+	skillsText3:SetText("Click while holding SHIFT to spend all SP on desired skill")
+	skillsText3:SetTextColor(color_black)
+	skillsText3:SetPos(5, 35)
+	skillsText3:SizeToContents()
+
+	skillsMenu:SetSize(293, 263)
 
 	skillsPanel:StretchToParent( 5, 28, 5, 5 )
 
@@ -471,8 +492,8 @@ function GM:ShowSkills()
 	skillsMenu:Center()
 	skillsMenu:MakePopup()
 
-	skillsForm:SetSize(218, 125)
-	skillsForm:SetPos(5, 25)
+	skillsForm:SetSize(278, 175)
+	skillsForm:SetPos(5, 50)
 	skillsForm:EnableVerticalScrollbar(true)
 	skillsForm:SetSpacing(8) 
 	skillsForm:SetName("")
@@ -486,6 +507,12 @@ function GM:ShowSkills()
 			LabelDefense:SetTextColor(color_black)
 			LabelDefense:SetToolTip(v.Name.."\n\nIn Non-Endless Mode:\n"..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
 			LabelDefense:SizeToContents()
+			LabelDefense.Think = function(this)
+				local txt = v.Name..": "..tostring(pl["Stat"..k])
+				if txt == this:GetText() then return end
+				this:SetText(txt)
+				this:SizeToContents()
+			end
 			skillsForm:AddItem(LabelDefense)
 
 			local Button = vgui.Create("DButton")
@@ -497,15 +524,17 @@ function GM:ShowSkills()
 			Button.DoClick = function(Button)
 				net.Start("UpgradePerk")
 				net.WriteString(k)
+				net.WriteUInt(input.IsShiftDown() and 1e6 or 1, 32)
 				net.SendToServer()
-				timer.Simple(0.3, function() 
-					if skillsForm:IsValid() then
-						skillsForm:Clear()
-						DoStatsList()
-						skillsText:SetText("Unspent skill points: "..pl.StatPoints)
-					end
-				end)
-				Button.DoDoubleClick = Button.DoClick
+			end
+			Button.DoDoubleClick = Button.DoClick
+			Button.DoRightClick = function()
+				Derma_StringRequest("Enter desired SP to apply on a skill", "", 1, function(str)
+					net.Start("UpgradePerk")
+					net.WriteString(k)
+					net.WriteUInt(input.IsShiftDown() and 1e6 or 1, 32)
+					net.SendToServer()
+				end, nil, "Apply", "Cancel")
 			end
 			skillsForm:AddItem(Button)
 		end

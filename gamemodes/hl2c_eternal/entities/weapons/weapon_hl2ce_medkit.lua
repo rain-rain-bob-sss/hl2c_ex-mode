@@ -38,7 +38,7 @@ function SWEP:Initialize()
 
 	if CLIENT then return end
 
-	timer.Create("hl2ce_medkit_ammo"..self:EntIndex(), 2, 0, function()
+	timer.Create("hl2ce_medkit_ammo"..self:EntIndex(), 1, 0, function()
 		if IsValid(self) && (self:Clip1() < self.MaxAmmo) then
 			local owner = self:GetOwner()
 			self:SetClip1(math.min(self:Clip1() + 1 + ((GAMEMODE.EndlessMode and 0.1 or 0.02) * owner:GetSkillAmount("Surgeon")), self.MaxAmmo + (self.MaxAmmo * ((GAMEMODE.EndlessMode and 0.1 or 0.02) * owner:GetSkillAmount("Surgeon")))))

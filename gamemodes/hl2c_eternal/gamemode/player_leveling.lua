@@ -5,9 +5,9 @@ function meta:GiveXP(xp, nomul)
     xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("better_knowledge_1") and 0.07 or 0.05) or 0.03))
 
     local prestigexpmul = 1
-    prestigexpmul = prestigexpmul + math.min(self.Prestige*0.1, 100) + math.min(self.Eternity*0.5, 100) + math.min(self.Celestiality*1.5, 100)
+    prestigexpmul = prestigexpmul + math.min(self.Prestige*0.25, 100) + math.min(self.Eternity*1.75, 100) + math.min(self.Celestiality*1.5, 100)
 
-    prestigexpmul = math.min(1000, prestigexpmul)*xpmul
+    xpmul = xpmul * prestigexpmul
 
     if nomul then
         xpmul = 1
@@ -38,7 +38,7 @@ function meta:GainLevel()
             if not self:CanLevelup() or self.Level >= MAX_LEVEL then break end
             self.XP = self.XP - GAMEMODE:GetReqXP(self)
             self.Level = self.Level + 1
-            self.StatPoints = self.StatPoints + 1
+            self.StatPoints = self.StatPoints + (self:HasPrestigeUnlocked() and 2 or 1)
         end
         if not self:HasEternityUnlocked() then
             self:PrintMessage(HUD_PRINTTALK, Format("Level increased: %i --> %i", prevlvl, self.Level))
@@ -64,8 +64,20 @@ function meta:GainPrestige()
         self.Prestige = self.Prestige + 1
         self.PrestigePoints = self.PrestigePoints + 1
         self:PrintMessage(HUD_PRINTTALK, Format("Prestige increased! (%i --> %i)", prevlvl, self.Prestige))
+
+        for id,_ in pairs(GAMEMODE.SkillsInfo) do
+            self["Stat"..id] = 0
+        end
+
         if not prevprestigeunlocked then
             PrintMessage(HUD_PRINTTALK, self:Nick().." prestiged for the first time!")
+            self:EmitSound("ambient/energy/whiteflash.wav", 75, 90)
+        	self:EmitSound("weapons/physcannon/energy_disintegrate"..math.random(4, 5)..".wav", 75, 70)
+            util.ScreenShake(self:GetPos(), 50, 0.5, 5, 800)
+
+            net.Start("hl2ce_firstprestige")
+            net.WriteString("prestige")
+            net.Send(self)
         end
         GAMEMODE:NetworkString_UpdateStats(self)
         GAMEMODE:NetworkString_UpdateSkills(self)
@@ -85,12 +97,17 @@ function meta:GainEternity()
         self.Eternity = self.Eternity + 1
         self.EternityPoints = self.EternityPoints + 1
 
+        for id,_ in pairs(GAMEMODE.SkillsInfo) do
+            self["Stat"..id] = 0
+        end
+
         -- if self:HasEternityUnlocked() then
             self:PrintMessage(HUD_PRINTTALK, Format("Eternity increased! (%i --> %i)", prevlvl, self.Eternity))
         -- end
 
         GAMEMODE:NetworkString_UpdateStats(self)
         GAMEMODE:NetworkString_UpdateSkills(self)
+        GAMEMODE:NetworkString_UpdatePerks(ply)
     end
 end
 

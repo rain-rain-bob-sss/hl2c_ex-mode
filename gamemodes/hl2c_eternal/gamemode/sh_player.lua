@@ -26,7 +26,7 @@ function meta:RemoveVehicle()
 end
 
 function meta:GetMaxDifficultyXPGainMul()
-	return self:HasEternityUnlocked() and 250 or self:HasPrestigeUnlocked() and 75 or 25
+	return self:HasEternityUnlocked() and 250 or self:HasPrestigeUnlocked() and 75 or 15
 end
 
 function meta:GetSkillAmount(stat)

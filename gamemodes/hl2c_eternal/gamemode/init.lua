@@ -9,6 +9,7 @@ AddCSLuaFile("cl_viewmodel.lua")
 AddCSLuaFile("cl_net.lua")
 AddCSLuaFile("cl_options.lua")
 AddCSLuaFile("cl_perksmenu.lua")
+AddCSLuaFile("cl_prestige.lua")
 
 AddCSLuaFile("sh_config.lua")
 AddCSLuaFile("sh_globals.lua")
@@ -137,6 +138,10 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 	-- Clear player info
 	ply.info = nil
 
+
+	if attacker:IsNPC() then
+		ply:PrintMessage(3, "Died by "..Format("#%s", attacker:GetClass()))
+	end
 	
 	local lowermodelname = string.lower(ply:GetModel())
 
@@ -274,14 +279,17 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 	local damagemul,damageresistancemul = 1,1
 	local attackerisworld = attacker:GetClass() == "trigger_hurt" or attacker:GetClass() == "trigger_waterydeath"
+	local ispoisonheadcrab = attacker:GetClass() == "npc_headcrab_poison" or attacker:GetClass() == "npc_headcrab_black"
 
 	if attacker:IsPlayer() then
 		if dmgInfo:IsBulletDamage() then
 			damagemul = damagemul * (1 + ((self.EndlessMode and 0.03 or 0.01) * attacker:GetSkillAmount("Gunnery")))
+		elseif attacker:GetSkillAmount("Gunnery") > 15 then
+			damagemul = damagemul * (1 + (0.025 * (attacker:GetSkillAmount("Gunnery")-15)))
 		end
 
 		if attacker:HasPerkActive("damageboost_1") then
-			damagemul = damagemul * (1 + (self.EndlessMode and 0.38 or 0.03))
+			damagemul = damagemul * (1 + (self.EndlessMode and 0.47 or 0.06))
 		end
 
 		if attacker:HasPerkActive("critical_damage_1") and math.random(100) <= (self.EndlessMode and 12 or 7) then
@@ -291,13 +299,15 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		damage = damage * damagemul
 	end
 
-	if ent:IsPlayer() and not attackerisworld then
+	if ent:IsPlayer() and not attackerisworld and not ispoisonheadcrab then
 		if dmgInfo:IsBulletDamage() then
 			damageresistancemul = damageresistancemul * (1 + ((self.EndlessMode and 0.025 or 0.008) * ent:GetSkillAmount("Defense")))
+		elseif ent:GetSkillAmount("Defense") > 15 then
+			damageresistancemul = damageresistancemul * (1 + (0.02 * ent:GetSkillAmount("Defense")))
 		end
 
 		if ent:HasPerkActive("damageresistanceboost_1") then
-			damageresistancemul = damageresistancemul * (1 + (self.EndlessMode and 0.3 or 0.04))
+			damageresistancemul = damageresistancemul * (1 + (self.EndlessMode and 0.57 or 0.07))
 		end
 
 		damage = damage / damageresistancemul
@@ -308,7 +318,6 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		damage = damage * math.max(1, ent:GetMaxHealth()*0.01)
 	end
 
-	local ispoisonheadcrab = attacker:GetClass() == "npc_headcrab_poison" or attacker:GetClass() == "npc_headcrab_black"
 	if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() then
 		if not ispoisonheadcrab then
 			damage = damage * math.sqrt(self:GetDifficulty()) --could be square rooted
@@ -325,6 +334,10 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	end
 
 	dmgInfo:SetDamage(damage)
+
+	if self.EXMode and attacker:GetClass() == "npc_sniper" and attacker.VariantType == 1 then
+		PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
+	end
 end
 
 
@@ -413,9 +426,11 @@ function GM:Initialize()
 	util.AddNetworkString("UpgradePerk")
 
 	util.AddNetworkString("hl2c_playerready")
-	util.AddNetworkString("hl2c_updatestats")
 	util.AddNetworkString("hl2ce_prestige")
+	util.AddNetworkString("hl2ce_firstprestige")
 	util.AddNetworkString("hl2ce_unlockperk")
+	util.AddNetworkString("hl2c_updatestats")
+	util.AddNetworkString("hl2ce_updateperks")
 	
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
@@ -426,7 +441,7 @@ function GM:Initialize()
 	game.ConsoleCommand("physgun_limited 1\n")
 	game.ConsoleCommand("sv_alltalk 1\n")
 	game.ConsoleCommand("sv_defaultdeployspeed 1\n")
-	
+
 	-- Physcannon
 	game.ConsoleCommand("physcannon_tracelength 250\n")
 	game.ConsoleCommand("physcannon_maxmass 250\n")
@@ -506,6 +521,35 @@ function GM:Initialize()
 	print(GAMEMODE.Name.." ("..GAMEMODE.Version..") gamemode loaded")
 end
 
+function GM:OnMapCompleted()
+end
+
+function GM:OnCampaignCompleted()
+end
+
+function GM:PlayerCompletedMap(ply)
+end
+
+function GM:PlayerCompletedCampaign(ply)
+	if !(ply and ply:IsValid()) then return end
+	local map = game.GetMap()
+	local gamename = ""
+	if map == "d3_breen_01" then
+		gamename = "Half-Life 2"
+	elseif map == "ep1_c17_06" then
+		gamename = "Half-Life 2: Episode One"
+	elseif map == "ep2_outland_12a" then
+		gamename = "Half-Life 2: Episode Two"
+	end
+
+	local xp = (1 + math.max(0, 2-math.log10(ply:Frags()))*0.2)
+	if ply.MapStats.GainedXP then
+		xp = xp * ply.MapStats.GainedXP*0.15
+	end
+	ply:PrintMessage(3, "Congratulations - you have completed "..gamename)
+	ply:PrintMessage(3, "You were awarded "..xp.." XP")
+end
+
 
 -- Function for spawn points
 local function MasterPlayerStartExists()
@@ -531,6 +575,7 @@ function GM:OnReloaded()
 		for _,ply in pairs(player.GetAll()) do
 			self:NetworkString_UpdateStats(ply)
 			self:NetworkString_UpdateSkills(ply)
+			self:NetworkString_UpdatePerks(ply)
 		end
 	end)
 end
@@ -849,11 +894,25 @@ function GM:PlayerInitialSpawn(ply)
 	end
 
 	self:NetworkString_UpdateStats(ply)
+
+	-- EP1 and EP2 maps might be buggy with npc spawns. By then, Restart Map upon starting the game.
+	if player.GetCount() == 1 and (self.WasForcedRestart or 0) < (FORCE_RESTART_COUNT or 1) and (string.find(game.GetMap(), "ep1_") or string.find(game.GetMap(), "ep2_")) and not NEVER_FORCE_RESTART then
+    	timer.Simple(1, function()
+    	    self.WasForcedRestart = (self.WasForcedRestart or 0) + 1
+    	    GAMEMODE:RestartMap(0, true)
+    	    print("forced restart initiate")
+    	end)
+    	print("force restart in 1 sec")
+	end
 end 
 
 function GM:PlayerReady(ply)
 	GAMEMODE:NetworkString_UpdateStats(ply)
 	GAMEMODE:NetworkString_UpdateSkills(ply)
+	GAMEMODE:NetworkString_UpdatePerks(ply)
+end
+
+function GM:ReachedCheckpoint(ply) -- ply is activator, not working yet
 end
 
 
@@ -1048,7 +1107,7 @@ function GM:PlayerSpawn(ply)
 	-- Set stuff from last level
 	local maxhp = 100 + ((self.EndlessMode and 5 or 1) * ply:GetSkillAmount("Vitality")) -- calculate their max health
 	if ply:HasPerkActive("healthboost_1") then
-		maxhp = maxhp + (self.EndlessMode and 60 or 5)
+		maxhp = maxhp + (self.EndlessMode and 85 or 15)
 	end
 
 	if ply.info then
@@ -1131,30 +1190,38 @@ end
 
 
 -- Called automatically and by the console command
-function GM:RestartMap()
+function GM:RestartMap(overridetime, noplayerdatasave)
 	if changingLevel then return end
 
+	overridetime = overridetime or RESTART_MAP_TIME
 	changingLevel = true
 
 	net.Start("RestartMap")
 	net.WriteFloat(CurTime())
 	net.Broadcast()
 
-	timer.Create("hl2c_restart_map", RESTART_MAP_TIME, 1, function()
-		for k,v in pairs(player.GetAll()) do
-			self:SavePlayer(v)
+	timer.Create("hl2c_restart_map", overridetime, 1, function()
+		if not noplayerdatasave then
+			for k,v in pairs(player.GetAll()) do
+				self:SavePlayer(v)
+			end
+
+			self:SaveServerData()
 		end
 
 		timer.Simple(1, function()
 			if MAP_FORCE_CHANGELEVEL_ON_MAPRESTART then
+				if noplayerdatasave then self.DisableDataSave = true end
 				RunConsoleCommand("changelevel", game.GetMap())
 			else
 				net.Start("RestartMap")
 				net.WriteFloat(-1)
 				net.Broadcast()
-				game.CleanUpMap( false, { "env_fire", "entityflame", "_firesmoke" } )
+				self:Initialize() -- why run GAMEMODE:Initialize() again? so that difficulty will also reset if noplayerdatasave is true
+				changingLevel = true
+				game.CleanUpMap(true, {"env_fire", "entityflame", "_firesmoke"})
+				changingLevel = nil
 				FORCE_PLAYER_RESPAWNING = true
-				deadPlayers = {}
 				for k,v in pairs(player.GetAll()) do
 					self:PlayerInitialSpawn(v)
 					v:KillSilent()
@@ -1169,7 +1236,7 @@ function GM:RestartMap()
 		end)
 	end)
 end
-concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then RESTART_MAP_TIME = 0; hook.Call("RestartMap", GAMEMODE); end end)
+concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then hook.Call("RestartMap", GAMEMODE, 0); end end)
 
 function GM:FailMap(ply) -- ply argument is the one who caused the map to fail, giving them most penalty
 	self:RestartMap()
@@ -1332,7 +1399,8 @@ function GM:Think()
 		if !changingLevel then
 			PrintMessage(HUD_PRINTTALK, "All players have died!")
 
-			self:SetDifficulty(math.max(1, self:GetDifficulty() * 0.94))
+			local diff = self:GetDifficulty(true)
+			self:SetDifficulty(math.max(1, diff * (diff >= 10 and 0.9 or diff >= 4 and 0.91 or 0.93)))
 
 			hook.Call("RestartMap", GAMEMODE)
 		end

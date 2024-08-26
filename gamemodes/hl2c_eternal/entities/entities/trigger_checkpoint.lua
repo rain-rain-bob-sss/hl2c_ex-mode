@@ -84,9 +84,11 @@ function ENT:StartTouch( ent )
 		PrintMessage(HUD_PRINTTALK, ent:Nick().." has activated checkpoint!")
 
 		-- Update checkpoints on the client
-		net.Start( "SetCheckpointPosition" )
-		net.WriteVector( checkpointPositions[ 1 ] )
-		net.Broadcast()
+		if checkpointPositions[1] then
+			net.Start( "SetCheckpointPosition" )
+			net.WriteVector( checkpointPositions[ 1 ] )
+			net.Broadcast()
+		end
 	
 		-- Remove the trigger
 		self:Remove()

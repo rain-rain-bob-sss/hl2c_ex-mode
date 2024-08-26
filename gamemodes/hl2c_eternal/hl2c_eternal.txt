@@ -1,6 +1,6 @@
-"half-life_2_campaign"
+"hl2c_eternal"
 {
-	"title"			"Half-Life 2 Campaign Extended"
+	"title"			"Half-Life 2 Campaign: Eternal"
 	"base"			"base"
 	"menusystem"	"1"
 	"workshopid"	"283549412"

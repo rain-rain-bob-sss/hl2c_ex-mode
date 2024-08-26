@@ -46,11 +46,11 @@ function HL2cEX_NPCVariantSpawn(ent)
 			ent.ent_MaxHealthMul = 0.9
 			ent.ent_HealthMul = 0.9
 		end
-	elseif ent:GetClass() == "npc_combine_s" then -- Destructive variant - deals more damage but more fragile
+	elseif ent:GetClass() == "npc_combine_s" then -- Destructive variant - deals massive damage but is also more fragile. Shotgunner damage reduced.
 		if ent.VariantType == 1 then
 			ent.ent_Color = Color(255,128,128)
-			ent.ent_MaxHealthMul = 0.7
-			ent.ent_HealthMul = 0.7
+			ent.ent_MaxHealthMul = 0.64
+			ent.ent_HealthMul = 0.64
 
 		elseif ent.VariantType == 2 then -- Boost health for normal soldiers
 			ent.ent_MaxHealthMul = 1.2
@@ -149,7 +149,8 @@ function HL2cEX_NPCVariantKilled(ent, attacker)
 			entdrop:Activate()
 			entdrop:GetPhysicsObject():SetVelocityInstantaneous((attacker:GetPos() - entdrop:GetPos()) * 2)
 		end
-		
+	elseif ent:GetClass() == "npc_sniper" then
+		PrintMessage(3, "WTF YOU KILLED HIM!")
 	elseif ent:GetClass() == "npc_antlionguard" then
 		if ent.VariantType == 5 then
 			local entdrop = ents.Create("weapon_hl2ce_medkit")
@@ -192,7 +193,16 @@ function HL2cEX_NPCVariantTakeDamage(ent, dmginfo)
 		end
 	elseif attacker:GetClass() == "npc_combine_s" then
 		if attacker.VariantType == 1 then
-			dmginfo:ScaleDamage(2.75)
+			local wep = attacker:GetActiveWeapon()
+			if wep:IsValid() and wep:GetClass() == "weapon_shotgun" then
+				dmginfo:ScaleDamage(1.85)
+			else
+				dmginfo:ScaleDamage(2.55)
+			end
+		end
+	elseif attacker:GetClass() == "npc_sniper" then
+		if attacker.VariantType == 1 then
+			dmginfo:ScaleDamage(215790)
 		end
 	elseif attacker:GetClass() == "npc_fastzombie" then
 		if attacker.VariantType == 1 then

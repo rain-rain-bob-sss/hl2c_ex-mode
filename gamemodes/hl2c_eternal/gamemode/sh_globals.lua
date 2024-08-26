@@ -11,15 +11,16 @@ MAX_PRESTIGE = 20
 MAX_ETERNITIES = 15
 
 --[[Hl2c Endless Mode:
-Significantly increases skills pwoer.
+Significantly increases skills power.
 In Non-Endless Mode, perks have limited functionality, Eternity perks and further do not work.
 Difficulty is gained by killing NPC's. Gaining +0.05% difficulty for each XP gained from NPC.
 Difficulty can be far harder than you'd expect. Limit: 1e100x difficulty.
-XP gain is also reduced to 40%. (in progress)
+XP gain is also reduced to 65%. (in progress)
 
 Turns Hl2c into extremely unbalanced and one of the most unfair gamemodes of all time, what did you expect?
 
 --- # If you disallow grinding on your server with Endless Mode on, then fuck you. # ---
+--- # Recommended to increase ammo limit because Endless Mode is a hell. # ---
 ]]
 GM.EndlessMode = true
 

@@ -45,8 +45,11 @@ function ENT:StartTouch( ent )
 		ent:SetNoTarget(true)
 	
 		-- Start the nextmap countdown
-		if ( !changingLevel ) then GAMEMODE:NextMap() end
-	
+		if !changingLevel then
+			gamemode.Call("OnMapCompleted")
+			GAMEMODE:NextMap()
+		end
+
 		-- Let everyone know that someone entered the loading section
 		local txp = 0
 		local xp = math.Round(math.Rand(4,7)) * math.min(GAMEMODE:GetDifficulty(), ent:GetMaxDifficultyXPGainMul())
@@ -65,7 +68,9 @@ function ENT:StartTouch( ent )
 			ent:PrintMessage(HUD_PRINTTALK, Format("You were given additional %i XP for completing this map.", txp))
 		end
 
-		if ent.MapStats then -- Map stats display after completing the map
+		gamemode.Call("PlayerCompletedMap", ent)
+
+		if ent.MapStats then -- Map stats display after completing the map (Not yet.)
 		end
 	end
 end

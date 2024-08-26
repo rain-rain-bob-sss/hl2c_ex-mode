@@ -23,7 +23,7 @@ local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficult
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.9.9"
+GM.Version = "0.7.9-9" -- what version?
 
 
 -- Constants
@@ -95,6 +95,10 @@ function GM:PhysgunPickup(ply, ent)
 	return true
 end
 
+hook.Add("CanProperty", "Hl2ce_CanProperty", function(ply, property, ent)
+	if not ply:IsAdmin() then return false end
+end)
+
 
 -- Player input changes
 function GM:StartCommand(ply, ucmd)
@@ -120,7 +124,7 @@ function GM:ShouldCollide(entA, entB)
 	if (IsValid(entA) && IsValid(entB) && ((entA:IsPlayer() && entA:InVehicle() && entA:GetAllowWeaponsInVehicle() && entB:IsVehicle()) || (entB:IsPlayer() && entB:InVehicle() && entB:GetAllowWeaponsInVehicle() && entA:IsVehicle()))) then
 		return false
 	end
-
+	
 	return true
 end
 
