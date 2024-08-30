@@ -81,7 +81,7 @@ function ENT:StartTouch( ent )
 		table.remove( checkpointPositions, 1 )
 
 		-- Broadcast in chat who activated checkpoint
-		PrintMessage(HUD_PRINTTALK, ent:Nick().." has activated checkpoint!")
+		PrintTranslatedMessage(HUD_PRINTTALK, "CP",ent:Nick())
 
 		-- Update checkpoints on the client
 		if checkpointPositions[1] then

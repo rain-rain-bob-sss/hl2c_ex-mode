@@ -20,6 +20,7 @@ net.Receive("UpdateSkills", function(length)
     ply.StatSurgeon = net.ReadFloat()
     ply.StatVitality = net.ReadFloat()
     ply.StatKnowledge = net.ReadFloat()
+    ply.StatBetterEngine = net.ReadFloat()
 end)
 
 net.Receive("hl2ce_updateperks", function(length)

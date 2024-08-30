@@ -13,28 +13,38 @@ function GM:CMenu()
 	ContextMenu:SetDraggable(false)
 	ContextMenu:SetVisible(true)
 	ContextMenu:ShowCloseButton(true)
-	ContextMenu.Paint = function(panel)
+	local t=SysTime()
+	ContextMenu.Paint = function(panel,w,h)
+		Derma_DrawBackgroundBlur(panel,t)
+		draw.RoundedBox(3,0,0,w,h,Color(0,0,0,125))
 		local alpha = 125
 		local x,y,y_add = 220,140,18
 		local xp,reqxp = math.floor(pl.XP), self:GetReqXP(pl)
-		draw.DrawText("XP: "..FormatNumber(xp).." / "..FormatNumber(reqxp).." ("..math.Round(xp/reqxp * 100,2).."%)", "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		--draw.DrawText("XP: "..FormatNumber(xp).." / "..FormatNumber(reqxp).." ("..math.Round(xp/reqxp * 100,2).."%)", "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText(translate.Format("XP",tostring(FormatNumber(xp)),tostring(FormatNumber(reqxp)),tostring(math.Round(xp/reqxp * 100,2))), "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("Level: "..math.floor(pl.Level), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		--draw.DrawText("Level: "..math.floor(pl.Level), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText(translate.Format("Level",tostring(math.floor(pl.Level))), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("Skill Points: "..math.floor(pl.StatPoints), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		--draw.DrawText("Skill Points: "..math.floor(pl.StatPoints), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText(translate.Format("SPs",tostring(math.floor(pl.StatPoints))), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
 
 		if pl:HasPrestigeUnlocked() then
-			draw.DrawText("Prestige: "..FormatNumber(math.floor(pl.Prestige)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			--draw.DrawText("Prestige: "..FormatNumber(math.floor(pl.Prestige)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(translate.Format("Prestige",tostring(FormatNumber(math.floor(pl.Prestige)))), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText("Prestige Points: "..FormatNumber(math.floor(pl.PrestigePoints)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			--draw.DrawText("Prestige Points: "..FormatNumber(math.floor(pl.PrestigePoints)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(translate.Format("PrestigePoints",tostring(FormatNumber(math.floor(pl.PrestigePoints)))), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
 		if pl:HasEternityUnlocked() then
-			draw.DrawText("Eternities: "..FormatNumber(math.floor(pl.Eternity)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			--draw.DrawText("Eternities: "..FormatNumber(math.floor(pl.Eternity)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(translate.Format("Eternities",tostring(FormatNumber(math.floor(pl.Eternity)))), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText("Eternity Points: "..FormatNumber(math.floor(pl.EternityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			--draw.DrawText("Eternity Points: "..FormatNumber(math.floor(pl.EternityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(translate.Format("EternityPoints",tostring(FormatNumber(math.floor(pl.EternityPoints)))), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 	end
@@ -69,13 +79,31 @@ function GM:CMenu()
 
 
 	local buttonsize_x, buttonsize_y = 120, 40
+	local DoHover=function(pnl)
+		local lasthover=false
+		function pnl:Think()
+			if self:IsHovered() then
+				if lasthover~=true then
+					LocalPlayer():EmitSound("npc/headcrab_poison/ph_step1.wav",100,75,1,CHAN_STATIC)
+					--surface.PlaySound("npc/headcrab_poison/ph_step1.wav")
+					lasthover=true
+				end
+			else
+				if lasthover==true then
+					LocalPlayer():EmitSound("weapons/iceaxe/iceaxe_swing1.wav",100,145,1,CHAN_STATIC)
+					lasthover=false
+				end
+			end
+		end
+	end
 	local options = vgui.Create("DButton", ContextMenu)
 	options:SetSize(buttonsize_x, buttonsize_y)
 	options:Center()
 	local x,y = options:GetPos()
 	options:SetPos(x - 280, y - 220)
-	options:SetText("Options")
+	options:SetText(translate.Get("Options"))
 	options:SetTextColor(Color(255,255,255))
+	DoHover(options)
 	options.Paint = function(panel)
 		surface.SetDrawColor(250, 150, 0, 255)
 		surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
@@ -91,8 +119,9 @@ function GM:CMenu()
 	playermodel:Center()
 	x,y = playermodel:GetPos()
 	playermodel:SetPos(x, y - 220)
-	playermodel:SetText("Playermodels")
+	playermodel:SetText(translate.Get("Playermodels"))
 	playermodel:SetTextColor(Color(255,255,255))
+	DoHover(playermodel)
 	playermodel.Paint = function(panel)
 		surface.SetDrawColor(250, 150, 0, 255)
 		surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
@@ -108,8 +137,9 @@ function GM:CMenu()
 	refreshstats:Center()
 	x,y = refreshstats:GetPos()
 	refreshstats:SetPos(x + 280, y - 220)
-	refreshstats:SetText("Refresh stats")
+	refreshstats:SetText(translate.Get("Refreshstats"))
 	refreshstats:SetTextColor(Color(255,255,255))
+	DoHover(refreshstats)
 	refreshstats.Paint = function(panel)
 		surface.SetDrawColor(250, 150, 0, 255)
 		surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
@@ -130,8 +160,9 @@ function GM:CMenu()
 	skills:Center()
 	x,y = skills:GetPos()
 	skills:SetPos(x + (prestigeunlocked and -220 or -110), y + 220)
-	skills:SetText("Skills")
+	skills:SetText(translate.Get("Skills"))
 	skills:SetTextColor(Color(255,255,255))
+	DoHover(skills)
 	skills.Paint = function(panel)
 		surface.SetDrawColor(250, 150, 0, 255)
 		surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
@@ -147,8 +178,9 @@ function GM:CMenu()
 	prestige:Center()
 	x,y = prestige:GetPos()
 	prestige:SetPos(x + (prestigeunlocked and 0 or 110), y + 220)
-	prestige:SetText("Prestige")
+	prestige:SetText(translate.Get("PrestigeTxt"))
 	prestige:SetTextColor(Color(255,255,255))
+	DoHover(prestige)
 	prestige.Paint = function(panel)
 		surface.SetDrawColor(250, 150, 0, 255)
 		surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
@@ -165,8 +197,9 @@ function GM:CMenu()
 		perks:Center()
 		x,y = perks:GetPos()
 		perks:SetPos(x + 220, y + 220)
-		perks:SetText("Perks")
+		perks:SetText(translate.Get("Perks"))
 		perks:SetTextColor(Color(255,255,255))
+		DoHover(perks)
 		perks.Paint = function(panel)
 			surface.SetDrawColor(250, 150, 0, 255)
 			surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
@@ -266,7 +299,7 @@ function GM:PerksMenu()
 	local perkpoints = vgui.Create("DLabel", perksvgui)
 	perkpoints:SetFont("TargetIDSmall")
 	perkpoints:SetPos(10, 3)
-	perkpoints:SetText("Prestige points: "..ply.PrestigePoints)
+	perkpoints:SetText(translate.Format("PrestigePoints",tostring(FormatNumber(math.floor(ply.PrestigePoints)))))
 	perkpoints:SizeToContents()
 	local x,y = perkpoints:GetSize()
 	perkpoints:SetSize(math.min(x, 350), 25)
@@ -274,7 +307,7 @@ function GM:PerksMenu()
 	-- perkpoints:SetMouseInputEnabled(true)
 	-- perkpoints:SetToolTip("")
 	perkpoints.Think = function(panel)
-		local txt = "Prestige points: "..ply.PrestigePoints
+		local txt = translate.Format("PrestigePoints",tostring(FormatNumber(math.floor(ply.PrestigePoints))))
 		if panel:GetText() == txt then return end
 		panel:SetText(txt)
 		perkpoints:SizeToContents()
@@ -338,7 +371,8 @@ function GM:PerksMenu()
 			perkdesc:SetFont("TargetIDSmall")
 			perkdesc:SetPos(0, 35)
 			perkdesc:SetText(self.EndlessMode and v.DescriptionEndless or v.Description)
-			perkdesc:SetToolTip(v.Name.."\n\nIn Non-Endless Mode:\n"..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
+			--perkdesc:SetToolTip(v.Name.."\n\nIn Non-Endless Mode:\n"..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
+			perkdesc:SetToolTip(v.Name..translate.Get("NonEndlessDesc")..v.Description..(v.DescriptionEndless and translate.Get("EndlessDesc")..v.DescriptionEndless or ""))
 			perkdesc:SetMouseInputEnabled(true)
 			if v.AddDescription then
 				perkdesc:SetTextColor(Color(255,255,255))
@@ -354,7 +388,8 @@ function GM:PerksMenu()
 
 			local perkcost = vgui.Create("DLabel", perkpanel)
 			perkcost:SetFont("TargetIDSmall")
-			perkcost:SetText("Points cost: "..v.Cost)
+			--perkcost:SetText("Points cost: "..v.Cost)
+			perkcost:SetText(translate.Format("PointsCost",tostring(v.Cost)))
 	        perkcost:SetPos(10, 72)
 			perkcost:SetSize(size_x - 20, 15)
 			perkcost:SetWrap(true)
@@ -364,7 +399,8 @@ function GM:PerksMenu()
 			perkprestige:SetFont("TargetIDSmall")
 			perkprestige:SetPos(10, 89)
 			perkprestige:SetSize(size_x - 20, 15)
-			perkprestige:SetText("Prestige need: "..v.PrestigeReq)
+			--perkprestige:SetText("Prestige need: "..v.PrestigeReq)
+			perkprestige:SetText(translate.Format("PrestigeCost",tostring(v.PrestigeReq)))
 			perkprestige:SetWrap(true)
 			perkprestige:SetColor(Color(255,155,155,255))
 
@@ -372,9 +408,9 @@ function GM:PerksMenu()
 			local perkapply = vgui.Create("DButton", perkpanel)
 			perkapply:SetSize(size_x - 20, 30)
 			perkapply:SetPos(10, size_y - 35)
-			perkapply:SetText(ply:HasPerkUnlocked(k) and "Unlocked" or v.PrestigeReq > GetPrestige(ply) and "Not enough prestige" or "Unlock")
+			perkapply:SetText(ply:HasPerkUnlocked(k) and translate.Get("Unlock") or v.PrestigeReq > GetPrestige(ply) and translate.Get("PrestigeNotEnough") or translate.Get("Unlock"))
 			perkapply.Think = function(panel)
-				local txt = ply:HasPerkUnlocked(k) and "Unlocked" or v.PrestigeReq > GetPrestige(ply) and "Not enough prestige" or "Unlock"
+				local txt = ply:HasPerkUnlocked(k) and translate.Get("Unlock") or v.PrestigeReq > GetPrestige(ply) and translate.Get("PrestigeNotEnough") or translate.Get("Unlock")
 				if panel:GetText() == txt then return end
 				panel:SetText(txt)	
 			end
@@ -406,12 +442,12 @@ function GM:PerksMenu()
 
 
 
-	sheet:AddSheet("Prestige", perklist, "icon16/star.png", false, false, "Prestige Perks to give you more advantage")
+	sheet:AddSheet(translate.Get("PrestigeTxt"), perklist, "icon16/star.png", false, false, translate.Get("PrestigePerkDesc"))
 	if ply:HasEternityUnlocked() then
-		sheet:AddSheet("Eternity", perklist2, "icon16/star.png", false, false, "Eternity Perks. They are far more powerful.")
+		sheet:AddSheet(translate.Get("Eternity"), perklist2, "icon16/star.png", false, false, translate.Get("EternityPerkDesc"))
 	end
 	if ply:HasCelestialityUnlocked() then
-		sheet:AddSheet("Celestiality", perklist3, "icon16/star.png", false, false, "Celestiality Perks")
+		sheet:AddSheet(translate.Get("Celestiality"), perklist3, "icon16/star.png", false, false, translate.Get("CelestialityPerkDesc"))
 	end
 	-- if ply:HasEternityUnlocked() then
 		-- sheet:AddSheet("Rebirth", perklist4, "icon16/star.png", false, false, "")
@@ -469,16 +505,16 @@ function GM:MakePrestigePanel()
 		net.WriteString("prestige")
 		net.SendToServer()
 	end))
-	list:AddItem(MakeText(self.PrestigePanel, "Prestige will reset all your levels, XP and skills, but you will gain +25% boost to xp gain (every prestige) and a perk point.\nPrestigin will also unlock new perks after time.", "TargetIDSmall"))
-	list:AddItem(MakeText(self.PrestigePanel, "You must reach Level "..MAX_LEVEL.." and reach max XP for the next level in order to prestige.", "TargetIDSmall"))
-	list:AddItem(MakeText(self.PrestigePanel, "Prestiging for the first time will permanently increase skill points gain to 2 per level and will increase skills max level to 35.", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, translate.Get("prestige_text1"), "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, translate.Format("prestige_text2",tostring(MAX_LEVEL)), "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, translate.Get("prestige_text3"), "TargetIDSmall"))
 
 	list:AddItem(MakeButton("Eternity", 0, 0, function()
 		net.Start("hl2ce_prestige")
 		net.WriteString("eternity")
 		net.SendToServer()
 	end))
-	list:AddItem(MakeText(self.PrestigePanel, "Eternity to reset your levels, XP, skills, prestiges and prestige perks, but you gain a +175% boost to xp gain (every eternity) and\nEternity point. Eternity perks are more powerful than regular perks.", "TargetIDSmall"))
-	list:AddItem(MakeText(self.PrestigePanel, "Must reach max xp needed for next level, level "..MAX_LEVEL.." at "..MAX_PRESTIGE.." prestiges in order to Eternity", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, translate.Get("eternity_text1"), "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, translate.Format("eternity_text2",MAX_LEVEL,MAX_PRESTIGE), "TargetIDSmall"))
 
 end

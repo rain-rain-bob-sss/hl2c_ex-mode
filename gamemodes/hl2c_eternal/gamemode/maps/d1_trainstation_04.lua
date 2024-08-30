@@ -38,7 +38,8 @@ hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 -- Initialize entities
 function hl2cMapEdit()
-
+	game.SetGlobalState( "gordon_precriminal", GLOBAL_OFF )
+	game.SetGlobalState( "gordon_invulnerable", GLOBAL_OFF )
 	if ( !game.SinglePlayer() ) then
 	
 		ents.FindByName( "kickdown_relay" )[ 1 ]:Remove()

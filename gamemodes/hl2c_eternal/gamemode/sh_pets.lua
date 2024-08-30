@@ -9,7 +9,7 @@ GM.Pets = {
 
 function GM:SpawnHl2cePet(ply, pet)
     if not ply:HasEternityUnlocked() then
-        ply:PrintMessage(3, "You don't have unlocked Pets yet!")
+        ply:PrintTranslatedMessage(3, "PetsLocked")
         return
     end
 

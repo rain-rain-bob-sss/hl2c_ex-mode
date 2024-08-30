@@ -119,7 +119,7 @@ function hl2cAcceptInput( ent, input, activator )
 	
 		for _, ply in ipairs( player.GetAll() ) do
 		
-			ply:SetVelocity( Vector( 0, 0, 0 ) )
+			ply:SetVelocity( -ply:GetVelocity() )
 			ply:SetPos( ent:GetPos() )
 			ply:SetFOV( 0, 0 )
 		

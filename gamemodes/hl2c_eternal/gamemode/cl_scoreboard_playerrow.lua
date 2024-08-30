@@ -162,7 +162,7 @@ function PANEL:UpdatePlayerRow()
 
 	if ( self.ply:Team() != TEAM_ALIVE ) then
 	
-		self.statusLabel:SetText( team.GetName( self.ply:Team() ) )
+		self.statusLabel:SetText( translate.Get(team.GetName( self.ply:Team() )) )
 	
 	else
 	

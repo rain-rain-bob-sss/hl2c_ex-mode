@@ -59,7 +59,7 @@ hook.Add("NextMap", "hl2cEX_NextMap", function()
 	if changingLevel then return end
 	for _,ply in pairs(player.GetAll()) do
 		ply:PrintMessage(HUD_PRINTTALK, "Congratulations, you have completed the campaign!")
-		ply:GiveXP(40)
+		ply:GiveXP(40000)
 	end
 end)
 
@@ -190,6 +190,7 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( -640, -400, 1320 ) )
 			ply:SetEyeAngles( Angle( 0, 35, 0 ) )
+			for i,v in ipairs(player.GetAll())do v:Give("weapon_hl2ce_medkit") end
 		
 		end
 		GAMEMODE:CreateSpawnPoint( Vector( -640, -400, 1320 ), 35 )
@@ -279,7 +280,9 @@ function hl2cThink()
 		
 			if ( IsValid( ent ) && ent:IsWeapon() && ( ent:GetClass() != "weapon_physcannon" ) && ( !IsValid( ent:GetOwner() ) || ( IsValid( ent:GetOwner() ) && ent:GetOwner():IsPlayer() ) ) ) then
 			
-				ent:Remove()
+				if not ent.CanUseInCitadel then
+					ent:Remove()
+				end
 			
 			end
 		
@@ -299,8 +302,9 @@ if ( !game.SinglePlayer() ) then
 		for _, ply in ipairs( team.GetPlayers( TEAM_ALIVE ) ) do
 		
 			if ( IsValid( ply ) && IsValid( ents.FindByName( "pod" )[ 1 ] ) && ply:Alive() ) then
-			
-				ply:SetPos( ents.FindByName( "pod" )[ 1 ]:GetPos() )
+				if not ply.DebugMode then
+					ply:SetPos( ents.FindByName( "pod" )[ 1 ]:GetPos() )
+				end
 			
 			end
 		

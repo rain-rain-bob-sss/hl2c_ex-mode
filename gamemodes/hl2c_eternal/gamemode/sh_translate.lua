@@ -11,6 +11,7 @@ local Translations = {}
 local AddingLanguage
 local DefaultLanguage = "en"
 local CurrentLanguage = DefaultLanguage
+local DBG=false
 
 if CLIENT then
 	-- Need to make a new convar since gmod_language isn't sent to server.
@@ -50,11 +51,26 @@ function translate.AddTranslation(id, text)
 end
 
 function translate.Get(id)
-	return translate.GetTranslations(CurrentLanguage)[id] or translate.GetTranslations(DefaultLanguage)[id] or ("@"..id.."@")
+	return (DBG and "[DBG]" or "")..(translate.GetTranslations(CurrentLanguage)[id] or translate.GetTranslations(DefaultLanguage)[id] or ("@"..id.."@"))
 end
 
 function translate.Format(id, ...)
-	return string.format(translate.Get(id), ...)
+	return (DBG and "[DBG]" or "")..(string.format(translate.Get(id), ...))
+end
+
+function translate.Interpolate(id,tbl)
+	return (DBG and "[DBG]" or "")..(string.Interpolate(translate.Get(id),tbl))
+end
+
+function translate.Function(id, ...)
+	local func=translate.GetTranslations(CurrentLanguage)[id]
+	if not func then
+		func=translate.GetTranslations(DefaultLanguage)[id]
+	end
+	if not func then
+		return ("@"..id.."@")
+	end
+	return (DBG and "[DBG]" or "")..(func(...) or "")
 end
 
 if SERVER then
@@ -66,6 +82,11 @@ if SERVER then
 	function translate.ClientFormat(pl, ...)
 		CurrentLanguage = pl:GetInfo("gmod_language_rep")
 		return translate.Format(...)
+	end
+
+	function translate.ClientInterpolate(pl, ...)
+		CurrentLanguage = pl:GetInfo("gmod_language_rep")
+		return translate.Interpolate(...)
 	end
 
 	function PrintTranslatedMessage(printtype, str, ...)
@@ -81,6 +102,9 @@ if CLIENT then
 	end
 	function translate.ClientFormat(_, ...)
 		return translate.Format(...)
+	end
+	function translate.ClientInterpolate(pl, ...)
+		return translate.Interpolate(...)
 	end
 end
 

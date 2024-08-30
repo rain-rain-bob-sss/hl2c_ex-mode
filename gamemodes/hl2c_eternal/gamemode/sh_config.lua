@@ -7,7 +7,7 @@ ADMIN_PHYSGUN = 0
 
 
 -- Range the difficulty scale can be in [{Min, Max}] (Default: { 1, 3 })
-DIFFICULTY_RANGE = {1, 3}
+DIFFICULTY_RANGE = {2, 6}
 
 
 -- Percent of players that need to be in the loading section for the next map to load (Default: 60)
@@ -30,6 +30,10 @@ NPC_POINT_VALUES = {
 	["npc_pigeon"] = 0,
 	["npc_strider"] = 3
 }
+
+
+XP_GAIN_MUL=7
+
 
 NPC_XP_VALUES = {
 	["npc_antlion"] = 0.87, -- in some maps the antlions can spawn indefinitely so best is to make them give least amount of xp per kill
@@ -167,82 +171,54 @@ WHITELISTED_WEAPONS = {
 	"weapon_bugbait"
 }
 
+local automake=function(name,merge)
+	merge = merge or {}
+	return table.Merge({Name=translate.Get(name),Description=translate.Get(name.."_d"),DescriptionEndless=translate.Get(name.."_ed")},merge)
+end
+
 GM.SkillsInfo = {
-	["Gunnery"] = {
-		Name = "Gunnery",
-		Description = "+1% damage dealt with firearms",
-		DescriptionEndless = "+3% damage dealt with firearms\nAbove Gunnery Level 15: +2.5% damage dealt with non-firearms per point",
-	},
+	["Gunnery"] = automake("Gunnery"),
 
-	["Defense"] = {
-		Name = "Defense",
-		Description = "+0.8% damage resistance from enemy bullets",
-		DescriptionEndless = "+2.5% damage resistance from enemy bullets\nAbove Level 15: +2% damage resistance all sources but guns",
-	},
+	["Defense"] = automake("Defense"),
 
-	["Medical"] = {
-		Name = "Medical",
-		Description = "+2% effectiveness to medkits",
-		DescriptionEndless = "+5% effectiveness to medkits"
-	},
+	["Medical"] = automake("Medical"),
 
-	["Surgeon"] = {
-		Name = "Surgeon",
-		Description = "+2% max ammo to medkits / +2% increased medkit recharge speed",
-		DescriptionEndless = "+10% max ammo to medkits / +10% increased medkit recharge speed"
-	},
+	["Surgeon"] = automake("Surgeon"),
 
-	["Vitality"] = {
-		Name = "Vitality",
-		Description = "+1 health",
-		DescriptionEndless = "+5 health"
-	},
+	["Vitality"] = automake("Vitality"),
 
-	["Knowledge"] = {
-		Name = "Knowledge",
-		Description = "+3% xp gain",
-		DescriptionEndless = "+5% xp gain"
-	},
+	["Knowledge"] = automake("Knowledge"),
+
+	["BetterEngine"] = automake("BetterEngine"),
 
 }
 
 GM.PerksData = {
-	["healthboost_1"] = {
-		Name = "Health Boost",
-		Description = "Increases health by 15",
-		DescriptionEndless = "Increases health by 85",
+	["healthboost_1"] = automake("hpboost_1",{
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 1
-	},
+	}),
 
-	["damageboost_1"] = {
-		Name = "Damage Boost",
-		Description = "+6% damage dealt",
-		DescriptionEndless = "+47% damage dealt",
+	["damageboost_1"] = automake("dmgboost_1",{
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 1
-	},
+	}),
 
-	["damageresistanceboost_1"] = {
-		Name = "Damage Resistance Boost",
-		Description = "+7% boost to damage resistance",
-		DescriptionEndless = "+57% boost to damage resistance",
+	["damageresistanceboost_1"] = automake("damageresistanceboost_1",{
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 1
-	},
+	}),
 
-	["antipoison_1"] = {
-		Name = "Anti-Poison",
-		Description = "Reduces damage taken from poison headcrabs by half (reduces up to 25 damage)",
-		DescriptionEndless = "Reduces damage taken from poison headcrabs by half (reduces up to 100 damage)",
+	["antipoison_1"] = automake("antipoison_1",{
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 1
-	},
+	}),
 
+	/* uncomment this if it works.
 	["difficult_decision_1"] = {
 		Name = "Difficult Decision",
 		Description = "+25% personal difficulty (Functions same as difficulty, but only affects you, ignores the difficulty cap.)\nDoesn't work yet",
@@ -251,37 +227,36 @@ GM.PerksData = {
 		PrestigeReq = 2,
 		PrestigeLevel = 1
 	},
+	*/
+	
 
-	["critical_damage_1"] = {
-		Name = "Critical Damage I",
-		Description = "7% chance to deal 1.2x damage",
-		DescriptionEndless = "12% chance to deal 2.2x damage",
+	["critical_damage_1"] = automake("critical_damage_1",{
 		Cost = 2,
 		PrestigeReq = 4,
 		PrestigeLevel = 1
-	},
+	}),
 
-	["better_knowledge_1"] = {
-		Name = "Better Knowledge",
-		Description = "+40% xp gain from NPC kills",
-		DescriptionEndless = "2.35x xp gain from NPC kills if difficulty is above 650%.\n+10% boost to bonus xp on map completion, Knowledge skill +2% xp gain per point.",
+	["better_knowledge_1"] = automake("better_knowledge_1",{
 		Cost = 3,
 		PrestigeReq = 6,
 		PrestigeLevel = 1
-	},
+	}),
 
-	["vampiric_killer_1"] = {
-		Name = "Vampiric Killer",
-		Description = "You gain +2 HP upon killing an NPC.",
-		DescriptionEndless = "You gain +4% health upon killing an NPC. Recovers max of 50 HP.",
-		Cost = 5,
-		PrestigeReq = 10,
-		PrestigeLevel = 1
-	},
+	/* doesn't work yet,uncomment if it works.
+		["vampiric_killer_1"] = {
+			Name = "Vampiric Killer",
+			Description = "You gain +2 HP upon killing an NPC.",
+			DescriptionEndless = "You gain +4% health upon killing an NPC. Recovers max of 50 HP.",
+			Cost = 5,
+			PrestigeReq = 10,
+			PrestigeLevel = 1
+		},
+	*/
 
 
 	-- Eternity
 
+	/* doesn't work yet,uncomment if it works.
 	["damage_of_eternity_2"] = {
 		Name = "Damage of Eternity",
 		Description = "Does nothing.",
@@ -290,23 +265,23 @@ GM.PerksData = {
 		PrestigeReq = 1,
 		PrestigeLevel = 2
 	},
+	*/
 
-	["difficult_decision_2"] = {
-		Name = "A very difficult decision",
-		Description = "Doesn't do anything.",
-		DescriptionEndless = "2.25x difficulty gain per NPC kill",
-		Cost = 1,
-		PrestigeReq = 2,
-		PrestigeLevel = 2
-	},
+	/* doesn't work yet,uncomment if it works.
+		["difficult_decision_2"] = {
+			Name = "A very difficult decision",
+			Description = "Doesn't do anything.",
+			DescriptionEndless = "2.25x difficulty gain per NPC kill",
+			Cost = 1,
+			PrestigeReq = 2,
+			PrestigeLevel = 2
+		},
+	*/
 
-	["critical_damage_2"] = {
-		Name = "Critical Damage II",
-		Description = "Doesn't do anything.",
-		DescriptionEndless = "Improves Critical Damage I perk, chance 12% -> 19% and damage 2.2x -> 2.5x.\nAlso grants a 6% chance to inflict super critical hit, granting 4x damage!.",
+	["critical_damage_2"] = automake("critical_damage_2",{
 		Cost = 2,
 		PrestigeReq = 4,
 		PrestigeLevel = 2
-	},
+	}),
 
 }

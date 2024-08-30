@@ -21,7 +21,7 @@ function AntlionGuardAURA()
 				if v:Health() < 0 then continue end
 				v:TakeDamage(1, ent)
 				if v:IsPlayer() and v:Alive() then
-					v:PrintMessage(4, "YOU ARE BEING DAMAGED BY ANTLION GUARD VARIANT,\nGET AWAY FROM IT!!")
+					v:PrintTranlatedMessage(4, "NV_DAMAGEDBYAGV")
 				end
 				effectdata:SetOrigin(v:GetPos() + Vector(0, 0, 60))
 				util.Effect("zw_master_strike", effectdata)
@@ -150,7 +150,7 @@ function HL2cEX_NPCVariantKilled(ent, attacker)
 			entdrop:GetPhysicsObject():SetVelocityInstantaneous((attacker:GetPos() - entdrop:GetPos()) * 2)
 		end
 	elseif ent:GetClass() == "npc_sniper" then
-		PrintMessage(3, "WTF YOU KILLED HIM!")
+		--PrintMessage(3, "WTF YOU KILLED HIM!")
 	elseif ent:GetClass() == "npc_antlionguard" then
 		if ent.VariantType == 5 then
 			local entdrop = ents.Create("weapon_hl2ce_medkit")

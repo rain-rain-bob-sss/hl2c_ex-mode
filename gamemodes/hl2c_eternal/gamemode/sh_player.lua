@@ -39,7 +39,9 @@ function meta:HasPerkUnlocked(perk)
 end
 
 function meta:HasPerkActive(perk)
+	if not perk then return false end
 	local perkdata = GAMEMODE.PerksData[perk]
+	if not perkdata then return end
 
 	if GAMEMODE.NoProgressionAdvantage then return false end
 
@@ -62,14 +64,17 @@ function meta:CanEternity()
 end
 
 function meta:HasPrestigeUnlocked()
+	if not self.Prestige then return false end
 	return self.Prestige > 0 or self:HasEternityUnlocked()
 end
 
 function meta:HasEternityUnlocked()
+	if not self.Eternity then return false end
 	return self.Eternity > 0 or self:HasCelestialityUnlocked()
 end
 
 function meta:HasCelestialityUnlocked()
+	if not self.Celestiality then return false end
 	return self.Celestiality > 0
 end
 

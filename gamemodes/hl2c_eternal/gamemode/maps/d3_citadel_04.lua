@@ -90,7 +90,9 @@ function hl2cThink()
 		
 			if ( IsValid( ent ) && ent:IsWeapon() && ( ent:GetClass() != "weapon_physcannon" ) && ( !IsValid( ent:GetOwner() ) || ( IsValid( ent:GetOwner() ) && ent:GetOwner():IsPlayer() ) ) ) then
 			
-				ent:Remove()
+				if not ent.CanUseInCitadel then
+					ent:Remove()
+				end
 			
 			end
 		

@@ -21,8 +21,8 @@ function GM.MakeOptions()
 
 
 	local check = vgui.Create("DCheckBoxLabel", Window)
-	check:SetText("Disable Tinnitus/Earringing")
-	check:SetToolTip("Disables annoying tinnitus sound on taking damage by explosion")
+	check:SetText(translate.Get("Option_DisableTinnitus"))
+	check:SetToolTip(translate.Get("Option_DisableTinnitusToolTip"))
 	check:SetConVar("hl2ce_cl_noearringing")
 	check:SizeToContents()
 	list:AddItem(check)

