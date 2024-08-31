@@ -17,7 +17,7 @@ LANG.Knowledge = "知識"
 LANG.BetterEngine = "更好的引擎"
 
 LANG.Gunnery_d="槍械傷害+1%"
-LANG.Gunnery_ed="+3% 槍械傷害\n槍械等級 15 以上：非槍械每點傷害 +2.5%”
+LANG.Gunnery_ed="+3% 槍械傷害\n槍械等級 15 以上：非槍械每點傷害 +2.5%"
 
 LANG.Defense_d="+0.8% 敵方子彈傷害抵抗力" 
 LANG.Defense_ed="+2.5% 敵方子彈傷害抵抗力\n15 級以上：+2% 除槍支外所有來源的傷害抵抗力"
@@ -35,15 +35,15 @@ LANG.Knowledge_d="+3%經驗值增益"
 LANG.Knowledge_ed="+5%經驗值加成"
 
 LANG.BetterEngine_d='+4 馬力給你生成的車輛'
-LANG.BetterEngine_ed='您生成的車輛的 +8 馬力。\n-4% 加成延遲\n+0.05% 最大速''
+LANG.BetterEngine_ed='您生成的車輛的 +8 馬力。\n-4% 加成延遲\n+0.05% 最大速'
 
-LANG.hpboost_1='生命值提升''
-LANG.hpboost_1_d='生命值提高 15''
-LANG.hpboost_1_ed='生命值提高 85''
+LANG.hpboost_1="生命值提升"
+LANG.hpboost_1_d="生命值提高 15"
+LANG.hpboost_1_ed="生命值提高 85"
 
-LANG.dmgboost_1='傷害加成''
-LANG.dmgboost_1_d='+6% 傷害''
-LANG.dmgboost_1_ed='+47% 傷害''
+LANG.dmgboost_1="傷害加成"
+LANG.dmgboost_1_d="+6% 傷害"
+LANG.dmgboost_1_ed="+47% 傷害"
 
 LANG.damageresistanceboost_1="傷害抗性提升"
 LANG.damageresistanceboost_1_d="提升 7% 的傷害抗性"
@@ -65,13 +65,13 @@ LANG.vampiric_killer_1="吸血"
 LANG.vampiric_killer_1_d="殺死一名 NPC 時，您將獲得 +2 HP。"
 LANG.vampiric_killer_1_ed="殺死 NPC 時，您將獲得 +4% 的生命值。最多恢覆 50 HP。"
 
-LANG.critical_damage_2='暴擊傷害 II''
-LANG.critical_damage_2_d='什麽都不做。”
-LANG.critical_damage_2_ed='提高暴擊傷害 I 特性，幾率 12% -> 19% 和傷害 2.2 倍 -> 2.5 倍。\n還提供 6% 的幾率造成超級暴擊，提供 4 倍傷害！''
+LANG.critical_damage_2="暴擊傷害 II"
+LANG.critical_damage_2_d="什麽都不做。"
+LANG.critical_damage_2_ed="提高暴擊傷害 I 特性，幾率 12% -> 19% 和傷害 2.2 倍 -> 2.5 倍。\n還提供 6% 的幾率造成超級暴擊，提供 4 倍傷害！"
 
 LANG.NoSpam = "不要發送垃圾郵件"
 
-LANG.AllowedVehSpawn="允許生成車輛！按 F3（備用 1）可生成車輛"。
+LANG.AllowedVehSpawn="允許生成車輛！按 F3（備用 1）可生成車輛。"
 LANG.SpawnVehicle = "生成車輛"
 LANG.NoSpaceForSpawnVeh="沒有足夠空間生成車輛！"
 LANG.SpawnVehPlayerNear="您周圍有玩家！尋找一個空曠的空間來生成您的車輛。"
@@ -100,7 +100,7 @@ LANG.ImportantNPCDied="重要 NPC 角色已死亡！"
 LANG.LVLMaxed="等級已達上限。您必須獲得聲望才能更進一步。"
 LANG.LVLIncreased="等級提高：%i --> %i"
 
-LANG.PrestigeMaxed="聲望已滿。永恒更進一步"。
+LANG.PrestigeMaxed="聲望已滿。永恒更進一步。"
 LANG.PrestigeIncreased="聲望增加！(%i --> %i)"
 LANG.PrestigeFirstTime="%s首次獲得聲望！"
 
@@ -136,7 +136,7 @@ LANG.XPGained="%s XP gained"
 LANG.TotalXPGained="(%s XP gained total)"
 
 LANG.Help="幫助"
-LANG.HelpText="-= 關於這個遊戲模式 =-\n歡迎來到《半條命2》戰役EX模式！這個遊戲模式基於Jai 'Choccy' Fox制作的《半條命2》戰役，\n加入了升級、技能等新內容！\n[F3] （Spare 1） - 在允許的情況下生成一輛車。\n[F4] （備用 2） - 移除一輛車（如果你有的話）。
+LANG.HelpText="-= 關於這個遊戲模式 =-\n歡迎來到《半條命2》戰役EX模式！這個遊戲模式基於Jai 'Choccy' Fox制作的《半條命2》戰役，\n加入了升級、技能等新內容！\n[F3] （Spare 1） - 在允許的情況下生成一輛車。\n[F4] （備用 2） - 移除一輛車（如果你有的話）。"
 LANG.HelpEXModeOn="EX 模式已啟用！期待這里的地圖目標、NPC 變異和混亂！"
 LANG.HelpEXModeOff="EX 模式已禁用！"
 LANG.HelpEndlessOn="（無盡模式已啟用。難度上限大幅提高。進度最終會變成指數級。"
@@ -171,18 +171,18 @@ LANG.PrestigePoints="聲望點數：%s"
 LANG.PrestigeNotEnough="聲望不夠"
 LANG.Eternities="永恒：%s"
 LANG.Eternity="永恒"
-LANG.EternityPerkDesc="永恒特權。它們要強大得多"。
+LANG.EternityPerkDesc="永恒特權。它們要強大得多。"
 LANG.CelestialityPoints="天體點數：%s"
 LANG.Celestiality="天體"
 LANG.CelestialityPerkDesc="天體特權"
 LANG.PointsCost="點數成本：%s"
 LANG.PrestigeCost="聲望需求：%s"
 
-LANG.prestige_text1="聲望將重置你的所有等級、XP 和技能，但你將獲得 +25% 的 xp 增益（每個聲望）和一個裝備點。
+LANG.prestige_text1="聲望將重置你的所有等級、XP 和技能，但你將獲得 +25% 的 xp 增益（每個聲望）和一個裝備點。"
 LANG.prestige_text2="您必須達到 %s 級，並達到下一級的最大 XP 才能獲得聲望。"
 LANG.prestige_text3="首次獲得聲望將永久性地將技能點數收益提高至每級 2 點，並將技能最高等級提高至 35 級。"
 
-LANG.eternity_text1="永恒重置你的等級、XP、技能、聲望和聲望福利，但你的 XP 增益（每永恒一次）和永恒點數將提升 +175%。永恒福利比普通福利更強大"。
+LANG.eternity_text1="永恒重置你的等級、XP、技能、聲望和聲望福利，但你的 XP 增益（每永恒一次）和永恒點數將提升 +175%。永恒福利比普通福利更強大。"
 LANG.eternity_text2="必須達到下一級所需的最大 xp 值，在 %s 威望值下達到 %s 等級，才能獲得永恒"
 
 LANG.Inf="無限"
@@ -195,7 +195,7 @@ LANG.Skills="技能"
 LANG.Perks="裝備"
 
 LANG.FP_text1="Ah a fellow player."
-LANG.FP_text2="恭喜獲得聲望"。
+LANG.FP_text2="恭喜獲得聲望。"
 LANG.FP_text3="你似乎開始了解這個遊戲模式的機制了"
 LANG.FP_text4="%s？這名字不錯"
 LANG.FP_text5="我們的名字是......"

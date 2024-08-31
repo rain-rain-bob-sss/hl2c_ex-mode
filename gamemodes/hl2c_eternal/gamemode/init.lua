@@ -1658,7 +1658,7 @@ function GM:Think()
 				end
 			end
 			if (AFKCounter[v] or 0)>=60 and not IsValid(POINT_VIEWCONTROL) then
-				v:Kill()
+				--v:Kill()
 				AFKCounter[v]=0
 				v:PrintTranslatedMessage(3,"AFK")
 			end

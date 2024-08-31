@@ -58,6 +58,16 @@ do
     player_manager.RegisterClass("player_hl2ce", PLAYER, base)
 end
 
+if SERVER then
+	include("animationsapi/boneanimlib.lua")
+end
+if CLIENT then
+	include("animationsapi/cl_boneanimlib.lua")
+	include("animationsapi/cl_animeditor.lua")
+end
+include("animationsapi/sh_boneanimlib.lua")
+
+
 -- General gamemode information
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
