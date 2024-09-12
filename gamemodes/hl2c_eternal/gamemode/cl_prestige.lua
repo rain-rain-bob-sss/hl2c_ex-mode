@@ -81,5 +81,7 @@ net.Receive("hl2ce_firstprestige", function(len)
 
 	if str == "prestige" then
 		FirstPrestige()
+	elseif str == "eternity" then
+		-- FirstEternity()
 	end
 end)

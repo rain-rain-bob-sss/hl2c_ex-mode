@@ -26,7 +26,7 @@ function GM:SaveServerData()
     if self.DisableDataSave then return end
 
     local Data = {}
-	Data["Difficulty"] = self:GetDifficulty(true)
+	Data["Difficulty"] = self:GetDifficulty(true, true)
 
     local StringToWrite = ""
 	for k, v in pairs(Data) do

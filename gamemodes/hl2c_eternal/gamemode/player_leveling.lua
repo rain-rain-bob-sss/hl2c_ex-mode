@@ -4,6 +4,16 @@ function meta:GiveXP(xp, nomul)
     local xpmul = 1
     xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("better_knowledge_1") and 0.07 or 0.05) or 0.03))
 
+    if GAMEMODE.EndlessMode then
+        if self:HasPerkActive("difficult_decision_1") then
+            xp = xp * 1.15
+        end
+
+        if self:HasPerkActive("aggressive_gameplay_1") then
+            xp = xp * 1.35
+        end
+    end
+
     local prestigexpmul = 1
     prestigexpmul = prestigexpmul + math.min(self.Prestige*0.25, 100) + math.min(self.Eternity*1.75, 100) + math.min(self.Celestiality*1.5, 100)
 

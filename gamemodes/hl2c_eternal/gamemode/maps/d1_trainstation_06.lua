@@ -38,7 +38,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 function hl2cAcceptInput(ent, input)
 	if GAMEMODE.EXMode then
-		if ent == ents.FindByClass("env_entity_maker")[1] and string.lower(input) == "forcespawn" then
+		if ent:GetName() == "spawner_crowbar" and string.lower(input) == "forcespawn" then
 			local entity = ents.FindByClass("npc_barney")[1]
 			timer.Simple(4, function()
 				if !entity or !entity:IsValid() then return end
@@ -60,6 +60,11 @@ function hl2cAcceptInput(ent, input)
 	
 				GODLIKE_NPCS = GL_NPCS
 			end)
+		end
+
+		if ent:GetName() == "crowbar_music" then
+			-- BroadcastLua([[LocalPlayer():EmitSound("*#music/hl1_song3.mp3", 0, 100)]]) -- bruh hl1 intro song instead of hl2 intro one? yes, what did you expect
+			-- return true
 		end
 	end
 end

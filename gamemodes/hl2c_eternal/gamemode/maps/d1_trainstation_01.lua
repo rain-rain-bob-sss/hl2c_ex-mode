@@ -175,6 +175,13 @@ function hl2cAcceptInput( ent, input, activator )
 		end
 	end
 
+	if GAMEMODE.EXMode then
+		if ent:GetName() == "barneyroom_camera_2" and string.lower(input) == "toggle" then
+			ent:Input("SetAngry")
+			return true
+		end
+	end
+
 	if GAMEMODE.EXMode and GAMEMODE:GetDifficulty() > 100 and ent:GetName() == "ss_luggagedrop_2" and string.lower(input) == "beginsequence" then
 		local randommodels = {
 			"models/props_junk/watermelon01.mdl",

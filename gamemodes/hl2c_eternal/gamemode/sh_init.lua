@@ -203,15 +203,21 @@ end
 
 -- Why 1e150 max difficulty? -- It might seem possible to go further.. But damage is only limited to 3.40e38. After that value it overflows to infinity.
 
-function GM:GetDifficulty(noncvar)
+function GM:GetDifficulty(noncvar, noadditionalmul)
 	local str = GetGlobalString("hl2c_difficulty", 1)
 	local diffcvarvalue = tonumber(hl2ce_server_force_difficulty:GetString()) or 1
+	local value = tonumber(str)
 
 	if not noncvar and diffcvarvalue > 0 then
 		return math.Clamp(diffcvarvalue, 0.3, 1e150)
 	end
 
-	return math.Clamp(tonumber(str), 0.3, 1e150)
+	if not noadditionalmul and FORCE_DIFFICULTY then
+		value = value * FORCE_DIFFICULTY
+	end
+
+
+	return math.Clamp(value, 0.3, 1e150)
 end
 
 

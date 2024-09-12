@@ -32,6 +32,10 @@ function hl2cPlayerSpawn( ply )
 	
 	end
 
+	timer.Simple(0, function()
+		ply:SetHealth(ply:GetMaxHealth())
+	end)
+
 end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 

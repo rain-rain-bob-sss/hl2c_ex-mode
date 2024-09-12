@@ -131,10 +131,18 @@ function GM:HUDPaint()
 		end
 	end
 
-	local colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (self.DifficultyDifference < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0, 155) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0, 155)) or Color(255, 220, 0, 155)
+	local colordifference
+	if FORCE_DIFFICULTY and ContextMenu and ContextMenu:IsValid() then
+		colordifference = FORCE_DIFFICULTY > 1 and Color(255, 755 - FORCE_DIFFICULTY*500, 0) or FORCE_DIFFICULTY < 1 and Color(FORCE_DIFFICULTY*1020-765, 255, 0) or Color(255, 255, 0)
+		colordifference.a = 155
+		draw.DrawText(Format("Map forced difficulty bonus: %s%%", FormatNumber(math.Round(FORCE_DIFFICULTY * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 - 15, colordifference, TEXT_ALIGN_CENTER)
+	end
+	colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (self.DifficultyDifference < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0)) or Color(255, 220, 0)
+	colordifference.a = 155
 	draw.DrawText(Format("Difficulty: %s%%", FormatNumber(math.Round(self:GetDifficulty() * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6, colordifference, TEXT_ALIGN_CENTER )
 	if self.DifficultyDifferenceTimeChange + 3 >= CurTime() then
 		colordifference.a = (self.DifficultyDifferenceTimeChange+3-CurTime())*155/3
+		draw.DrawText(Format("%s%s%%", self.DifficultyDifference < 0 and "-" or "+", math.abs(math.Round(self.DifficultyDifference * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 15, colordifference, TEXT_ALIGN_CENTER )
 		draw.DrawText(Format("%s%s%%", self.DifficultyDifference < 0 and "-" or "+", math.abs(math.Round(self.DifficultyDifference * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 15, colordifference, TEXT_ALIGN_CENTER )
 
 		if self.DifficultyDifference ~= self.DifficultyDifferenceTotal then
@@ -491,6 +499,14 @@ function GM:ShowSkills()
 	skillsMenu:SetTitle("Your skills")
 	skillsMenu:Center()
 	skillsMenu:MakePopup()
+	skillsMenu.Think = function(this)
+		if input.IsKeyDown(KEY_ESCAPE) and gui.IsGameUIVisible() then
+			timer.Simple(0, function()
+				this:Remove()
+			end)
+			gui.HideGameUI()
+		end
+	end
 
 	skillsForm:SetSize(278, 175)
 	skillsForm:SetPos(5, 50)

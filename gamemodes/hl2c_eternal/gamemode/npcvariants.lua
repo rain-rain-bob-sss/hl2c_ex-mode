@@ -188,6 +188,7 @@ function HL2cEX_NPCVariantTakeDamage(ent, dmginfo)
 		if attacker.VariantType == 3 then
 			local dmgmul = attacker.NextDamageMul
 			timer.Simple(0, function()
+				if !dmgmul then return end
 				attacker.NextDamageMul = math.max(0.5, dmgmul * 0.65)
 			end)
 		end

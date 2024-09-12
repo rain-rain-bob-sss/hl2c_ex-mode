@@ -143,6 +143,10 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 		ply:PrintMessage(3, "Died by "..Format("#%s", attacker:GetClass()))
 	end
 	
+	local diff = self:GetDifficulty(true, true)
+	self:SetDifficulty(math.max(1, diff * (diff >= 10 and 0.968 or diff >= 4 and 0.974 or 0.98)))
+
+
 	local lowermodelname = string.lower(ply:GetModel())
 
 	-- Cache the voice set.
@@ -310,6 +314,12 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			damageresistancemul = damageresistancemul * (1 + (self.EndlessMode and 0.57 or 0.07))
 		end
 
+		if ent:HasPerkActive("super_armor_1") and ent:Armor() > 0 then
+			local limit = self.EndlessMode and 0.45 or 0.05
+			damageresistancemul = damageresistancemul * (1 + (math.Clamp(limit*self:Armor()/100, 0, limit)))
+		end
+
+
 		damage = damage / damageresistancemul
 	end
 
@@ -318,19 +328,26 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		damage = damage * math.max(1, ent:GetMaxHealth()*0.01)
 	end
 
-	if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() then
+	-- if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() then
+	if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() and not attacker:IsFriendlyNPC() then
+		print("increase damage", ent:IsFriendlyNPC(), attacker:IsFriendlyNPC())
 		if not ispoisonheadcrab then
 			damage = damage * math.sqrt(self:GetDifficulty()) --could be square rooted
 		elseif ent:IsPlayer() and ent:HasPerkActive("antipoison_1") then
 			damage = damage - math.min(self.EndlessMode and 100 or 25, ent:Health()/2)
 		end
 	end
-	if ent:IsNPC() and not ent:IsFriendlyNPC() then
-		if ent:GetClass() == "npc_combinegunship" then
-			damage = damage / math.log10(self:GetDifficulty())
-		else
+	-- if ent:IsNPC() and not ent:IsFriendlyNPC() then
+	if ent:IsNPC() and not ent:IsFriendlyNPC() and (attacker:IsFriendlyNPC() or attacker:IsPlayer()) then
+		print("decrease damage", ent:IsFriendlyNPC())
+		if ent:GetClass() ~= "npc_combinegunship" then
 			damage = damage / math.sqrt(self:GetDifficulty())
 		end
+	end
+
+	if ent ~= attacker and ent:IsNPC() and attacker:IsNPC() and (not attacker:IsFriendlyNPC() and not ent:IsFriendlyNPC()) then
+		print("yes")
+		damage = damage * math.min(self:GetDifficulty()^0.3, 100000)
 	end
 
 	dmgInfo:SetDamage(damage)
@@ -703,15 +720,29 @@ function GM:OnNPCKilled(npc, killer, weapon)
 
 		if NPC_XP_VALUES[npc:GetClass()] then
 			-- Too many local this is fine.
-			local xp,difficulty = NPC_XP_VALUES[npc:GetClass()], self:GetDifficulty()
+			local difficulty,nonmoddiff = self:GetDifficulty(), self:GetDifficulty(nil, true)
+			local xp = NPC_XP_VALUES[npc:GetClass()] 
 			local npckillxpmul,npckilldiffgainmul = self.XpGainOnNPCKillMul or 1, self.DifficultyGainOnNPCKillMul or 1
 			local npcxpmul = npc.XPGainMult or 1
 
 			local gainfromdifficultymul = math.min(difficulty, killer:GetMaxDifficultyXPGainMul())
-			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and self:GetDifficulty() >= 6.50 and 2.35 or !self.EndlessMode and 1.4) or 1
+			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and (nonmoddiff >= 6.50 and 2.35 or 1.65) or !self.EndlessMode and 1.4) or 1
 			local xpmul = gainfromdifficultymul * npckillxpmul * npcxpmul * better_knowledge_gain
+
+			if killer:GetSkillAmount("Knowledge") > 15 then
+				npckilldiffgainmul = npckilldiffgainmul * (1 + (killer:GetSkillAmount("Knowledge")-15)*0.02)
+			end
+			if self.EndlessMode then
+				if killer:HasPerkActive("difficult_decision_1") then
+					npckilldiffgainmul = npckilldiffgainmul * 1.75
+				end
+
+				if killer:HasPerkActive("aggressive_gameplay_1") then
+					npckilldiffgainmul = npckilldiffgainmul * 2.3
+				end
+			end
 			killer:GiveXP(NPC_XP_VALUES[npc:GetClass()] * xpmul)
-			self:SetDifficulty(difficulty + xp*0.0005*npckilldiffgainmul)
+			self:SetDifficulty(nonmoddiff + xp*0.0005*npckilldiffgainmul)
 		end
 	end
 
@@ -1106,8 +1137,12 @@ function GM:PlayerSpawn(ply)
 
 	-- Set stuff from last level
 	local maxhp = 100 + ((self.EndlessMode and 5 or 1) * ply:GetSkillAmount("Vitality")) -- calculate their max health
+	local maxap = 100 -- calculate their max armor
 	if ply:HasPerkActive("healthboost_1") then
 		maxhp = maxhp + (self.EndlessMode and 85 or 15)
+	end
+	if ply:HasPerkActive("super_armor_1") then
+		maxhp = maxhp + (self.EndlessMode and 30 or 5)
 	end
 
 	if ply.info then
@@ -1129,6 +1164,7 @@ function GM:PlayerSpawn(ply)
 		ply:SetHealth(maxhp)
 	end
 	ply:SetMaxHealth(maxhp)
+	ply:SetMaxArmor(maxap)
 
 	-- Players should avoid players
 	ply:SetCustomCollisionCheck(!game.SinglePlayer())
@@ -1219,8 +1255,9 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 				net.Broadcast()
 				self:Initialize() -- why run GAMEMODE:Initialize() again? so that difficulty will also reset if noplayerdatasave is true
 				changingLevel = true
-				game.CleanUpMap(true, {"env_fire", "entityflame", "_firesmoke"})
+				game.CleanUpMap(false, {"env_fire", "entityflame", "_firesmoke"})
 				changingLevel = nil
+				local plyrespawn = FORCE_PLAYER_RESPAWNING
 				FORCE_PLAYER_RESPAWNING = true
 				for k,v in pairs(player.GetAll()) do
 					self:PlayerInitialSpawn(v)
@@ -1231,7 +1268,7 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 					end)
 				end
 				changingLevel = false
-				FORCE_PLAYER_RESPAWNING=false
+				FORCE_PLAYER_RESPAWNING=plyrespawn
 			end
 		end)
 	end)
@@ -1343,9 +1380,15 @@ function GM:ShowSpare1(ply)
 		end
 	
 		local plyAngle = ply:EyeAngles()
-		local spawnpos = ply:GetPos() + Vector(0, 0, 48) + plyAngle:Forward() * 160
+		local startpos = ply:GetPos() + Vector(0, 0, 48)
+		local spawnpos = startpos + plyAngle:Forward() * 160
 
-		if not util.IsInWorld(spawnpos) then
+		local tr = {}
+		local trace = util.TraceLine({
+			start = startpos,
+			endpos = spawnpos
+		})
+		if trace.HitWorld or not util.IsInWorld(spawnpos) then
 			ply:ChatPrint("Insufficient space for spawning in a vehicle!")
 			return
 		end
@@ -1399,8 +1442,8 @@ function GM:Think()
 		if !changingLevel then
 			PrintMessage(HUD_PRINTTALK, "All players have died!")
 
-			local diff = self:GetDifficulty(true)
-			self:SetDifficulty(math.max(1, diff * (diff >= 10 and 0.9 or diff >= 4 and 0.91 or 0.93)))
+			local diff = self:GetDifficulty(true, true)
+			self:SetDifficulty(math.max(1, diff * (diff >= 10 and 0.87 or diff >= 4 and 0.89 or 0.91)))
 
 			hook.Call("RestartMap", GAMEMODE)
 		end
@@ -1409,10 +1452,12 @@ function GM:Think()
 	-- Change the difficulty according to number of players
 	if player.GetCount() > 0 then
 		if self.EndlessMode then
-			game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
+			game.SetSkillLevel(2)
+			-- game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
 		elseif hl2c_server_dynamic_skill_level:GetBool() then
 			self:SetDifficulty(math.Clamp((0.55 + (player.GetCount() / 4.7)), DIFFICULTY_RANGE[1], DIFFICULTY_RANGE[2]))
-			game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
+			game.SetSkillLevel(2)
+			-- game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
 		end
 	end
 
@@ -1453,10 +1498,12 @@ end)
 -- Dynamic skill level console variable was changed
 local function DynamicSkillToggleCallback(name, old, new)
 	if GAMEMODE.EndlessMode then
-		game.SetSkillLevel(math.Clamp(math.floor(GAMEMODE:GetDifficulty()), 1, 3))
+		game.SetSkillLevel(2)
+		-- game.SetSkillLevel(math.Clamp(math.floor(GAMEMODE:GetDifficulty()), 1, 3))
 	elseif (!hl2c_server_dynamic_skill_level:GetBool()) then
 		GAMEMODE:SetDifficulty(DIFFICULTY_RANGE[1])
-		game.SetSkillLevel(math.Clamp(math.floor(GAMEMODE:GetDifficulty()), 1, 3))
+		game.SetSkillLevel(2)
+		-- game.SetSkillLevel(math.Clamp(math.floor(GAMEMODE:GetDifficulty()), 1, 3))
 	end
 end
 cvars.AddChangeCallback("hl2c_server_dynamic_skill_level", DynamicSkillToggleCallback, "DynamicSkillToggleCallback")
@@ -1480,14 +1527,16 @@ function GM:AcceptInput(ent, input, activator, caller, value)
 		"func_areaportal",
 		"func_tracktrain"
 	}
-	if string.lower(input) == "sethealth" and value == "0" and ent:IsPlayer() then
-		ent:SetHealth(0)
-		ent:TakeDamage(0)
+	if string.lower(input) == "sethealth" then
+		if value == "0" and (ent:IsPlayer() or ent:IsNPC()) then
+			ent:SetHealth(0)
+			ent:TakeDamage(0)
+		end
 	end
-	-- if table.HasValue(blacklist, class) then return end
+	if table.HasValue(blacklist, class) then return end
 
-	-- local col = string.sub(class, 1, 6) == "logic_" and Color(255,255,128) or class == "func_tracktrain" and Color(128,128,255) or string.sub(class, 1, 4) == "env_" and Color(128,255,128) or Color(255,128,128)
-	-- MsgC(col, ent, "    ", input, "    ", activator, "    ", caller, "    ", value, "    ", ent:GetName(), "\n")
+	local col = string.sub(class, 1, 6) == "logic_" and Color(255,255,128) or class == "func_tracktrain" and Color(128,128,255) or string.sub(class, 1, 4) == "env_" and Color(128,255,128) or Color(255,128,128)
+	MsgC(col, ent, "    ", input, "    ", activator, "    ", caller, "    ", value, "    ", ent:GetName(), "\n")
 end
 
 

@@ -201,7 +201,7 @@ GM.SkillsInfo = {
 	["Knowledge"] = {
 		Name = "Knowledge",
 		Description = "+3% xp gain",
-		DescriptionEndless = "+5% xp gain"
+		DescriptionEndless = "+5% xp gain\nAbove Level 15: +2% difficulty gain on NPC Kill"
 	},
 
 }
@@ -246,7 +246,7 @@ GM.PerksData = {
 	["difficult_decision_1"] = {
 		Name = "Difficult Decision",
 		Description = "+25% personal difficulty (Functions same as difficulty, but only affects you, ignores the difficulty cap.)\nDoesn't work yet",
-		DescriptionEndless = "+50% difficulty gain on NPC kill, increases xp gain by 15%",
+		DescriptionEndless = "+75% difficulty gain on NPC kill, increases xp gain by 15%",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 1
@@ -256,17 +256,35 @@ GM.PerksData = {
 		Name = "Critical Damage I",
 		Description = "7% chance to deal 1.2x damage",
 		DescriptionEndless = "12% chance to deal 2.2x damage",
-		Cost = 2,
-		PrestigeReq = 4,
+		Cost = 1,
+		PrestigeReq = 3,
+		PrestigeLevel = 1
+	},
+
+	["super_armor_1"] = {
+		Name = "Super Armor I",
+		Description = "+5 max armor, up to +5% damage resistance depending on your current armor (max efficiency at 100 armor)",
+		DescriptionEndless = "+30 max armor, up to +45% damage resistance depending on your current armor (max efficiency at 100 armor)",
+		Cost = 1,
+		PrestigeReq = 3,
 		PrestigeLevel = 1
 	},
 
 	["better_knowledge_1"] = {
 		Name = "Better Knowledge",
 		Description = "+40% xp gain from NPC kills",
-		DescriptionEndless = "2.35x xp gain from NPC kills if difficulty is above 650%.\n+10% boost to bonus xp on map completion, Knowledge skill +2% xp gain per point.",
+		DescriptionEndless = "2.35x xp gain from NPC kills if difficulty is above 650%, else 1.65x XP.\n+10% boost to bonus xp on map completion, Knowledge skill +2% xp gain per point.",
 		Cost = 3,
-		PrestigeReq = 6,
+		PrestigeReq = 5,
+		PrestigeLevel = 1
+	},
+
+	["aggressive_gameplay_1"] = {
+		Name = "Aggressive Gameplay I",
+		Description = "+15% personal difficulty",
+		DescriptionEndless = "2.3x difficulty gain on NPC kill, and +35% xp gain",
+		Cost = 3,
+		PrestigeReq = 7,
 		PrestigeLevel = 1
 	},
 
