@@ -187,6 +187,7 @@ function GM:PlayerShouldTakeDamage(ply, attacker)
 	return true
 end
 
+
 local SpecialPerson={
 	["some some steamid"]={img="icon16/sheild.png",tooltip="insert some text here"}
 }
@@ -246,6 +247,21 @@ function GM:PlayerPostThink(ply)
 		end
 	end
 end
+
+
+hook.Add("Think","HL2C_EX_BETTERWEAPONTHINK",function()
+	for _,ply in ipairs(player.GetAll())do
+		local wep=ply:GetActiveWeapon()
+		if IsValid(wep) then
+			local e=wep:GetNextPrimaryFire()
+			local s=(GAMEMODE.EndlessMode and 0.02 or 0.01)*ply:GetSkillAmount("BetterWeapon")
+			wep:SetNextPrimaryFire(e-FrameTime()*s)
+			if ply:GetSkillAmount("BetterWeapon")>=10 then
+				--what do i do here?
+			end
+		end
+	end
+end)
 
 
 -- why i'm using GlobalString instead of Float value:

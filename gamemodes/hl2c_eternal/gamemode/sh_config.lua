@@ -191,7 +191,30 @@ GM.SkillsInfo = {
 
 	["BetterEngine"] = automake("BetterEngine"),
 
+	["BetterWeapon"] = automake("BetterWeapon"),
+
 }
+
+timer.Create("HL2CE_TRANSLATE SKILL INFO",3,0,function()
+	GAMEMODE.SkillsInfo = {
+		["Gunnery"] = automake("Gunnery"),
+	
+		["Defense"] = automake("Defense"),
+	
+		["Medical"] = automake("Medical"),
+	
+		["Surgeon"] = automake("Surgeon"),
+	
+		["Vitality"] = automake("Vitality"),
+	
+		["Knowledge"] = automake("Knowledge"),
+	
+		["BetterEngine"] = automake("BetterEngine"),
+	
+		["BetterWeapon"] = automake("BetterWeapon"),
+	
+	}
+end)
 
 GM.PerksData = {
 	["healthboost_1"] = automake("hpboost_1",{
@@ -285,3 +308,98 @@ GM.PerksData = {
 	}),
 
 }
+
+timer.Create("HL2CE_TRANSLATE PERKSDATA",3,0,function()
+	GAMEMODE.PerksData = {
+		["healthboost_1"] = automake("hpboost_1",{
+			Cost = 1,
+			PrestigeReq = 1,
+			PrestigeLevel = 1
+		}),
+	
+		["damageboost_1"] = automake("dmgboost_1",{
+			Cost = 1,
+			PrestigeReq = 1,
+			PrestigeLevel = 1
+		}),
+	
+		["damageresistanceboost_1"] = automake("damageresistanceboost_1",{
+			Cost = 1,
+			PrestigeReq = 1,
+			PrestigeLevel = 1
+		}),
+	
+		["antipoison_1"] = automake("antipoison_1",{
+			Cost = 1,
+			PrestigeReq = 2,
+			PrestigeLevel = 1
+		}),
+	
+		/* uncomment this if it works.
+		["difficult_decision_1"] = {
+			Name = "Difficult Decision",
+			Description = "+25% personal difficulty (Functions same as difficulty, but only affects you, ignores the difficulty cap.)\nDoesn't work yet",
+			DescriptionEndless = "+50% difficulty gain on NPC kill, increases xp gain by 15%",
+			Cost = 1,
+			PrestigeReq = 2,
+			PrestigeLevel = 1
+		},
+		*/
+		
+	
+		["critical_damage_1"] = automake("critical_damage_1",{
+			Cost = 2,
+			PrestigeReq = 4,
+			PrestigeLevel = 1
+		}),
+	
+		["better_knowledge_1"] = automake("better_knowledge_1",{
+			Cost = 3,
+			PrestigeReq = 6,
+			PrestigeLevel = 1
+		}),
+	
+		/* doesn't work yet,uncomment if it works.
+			["vampiric_killer_1"] = {
+				Name = "Vampiric Killer",
+				Description = "You gain +2 HP upon killing an NPC.",
+				DescriptionEndless = "You gain +4% health upon killing an NPC. Recovers max of 50 HP.",
+				Cost = 5,
+				PrestigeReq = 10,
+				PrestigeLevel = 1
+			},
+		*/
+	
+	
+		-- Eternity
+	
+		/* doesn't work yet,uncomment if it works.
+		["damage_of_eternity_2"] = {
+			Name = "Damage of Eternity",
+			Description = "Does nothing.",
+			DescriptionEndless = "Has 15% chance to triple the damage and convert the damage done to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
+			Cost = 1,
+			PrestigeReq = 1,
+			PrestigeLevel = 2
+		},
+		*/
+	
+		/* doesn't work yet,uncomment if it works.
+			["difficult_decision_2"] = {
+				Name = "A very difficult decision",
+				Description = "Doesn't do anything.",
+				DescriptionEndless = "2.25x difficulty gain per NPC kill",
+				Cost = 1,
+				PrestigeReq = 2,
+				PrestigeLevel = 2
+			},
+		*/
+	
+		["critical_damage_2"] = automake("critical_damage_2",{
+			Cost = 2,
+			PrestigeReq = 4,
+			PrestigeLevel = 2
+		}),
+	
+	}
+end)

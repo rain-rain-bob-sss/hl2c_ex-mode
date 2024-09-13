@@ -15,6 +15,7 @@ LANG.Surgeon = "外科醫生"
 LANG.Vitality = "活力"
 LANG.Knowledge = "知識"
 LANG.BetterEngine = "更好的引擎"
+LANG.BetterWeapon = "更好的武器"
 
 LANG.Gunnery_d="槍械傷害+1%"
 LANG.Gunnery_ed="+3% 槍械傷害\n槍械等級 15 以上：非槍械每點傷害 +2.5%"
@@ -36,6 +37,9 @@ LANG.Knowledge_ed="+5%經驗值加成"
 
 LANG.BetterEngine_d='+4 馬力給你生成的車輛'
 LANG.BetterEngine_ed='您生成的車輛的 +8 馬力。\n-4% 加成延遲\n+0.05% 最大速'
+
+LANG.BetterWeapon_d = "+1% 武器攻擊速度"
+LANG.BetterWeapon_ed = "+2% 武器攻擊速度"
 
 LANG.hpboost_1="生命值提升"
 LANG.hpboost_1_d="生命值提高 15"
@@ -136,11 +140,11 @@ LANG.XPGained="%s XP gained"
 LANG.TotalXPGained="(%s XP gained total)"
 
 LANG.Help="幫助"
-LANG.HelpText="-= 關於這個遊戲模式 =-\n歡迎來到《半條命2》戰役EX模式！這個遊戲模式基於Jai 'Choccy' Fox制作的《半條命2》戰役，\n加入了升級、技能等新內容！\n[F3] （Spare 1） - 在允許的情況下生成一輛車。\n[F4] （備用 2） - 移除一輛車（如果你有的話）。"
+LANG.HelpText="-= 關於這個遊戲模式 =-\n歡迎來到《半條命2》戰役EX模式！\n這個遊戲模式基於Jai 'Choccy' Fox制作的《半條命2》戰役，\n加入了升級、技能等新內容！\n[F3] （Spare 1） - 在允許的情況下生成一輛車。\n[F4] （備用 2） - 移除一輛車（如果你有的話）。"
 LANG.HelpEXModeOn="EX 模式已啟用！期待這里的地圖目標、NPC 變異和混亂！"
 LANG.HelpEXModeOff="EX 模式已禁用！"
-LANG.HelpEndlessOn="（無盡模式已啟用。難度上限大幅提高。進度最終會變成指數級。"
-LANG.HelpEndlessOff="/nEndless 模式已禁用。難度有限，技能和 Perks 功能有限。"
+LANG.HelpEndlessOn="\n（無盡模式已啟用。難度上限大幅提高。進度最終會變成指數級。"
+LANG.HelpEndlessOff="\n無盡模式 模式已禁用。難度有限，技能和 Perks 功能有限。"
 
 LANG.AMode="管理模式"
 
@@ -161,8 +165,8 @@ LANG.XP="XP：%s / %s (%s%%)"
 LANG.Level="等級：%s"
 LANG.SPs="技能點數：%s"
 
-LANG.NonEndlessDesc="/n\nIn Non-Endless Mode:\n"
-LANG.EndlessDesc="/n\nIn Endless Mode:\n"
+LANG.NonEndlessDesc="\nIn Non-Endless Mode:\n"
+LANG.EndlessDesc="\nIn Endless Mode:\n"
 
 LANG.Prestige="Prestige: %s"
 LANG.PrestigePerkDesc="Prestige Perks to give you more advantage"

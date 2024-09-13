@@ -58,9 +58,24 @@ function ENT:StartTouch( ent )
 		ent:SetAvoidPlayers(false)
 		ent:SetNoTarget(true)
 
-	
+		local transitionentities={}
+		if isstring(self.LandMark) then
+			for _,landmark in ipairs(ents.FindByName(self.LandMark))do
+				if landmark:GetClass()=="trigger_transition" then
+					if landmark.GetEntities then
+						for _,ent in ipairs(landmark:GetEntities())do
+							table.insert(transitionentities,ent)
+						end
+					end
+				elseif landmark:GetClass()=="info_landmark" then
+					INFO_LANDMARK=INFO_LANDMARK or landmark
+				end
+			end
+		end
+
 		-- Start the nextmap countdown
 		if !changingLevel then
+			TRANSITION_ENTITIES=transition_entities
 			gamemode.Call("OnMapCompleted")
 			GAMEMODE:NextMap()
 		end
@@ -87,6 +102,7 @@ function ENT:StartTouch( ent )
 
 		if ent.MapStats then -- Map stats display after completing the map (Not yet.)
 		end
+
 	end
 end
 

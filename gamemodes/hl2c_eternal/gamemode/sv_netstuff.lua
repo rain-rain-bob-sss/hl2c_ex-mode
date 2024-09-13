@@ -22,6 +22,7 @@ function GM:NetworkString_UpdateSkills(ply)
     net.WriteFloat(ply.StatVitality or 0)
     net.WriteFloat(ply.StatKnowledge or 0)
     net.WriteFloat(ply.StatBetterEngine or 0)
+    net.WriteFloat(ply.StatBetterWeapon or 0)
     net.Send(ply)
 end
 

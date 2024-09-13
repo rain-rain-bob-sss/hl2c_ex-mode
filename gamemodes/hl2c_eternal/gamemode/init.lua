@@ -170,6 +170,7 @@ function GM:CreateTDML(min, max)
 	tdml.min = min
 	tdml.max = max
 	tdml:Spawn()
+	return tdml
 end
 
 
@@ -277,15 +278,23 @@ function GM:OnEntityCreated(ent)
 		end
 	end)
 end
-
+local str_len=string.len
+local str_lower=string.lower
+local string_equal=function(a,b)
+	if str_len(a)~=str_len(b) then return false end
+	return str_lower(a)==str_lower(b)
+end
 
 -- Called when map entities spawn
 function GM:EntityKeyValue(ent, key, value)
 
-	if ((ent:GetClass() == "trigger_changelevel") && (key == "map")) then
-	
-		ent.map = value
-	
+	if ((ent:GetClass() == "trigger_changelevel")) then
+
+		if (key == "map") then
+			ent.map = value
+		elseif (string_equal(key,"landmark")) then
+			ent.landmark = value
+		end
 	end
 
 	if ((ent:GetClass() == "npc_combine_s") && (key == "additionalequipment") && (value == "weapon_shotgun")) then
@@ -738,16 +747,21 @@ function GM:MapEntitiesSpawned()
 
 	-- Setup TRIGGER_DELAYMAPLOAD
 	if TRIGGER_DELAYMAPLOAD then
-		GAMEMODE:CreateTDML(TRIGGER_DELAYMAPLOAD[1], TRIGGER_DELAYMAPLOAD[2])
-
+		local TDML=GAMEMODE:CreateTDML(TRIGGER_DELAYMAPLOAD[1], TRIGGER_DELAYMAPLOAD[2])
+		local LandMark = INFO_LANDMARK
 		for _, tcl in pairs(ents.FindByClass("trigger_changelevel")) do
+			if tcl.map == NEXT_MAP then
+				LandMark=tcl.landmark
+			end
 			tcl:Remove()
 		end
+		TDML.LandMark=LandMark
 	else
 		for _, tcl in pairs(ents.FindByClass("trigger_changelevel")) do
 			if (tcl.map == NEXT_MAP) then
 				local tclMin, tclMax = tcl:WorldSpaceAABB()
-				GAMEMODE:CreateTDML(tclMin, tclMax)
+				local TDML=GAMEMODE:CreateTDML(tclMin, tclMax)
+				TDML.LandMark=tcl.landmark
 			end
 			tcl:Remove()
 		end
@@ -773,6 +787,38 @@ function GM:PostCleanupMap()
 	gamemode.Call("MapEntitiesSpawned")
 end
 
+local DONOT_TRANSITION={
+    ["keyframe_rope"]=true,
+    ["info_landmark"]=true,
+    ["env_sprite"]=true,
+    ["env_lightglow"]=true,
+    ["env_soundscape"]=true,
+    ["move_rope"]=true,
+    ["game_ragdoll_manager"]=true,
+    ["env_fog_controller"]=true,
+    ["npc_template_maker"]=true,
+    ["trigger_transition"]=true,
+    ["npc_maker"]=true,
+    ["logic_auto"]=true,
+    ["_firesmoke"]=true,
+    ["env_fire"]=true,
+    ["npc_heli_avoidsphere"]=true
+}
+
+local TRANSITION_NPCs = {
+    ["npc_zombie"]=true,
+    ["npc_headcrab"]=true,
+    ["npc_fastzombie"]=true
+}
+
+
+local TRAN_PLAYER=function(ply) --TODO --again.
+	if not IsValid(INFO_LANDMARK) then return end
+	local svtbl=ply:GetSaveTable()
+	local lm=INFO_LANDMARK
+	local data={}
+end
+
 -- Called automatically or by the console command
 function GM:NextMap()
 	if changingLevel then return end
@@ -782,6 +828,69 @@ function GM:NextMap()
 	net.Start("NextMap")
 	net.WriteFloat(CurTime())
 	net.Broadcast()
+	--TODO
+	--[[
+	if TRANSITION_ENTITIES and IsValid(INFO_LANDMARK) then
+		local tents={}
+		for _,v in pairs(TRANSITION_ENTITIES)do
+			if IsValid(v) and not v:IsEFlagSet(EFL_KILLME) then
+				table.insert(tents,v)
+			end
+		end
+		local entstbl={}
+		local transitioned={}
+		for _,ent in ipairs(tents)do
+			if ent:IsPlayer() and not ent:IsBot() then
+				transitioned[ent]=true
+				table.insert(entstbl,ent)
+				continue
+			end
+
+			local caps=ent:ObjectCaps()
+			local cl=ent:GetClass()
+			local veh=ent:IsVehicle()
+			local npc=ent:IsNPC()
+			if DONOT_TRANSITION[class] then continue end
+			if bit.band(caps,tonumber '0x80000000')~=0 and not veh then
+				continue
+			end
+			if bit.band(caps,tonumber '0x00000002')~=0 then
+				transitioned[ent]=true
+				table.insert(entstbl,ent)
+				continue
+			end
+			local gn=ent:GetInternalVariable("globalname")
+			if gn~="" and not ent:IsDormant() then
+				transitioned[ent]=true
+				table.insert(entstbl,ent)
+				continue
+			end
+			if npc and TRANSITION_NPCs[cl] then
+				transitioned[ent]=true
+				table.insert(entstbl,ent)
+				continue
+			end
+			if veh and IsValid(veh:GetDriver()) and veh:GetDriver():IsPlayer() and transitioned[veh:GetDriver()] then
+				transitioned[ent]=true
+				table.insert(entstbl,ent)
+				continue
+			end
+			local parent,owner=ent:GetParent(),ent:GetOwner()
+			if IsValid(parent) and (parent:IsPlayer() or parent:IsNPC() or parent:IsWeapon()) then continue end
+			if IsValid(owner) and (owner:IsPlayer() or owner:IsNPC()) then continue end
+			if ent:IsWeapon() and IsValid(owner) and owner:IsNPC() then continue end
+			if ent:IsPlayerHolding() then
+				transitioned[ent]=true
+				table.insert(entstbl,ent)
+				continue
+			end
+		end
+		print("transitioned:")
+		PrintTable(transitioned,2)
+		local data={}
+		file.Write("hl2ce_transitionnextmap.txt",tostring(NEXT_MAP))
+	end
+	--]]
 
 	timer.Create("hl2c_next_map", NEXT_MAP_TIME, 1, function()
 		self:GrabAndSwitch()

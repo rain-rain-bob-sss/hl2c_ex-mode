@@ -15,6 +15,7 @@ LANG.Surgeon = "Surgeon"
 LANG.Vitality = "Vitality"
 LANG.Knowledge = "Knowledge"
 LANG.BetterEngine = "Better Engine"
+LANG.BetterWeapon = "Better Weapon"
 
 LANG.Gunnery_d="+1% damage dealt with firearms"
 LANG.Gunnery_ed="+3% damage dealt with firearms\nAbove Gunnery Level 15: +2.5% damage dealt with non-firearms per point"
@@ -36,6 +37,9 @@ LANG.Knowledge_ed="+5% xp gain"
 
 LANG.BetterEngine_d="+4 horsepower to vehicle you spawned."
 LANG.BetterEngine_ed="+8 horsepower to vehicle you spawned.\n-4% boost delay\n+0.05% Max Speed"
+
+LANG.BetterWeapon_d = "+1% weapon fire rate"
+LANG.BetterWeapon_ed = "+2% weapon fire rate"
 
 LANG.hpboost_1="Health Boost"
 LANG.hpboost_1_d="Increases health by 15"
