@@ -316,7 +316,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 		if ent:HasPerkActive("super_armor_1") and ent:Armor() > 0 then
 			local limit = self.EndlessMode and 0.45 or 0.05
-			damageresistancemul = damageresistancemul * (1 + (math.Clamp(limit*self:Armor()/100, 0, limit)))
+			damageresistancemul = damageresistancemul * (1 + (math.Clamp(limit*ent:Armor()/100, 0, limit)))
 		end
 
 
