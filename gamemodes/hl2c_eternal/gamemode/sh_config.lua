@@ -297,13 +297,22 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
+	["prestige_improvement_1"] = {
+		Name = "Prestige Improvement I",
+		Description = "On prestige you keep 5% of your XP.",
+		DescriptionEndless = "On prestige you keep 5% of your XP.",
+		Cost = 6,
+		PrestigeReq = 13,
+		PrestigeLevel = 1
+	},
 
-	-- Eternity
+
+	-- Eternity (Note that all perks beyond this point on Non-Endless mode do not work.)
 
 	["damage_of_eternity_2"] = {
 		Name = "Damage of Eternity",
 		Description = "Does nothing.",
-		DescriptionEndless = "Has 15% chance to triple the damage and convert the damage done to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
+		DescriptionEndless = "2x Damage dealt. Has 15% chance to triple the damage and convert the damage done to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 2
@@ -312,7 +321,7 @@ GM.PerksData = {
 	["difficult_decision_2"] = {
 		Name = "A very difficult decision",
 		Description = "Doesn't do anything.",
-		DescriptionEndless = "2.25x difficulty gain per NPC kill",
+		DescriptionEndless = "2.25x difficulty gain per NPC kill, and a +85% XP Gain",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 2
@@ -322,7 +331,16 @@ GM.PerksData = {
 		Name = "Critical Damage II",
 		Description = "Doesn't do anything.",
 		DescriptionEndless = "Improves Critical Damage I perk, chance 12% -> 19% and damage 2.2x -> 2.5x.\nAlso grants a 6% chance to inflict super critical hit, granting 4x damage!.",
-		Cost = 2,
+		Cost = 1,
+		PrestigeReq = 3,
+		PrestigeLevel = 2
+	},
+
+	["prestige_improvement_2"] = {
+		Name = "Prestige Improvement II",
+		Description = "Does nothing.",
+		DescriptionEndless = "On prestige you keep 15% of your XP. You will keep your Prestige perks after Eternity.\nHas a increased damage taken penalty when having negative prestige points.",
+		Cost = 1,
 		PrestigeReq = 4,
 		PrestigeLevel = 2
 	},

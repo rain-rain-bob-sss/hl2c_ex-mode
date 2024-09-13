@@ -58,7 +58,7 @@ function meta:CanPrestige()
 end
 
 function meta:CanEternity()
-	return false
+	return self:CanPrestige() and self.Prestige >= MAX_PRESTIGE
 end
 
 function meta:HasPrestigeUnlocked()

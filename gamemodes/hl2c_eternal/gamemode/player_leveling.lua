@@ -41,7 +41,11 @@ end
 function meta:GainLevel()
     if self.IsLevelingup then return end
     if tonumber(self.Level) >= MAX_LEVEL then
-        self:PrintMessage(HUD_PRINTTALK, "Level is maxed. You must prestige to go further.")
+        if tonumber(self.Prestige) >= MAX_PRESTIGE then
+            self:PrintMessage(HUD_PRINTTALK, "Leve, as well as the Prestige, is maxed. You must become Eternal.")
+        else
+           self:PrintMessage(HUD_PRINTTALK, "Level is maxed. You must prestige to go further.")
+        end
     elseif self.XP >= GAMEMODE:GetReqXP(self) then
         local prevlvl = self.Level
         for i=1,2000 do
@@ -63,9 +67,7 @@ function meta:GainLevel()
 end
 
 function meta:GainPrestige()
-    if tonumber(self.Prestige) >= MAX_PRESTIGE then
-        self:PrintMessage(HUD_PRINTTALK, "Prestige is maxed. Eternity to go even further.")
-    elseif self:CanPrestige() then
+    if self:CanPrestige() and self.Prestige < MAX_PRESTIGE then
         local prevlvl = self.Prestige
         local prevprestigeunlocked = self:HasPrestigeUnlocked()
         self.XP = 0
@@ -99,6 +101,7 @@ function meta:GainEternity()
         self:PrintMessage(HUD_PRINTTALK, "You have reached maximum amount of Eternities. You must Celestialize to go even further beyond.")
     elseif self:CanEternity() then
         local prevlvl = self.Eternity
+        local preveternityunlocked = self:HasEternityUnlocked()
         self.XP = 0
         self.Level = 1
         self.StatPoints = 0
@@ -106,6 +109,14 @@ function meta:GainEternity()
         self.PrestigePoints = 0
         self.Eternity = self.Eternity + 1
         self.EternityPoints = self.EternityPoints + 1
+
+        for id,_ in pairs(self.UnlockedPerks) do
+            local perk = GAMEMODE.PerksData[id]
+            if not perk then continue end
+            if perk.PrestigeLevel <= 1 then
+                self.UnlockedPerks[id] = nil
+            end
+        end
 
         for id,_ in pairs(GAMEMODE.SkillsInfo) do
             self["Stat"..id] = 0
@@ -115,9 +126,29 @@ function meta:GainEternity()
             self:PrintMessage(HUD_PRINTTALK, Format("Eternity increased! (%i --> %i)", prevlvl, self.Eternity))
         -- end
 
+        
+        if not preveternityunlocked then
+            PrintMessage(HUD_PRINTTALK, self:Nick().." went eternal for the first time!")
+            local eff = EffectData()
+            for i=0,0.3,0.1 do
+                timer.Simple(i, function()
+                    self:EmitSound("ambient/energy/whiteflash.wav", 75, 90)
+        	        self:EmitSound("weapons/physcannon/energy_disintegrate"..math.random(4, 5)..".wav", 75, 70)
+
+                    eff:SetOrigin(self:GetPos())
+                    util.Effect("TeslaZap", eff)
+                end)
+            end
+            util.ScreenShake(self:GetPos(), 190, 0.8, 10, 1000)
+
+            net.Start("hl2ce_firstprestige")
+            net.WriteString("eternity")
+            net.Send(self)
+        end
+
         GAMEMODE:NetworkString_UpdateStats(self)
         GAMEMODE:NetworkString_UpdateSkills(self)
-        GAMEMODE:NetworkString_UpdatePerks(ply)
+        GAMEMODE:NetworkString_UpdatePerks(self)
     end
 end
 

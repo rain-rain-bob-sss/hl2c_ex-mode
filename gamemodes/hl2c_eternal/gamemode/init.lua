@@ -300,6 +300,10 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			damagemul = damagemul * (self.EndlessMode and 2.2 or 1.2)
 		end
 
+		if attacker:HasPerkActive("damage_of_eternity_2") then
+			damagemul = damagemul * 2
+		end
+
 		damage = damage * damagemul
 	end
 
@@ -345,8 +349,22 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		end
 	end
 
+	if ent:IsNPC() and attacker:IsPlayer() then
+		if attacker:HasPerkActive("damage_of_eternity_2") then
+			if math.random(100) <= 15 then
+				PrintMessage(3, "delayed dmg")
+				if ent.DelayedDamage then
+					ent.DelayedDamage = ent.DelayedDamage + damage
+				else
+					ent.DelayedDamage = damage
+				end
+				ent.DelayedDamageAttacker = attacker
+			end
+		end
+	end
+
+
 	if ent ~= attacker and ent:IsNPC() and attacker:IsNPC() and (not attacker:IsFriendlyNPC() and not ent:IsFriendlyNPC()) then
-		print("yes")
 		damage = damage * math.min(self:GetDifficulty()^0.3, 100000)
 	end
 
@@ -716,8 +734,6 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			killer:AddFrags(1)
 		end
 
-
-
 		if NPC_XP_VALUES[npc:GetClass()] then
 			-- Too many local this is fine.
 			local difficulty,nonmoddiff = self:GetDifficulty(), self:GetDifficulty(nil, true)
@@ -743,6 +759,14 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			end
 			killer:GiveXP(NPC_XP_VALUES[npc:GetClass()] * xpmul)
 			self:SetDifficulty(nonmoddiff + xp*0.0005*npckilldiffgainmul)
+		end
+
+		if killer:HasPerkActive("vampiric_killer_1") then
+			if self.EndlessMode then
+				killer:SetHealth(math.min(killer:GetMaxHealth(), killer:Health() + math.min(50, killer:GetMaxHealth()*0.04)))
+			else
+				killer:SetHealth(math.min(killer:GetMaxHealth(), killer:Health() + 2))
+			end
 		end
 	end
 
@@ -1434,6 +1458,7 @@ function GM:ShowSpare2(ply)
 	ply:RemoveVehicle()
 end
 
+local delayedDMGTick = 0
 -- Called every frame 
 function GM:Think()
 
@@ -1467,6 +1492,17 @@ function GM:Think()
 			fap:Fire("Open")
 		end
 		nextAreaOpenTime = CurTime() + 1
+	end
+
+	if delayedDMGTick + 0.5 < CurTime() then
+		for _,ent in pairs(ents.GetAll()) do
+			if ent.DelayedDamage and ent.DelayedDamage >= 1 then
+				ent.DelayedDamage = ent.DelayedDamage - math.ceil(ent.DelayedDamage*0.2)
+				ent:TakeDamage(math.ceil(ent.DelayedDamage*0.2), ent.DelayedDamageAttacker)
+			end
+		end
+
+		delayedDMGTick = CurTime()
 	end
 end
 
