@@ -49,11 +49,24 @@ function meta:GainLevel()
     elseif self.XP >= GAMEMODE:GetReqXP(self) then
         local prevlvl = self.Level
         local prevxp, xp = self.XP, self.XPUsedThisPrestige
+        local gainedsp = 0
         for i=1,1e4 do
             if not self:CanLevelup() or self.Level >= self:GetMaxLevel() then break end
             self.XP = self.XP - GAMEMODE:GetReqXP(self)
             self.Level = self.Level + 1
             self.StatPoints = self.StatPoints + (self:HasEternityUnlocked() and 3 or self:HasPrestigeUnlocked() and 2 or 1)
+        end
+
+        if self:HasPerkActive("skills_improver_2") then
+            local equalspuse = math.floor(self.StatPoints / table.Count(GAMEMODE.SkillsInfo))
+            for id,_ in pairs(GAMEMODE.SkillsInfo) do
+                if self["Stat"..id] >= self:GetMaxSkillLevel(id) then continue end
+                local new = math.min(self["Stat"..id] + equalspuse, self:GetMaxSkillLevel(id))
+                local used = new - self["Stat"..id]
+                self["Stat"..id] = new
+                self.StatPoints = self.StatPoints - used
+                PrintMessage(3, id.." - used: "..used)
+            end
         end
         self.XPUsedThisPrestige = prevxp + xp - self.XP
         if not self:HasEternityUnlocked() then
