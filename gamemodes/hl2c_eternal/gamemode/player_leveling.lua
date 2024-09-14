@@ -65,7 +65,6 @@ function meta:GainLevel()
                 local used = new - self["Stat"..id]
                 self["Stat"..id] = new
                 self.StatPoints = self.StatPoints - used
-                PrintMessage(3, id.." - used: "..used)
             end
         end
         self.XPUsedThisPrestige = prevxp + xp - self.XP
