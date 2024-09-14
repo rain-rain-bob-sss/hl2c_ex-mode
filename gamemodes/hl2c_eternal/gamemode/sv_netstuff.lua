@@ -45,7 +45,7 @@ net.Receive("UpgradePerk", function(length, ply)
 	local perk2 = "Stat"..perk
 
     local curpoints = ply.StatPoints
-    local limit = ply:HasPrestigeUnlocked() and 35 or 20
+    local limit = ply:GetMaxSkillLevel(perk)
 
     count = math.min(limit - ply[perk2], curpoints)
 

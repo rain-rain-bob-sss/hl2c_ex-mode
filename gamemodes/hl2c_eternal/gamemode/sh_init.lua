@@ -23,7 +23,7 @@ local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficult
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.9_9" -- what version?
+GM.Version = "0.7.9!9" -- what version?
 
 
 -- Constants
@@ -60,18 +60,31 @@ function GM:CreateTeams()
 
 end
 
+function GM:CalculateXPNeededForLevels(lvl)
+	local xp = 0
+	for i=1,math.min(1e6, lvl) do
+		xp = xp + self:GetReqXPCount(i)
+	end
+
+	return xp
+end
+
 function GM:GetReqXP(ply)
+	return self:GetReqXPCount(ply.Level)
+end
+
+function GM:GetReqXPCount(lvl)
 	local basexpreq = 152
 	local addxpperlevel = 27
 	local morelvlreq = 1.0715
 	
-	local totalxpreq = math.floor(basexpreq + (ply.Level  * addxpperlevel) ^ morelvlreq)
+	local totalxpreq = math.floor(basexpreq + (lvl  * addxpperlevel) ^ morelvlreq)
 
-	if ply.Level >= 250 then
-		totalxpreq = totalxpreq * math.max(1 + (ply.Level-250) * 0.05, 1)
+	if lvl >= 250 then
+		totalxpreq = totalxpreq * math.max(1 + (lvl-250) * 0.05, 1)
 	end
-	if ply.Level >= 1000 then
-		totalxpreq = totalxpreq * math.max(1, 1.0046^(ply.Level-1000))
+	if lvl >= 1000 then
+		totalxpreq = totalxpreq * math.max(1, 1.0046^(lvl-1000))
 	end
 	return math.Round(totalxpreq)
 end

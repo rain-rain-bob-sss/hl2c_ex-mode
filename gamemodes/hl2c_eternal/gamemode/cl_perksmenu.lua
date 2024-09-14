@@ -124,6 +124,7 @@ function GM:CMenu()
 	end
 
 	local prestigeunlocked = pl:HasPrestigeUnlocked()
+	local eternityunlocked = pl:HasEternityUnlocked()
 
 	local skills = vgui.Create("DButton", ContextMenu)
 	skills:SetSize(buttonsize_x, buttonsize_y)
@@ -174,6 +175,25 @@ function GM:CMenu()
 		end
 		perks.DoClick = function()
 			gamemode.Call("PerksMenu")
+			ContextMenu:Close()
+		end
+	end
+
+	if prestigeunlocked then
+		local config = vgui.Create("DButton", ContextMenu)
+		config:SetSize(buttonsize_x + 20, buttonsize_y)
+		config:Center()
+		x,y = config:GetPos()
+		config:SetPos(x, y + 120)
+		config:SetText("Player Configuration")
+		config:SetTextColor(Color(255,255,255))
+		config.Paint = function(panel)
+			surface.SetDrawColor(50, 150, 200, 255)
+			surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
+			draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), Color(0, 0, 0, 130))
+		end
+		config.DoClick = function()
+			gamemode.Call("PlayerConfiguration")
 			ContextMenu:Close()
 		end
 	end

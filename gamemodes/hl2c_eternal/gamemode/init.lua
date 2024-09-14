@@ -10,6 +10,7 @@ AddCSLuaFile("cl_net.lua")
 AddCSLuaFile("cl_options.lua")
 AddCSLuaFile("cl_perksmenu.lua")
 AddCSLuaFile("cl_prestige.lua")
+AddCSLuaFile("cl_config.lua")
 
 AddCSLuaFile("sh_config.lua")
 AddCSLuaFile("sh_globals.lua")
@@ -249,6 +250,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Gets the attacker
 	local attacker = dmgInfo:GetAttacker()
 	local damage = dmgInfo:GetDamage()
+	local dmgdirect = bit.band(DMG_DIRECT, dmgInfo:GetDamageType()) ~= 0
 
 	-- Godlike NPCs take no damage ever
 	if (IsValid(ent) && table.HasValue(GODLIKE_NPCS, ent:GetClass())) and not MAP_FORCE_NO_FRIENDLIES then
@@ -349,14 +351,13 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		end
 	end
 
-	if ent:IsNPC() and attacker:IsPlayer() then
+	if ent:IsNPC() and attacker:IsPlayer() and not dmgdirect then
 		if attacker:HasPerkActive("damage_of_eternity_2") then
 			if math.random(100) <= 15 then
-				PrintMessage(3, "delayed dmg")
 				if ent.DelayedDamage then
-					ent.DelayedDamage = ent.DelayedDamage + damage
+					ent.DelayedDamage = ent.DelayedDamage + damage*2
 				else
-					ent.DelayedDamage = damage
+					ent.DelayedDamage = damage*2
 				end
 				ent.DelayedDamageAttacker = attacker
 			end
@@ -749,12 +750,21 @@ function GM:OnNPCKilled(npc, killer, weapon)
 				npckilldiffgainmul = npckilldiffgainmul * (1 + (killer:GetSkillAmount("Knowledge")-15)*0.02)
 			end
 			if self.EndlessMode then
+				if killer:HasPerkActive("difficult_decision_2") then
+					xpmul = xpmul * 1.85
+				end
+
+
 				if killer:HasPerkActive("difficult_decision_1") then
 					npckilldiffgainmul = npckilldiffgainmul * 1.75
 				end
 
 				if killer:HasPerkActive("aggressive_gameplay_1") then
 					npckilldiffgainmul = npckilldiffgainmul * 2.3
+				end
+
+				if killer:HasPerkActive("difficult_decision_2") then
+					npckilldiffgainmul = npckilldiffgainmul * 2.25
 				end
 			end
 			killer:GiveXP(NPC_XP_VALUES[npc:GetClass()] * xpmul)
@@ -900,9 +910,12 @@ function GM:PlayerInitialSpawn(ply)
 		ply["Stat"..k] = 0
 	end
 
+	ply.XPUsedThisPrestige = 0
+
 	ply.UnlockedPerks = {}
 	ply.DisabledPerks = {}
 
+	ply.ConfigData = {}
 
 	ply.MapStats = {}
 	ply.SessionStats = {}
@@ -1498,7 +1511,13 @@ function GM:Think()
 		for _,ent in pairs(ents.GetAll()) do
 			if ent.DelayedDamage and ent.DelayedDamage >= 1 then
 				ent.DelayedDamage = ent.DelayedDamage - math.ceil(ent.DelayedDamage*0.2)
-				ent:TakeDamage(math.ceil(ent.DelayedDamage*0.2), ent.DelayedDamageAttacker)
+
+				local dmg = DamageInfo()
+				dmg:SetDamage(math.ceil(ent.DelayedDamage*0.2))
+				dmg:SetDamageType(DMG_DIRECT)
+				dmg:SetAttacker(ent.DelayedDamageAttacker or game.GetWorld())
+				dmg:SetInflictor(game.GetWorld())
+				ent:TakeDamageInfo(dmg)
 			end
 		end
 

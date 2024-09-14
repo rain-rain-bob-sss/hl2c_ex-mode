@@ -312,7 +312,16 @@ GM.PerksData = {
 	["damage_of_eternity_2"] = {
 		Name = "Damage of Eternity",
 		Description = "Does nothing.",
-		DescriptionEndless = "2x Damage dealt. Has 15% chance to triple the damage and convert the damage done to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
+		DescriptionEndless = "2x Damage dealt. Has 15% chance to triple the damage and convert that damage to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
+		Cost = 1,
+		PrestigeReq = 1,
+		PrestigeLevel = 2
+	},
+
+	["skills_improver_2"] = {
+		Name = "Skills Improver I",
+		Description = "Does nothing.",
+		DescriptionEndless = "Automatically uses gained skill points evenly to skills on level up (NYI)",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 2

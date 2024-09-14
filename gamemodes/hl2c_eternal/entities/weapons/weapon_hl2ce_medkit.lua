@@ -17,8 +17,8 @@ SWEP.WorldModel = Model("models/weapons/w_medkit.mdl")
 SWEP.ViewModelFOV = 54
 SWEP.UseHands = true
 
-SWEP.Primary.ClipSize = 60
-SWEP.Primary.DefaultClip = 60
+SWEP.Primary.ClipSize = 100
+SWEP.Primary.DefaultClip = 100
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 
@@ -41,6 +41,7 @@ function SWEP:Initialize()
 	timer.Create("hl2ce_medkit_ammo"..self:EntIndex(), 1, 0, function()
 		if IsValid(self) && (self:Clip1() < self.MaxAmmo) then
 			local owner = self:GetOwner()
+			if not owner:IsValid() then return end
 			self:SetClip1(math.min(self:Clip1() + 1 + ((GAMEMODE.EndlessMode and 0.1 or 0.02) * owner:GetSkillAmount("Surgeon")), self.MaxAmmo + (self.MaxAmmo * ((GAMEMODE.EndlessMode and 0.1 or 0.02) * owner:GetSkillAmount("Surgeon")))))
 		end
 	end)
@@ -66,7 +67,7 @@ function SWEP:PrimaryAttack()
 	local ent = tr.Entity
 
 	local need = self.HealAmount + (self.HealAmount * ((GAMEMODE.EndlessMode and 0.05 or 0.02) * self.Owner:GetSkillAmount("Medical")))
-	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), self.HealAmount + (self.HealAmount * ((GAMEMODE.EndlessMode and 0.05 or 0.02) * self.Owner:GetSkillAmount("Medical"))) ) end
+	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), need ) end
 
 	if ( IsValid( ent ) && self:Clip1() >= need && ( ent:IsPlayer() or ent:IsNPC() ) && ent:Health() < ent:GetMaxHealth() ) then
 
@@ -106,8 +107,8 @@ function SWEP:SecondaryAttack()
 
 	local ent = self.Owner
 
-	local need = self.HealAmount
-	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), self.HealAmount ) end
+	local need = self.HealAmount + (self.HealAmount * ((GAMEMODE.EndlessMode and 0.05 or 0.02) * self.Owner:GetSkillAmount("Medical")))
+	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), need ) end
 
 	if ( IsValid( ent ) && self:Clip1() >= need && ent:Health() < ent:GetMaxHealth() ) then
 

@@ -9,6 +9,7 @@ include("cl_net.lua")
 include("cl_options.lua")
 include("cl_perksmenu.lua")
 include("cl_prestige.lua")
+include("cl_config.lua")
 
 CreateClientConVar("hl2ce_cl_noearringing", 0, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 

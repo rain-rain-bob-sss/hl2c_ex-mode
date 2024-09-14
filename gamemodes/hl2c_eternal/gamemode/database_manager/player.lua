@@ -52,7 +52,10 @@ function GM:SavePlayer(ply)
 	Data["PrestigePoints"] = ply.PrestigePoints
 	Data["Eternity"] = ply.Eternity
 	Data["EternityPoints"] = ply.EternityPoints
-	Data["UnlockedPerks"] = util.TableToJSON(ply.UnlockedPerks)
+
+    Data["XPUsedThisPrestige"] = ply.XPUsedThisPrestige
+
+    Data["UnlockedPerks"] = util.TableToJSON(ply.UnlockedPerks)
 
 
 	for k, v in pairs(self.SkillsInfo) do

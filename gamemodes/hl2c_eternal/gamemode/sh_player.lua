@@ -54,7 +54,7 @@ function meta:CanLevelup()
 end
 
 function meta:CanPrestige()
-	return self.Level >= MAX_LEVEL and self.XP >=GAMEMODE:GetReqXP(self)
+	return self.Level > MAX_LEVEL or self.Level >= MAX_LEVEL and self.XP >= GAMEMODE:GetReqXP(self)
 end
 
 function meta:CanEternity()
@@ -71,6 +71,18 @@ end
 
 function meta:HasCelestialityUnlocked()
 	return self.Celestiality > 0
+end
+
+function meta:GetMaxLevel()
+	return self:HasEternityUnlocked() and 250 or MAX_LEVEL
+end
+
+function meta:GetMaxPrestige()
+	return MAX_PRESTIGE
+end
+
+function meta:GetMaxSkillLevel(perk)
+	return self:HasEternityUnlocked() and 60 or self:HasPrestigeUnlocked() and 35 or 20
 end
 
 
