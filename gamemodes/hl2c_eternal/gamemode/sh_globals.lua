@@ -48,6 +48,10 @@ GM.NoProgressionAdvantage = false
 	-- Hellish: 1.5e5%-1e6%
 ]]
 
+GM.ConfigList = {
+	["auto_prestige_enabled"] = "number",
+}
+
 
 
 TEAM_ALIVE = 1

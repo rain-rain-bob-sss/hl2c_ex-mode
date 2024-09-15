@@ -262,7 +262,7 @@ GM.PerksData = {
 	},
 
 	["super_armor_1"] = {
-		Name = "Super Armor I",
+		Name = "Super Armor",
 		Description = "+5 max armor, up to +5% damage resistance depending on your current armor (max efficiency at 100 armor)",
 		DescriptionEndless = "+30 max armor, up to +45% damage resistance depending on your current armor (max efficiency at 100 armor)",
 		Cost = 1,
@@ -299,8 +299,8 @@ GM.PerksData = {
 
 	["prestige_improvement_1"] = {
 		Name = "Prestige Improvement I",
-		Description = "On prestige you keep 5% of your XP.",
-		DescriptionEndless = "On prestige you keep 5% of your XP.",
+		Description = "On prestige you keep 15% of your XP.",
+		DescriptionEndless = "On prestige you keep 15% of your XP.",
 		Cost = 6,
 		PrestigeReq = 13,
 		PrestigeLevel = 1
@@ -321,7 +321,7 @@ GM.PerksData = {
 	["skills_improver_2"] = {
 		Name = "Skills Improver I",
 		Description = "Does nothing.",
-		DescriptionEndless = "Automatically uses gained skill points evenly to skills on level up (NYI)\nOnly upgrades skills fully, no decimals!",
+		DescriptionEndless = "Automatically uses gained skill points evenly to skills on level up. Only upgrades skills fully, no decimals!\nIncreases skills max level to 80 (only for Eternity)",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 2
@@ -330,7 +330,7 @@ GM.PerksData = {
 	["difficult_decision_2"] = {
 		Name = "A very difficult decision",
 		Description = "Doesn't do anything.",
-		DescriptionEndless = "2.25x difficulty gain per NPC kill, and a +85% XP Gain",
+		DescriptionEndless = "3.35x difficulty gain per NPC kill, and a +85% XP Gain",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 2
@@ -348,9 +348,54 @@ GM.PerksData = {
 	["prestige_improvement_2"] = {
 		Name = "Prestige Improvement II",
 		Description = "Does nothing.",
-		DescriptionEndless = "On prestige you keep 15% of your XP. You will keep your Prestige perks after Eternity.\nHas a increased damage taken penalty when having negative prestige points.",
+		DescriptionEndless = "On prestige you keep 25% of your XP. You will keep your Prestige perks after Eternity. (Affects your Prestige Points)\nHas a increased damage taken penalty when having negative prestige points.",
 		Cost = 1,
 		PrestigeReq = 4,
+		PrestigeLevel = 2
+	},
+
+	["perk_points_2"] = {
+		Name = "Perk Points I",
+		Description = "Does nothing.",
+		DescriptionEndless = "+12 Perk Points for each Eternity",
+		Cost = 1,
+		PrestigeReq = 4,
+		PrestigeLevel = 2
+	},
+
+	["damageboost_2"] = {
+		Name = "Damage Boost II",
+		Description = "Does nothing.",
+		DescriptionEndless = "+40% damage dealt, +5% damage for every unspent perk point\n(Negative points will apply too but can reduce only up to 40%)",
+		Cost = 1,
+		PrestigeReq = 4,
+		PrestigeLevel = 2
+	},
+
+	["healthboost_2"] = {
+		Name = "Health Boost II",
+		Description = "Does nothing.",
+		DescriptionEndless = "+450 health and +1 HP/s to regeneration",
+		Cost = 3,
+		PrestigeReq = 5,
+		PrestigeLevel = 2
+	},
+
+	["hyper_armor_2"] = {
+		Name = "Hyper Armor I",
+		Description = "Does nothing.",
+		DescriptionEndless = "+100 armor", -- Thinking of another buff for this, but maybe later
+		Cost = 3,
+		PrestigeReq = 5,
+		PrestigeLevel = 2
+	},
+
+	["vampiric_killer_2"] = {
+		Name = "Vampiric Killer II",
+		Description = "Does nothing.",
+		DescriptionEndless = "You regain HP depending on the damage you do to enemies. (NYI)",
+		Cost = 3,
+		PrestigeReq = 5,
 		PrestigeLevel = 2
 	},
 

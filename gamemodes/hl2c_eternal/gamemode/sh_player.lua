@@ -49,6 +49,11 @@ end
 
 
 
+function meta:GetPlayerConfig(data)
+	return GAMEMODE.ConfigList[data] and self.ConfigData[data]
+end
+
+
 function meta:CanLevelup()
 	return self.XP >= GAMEMODE:GetReqXP(self)
 end
@@ -73,16 +78,26 @@ function meta:HasCelestialityUnlocked()
 	return self.Celestiality > 0
 end
 
+function meta:GetPrestigeGainMul()
+	return math.floor(math.Clamp(
+		self.XPUsedThisPrestige / GAMEMODE:CalculateXPNeededForLevels(MAX_LEVEL) * 0.6,
+		1, self:GetMaxPrestige() - self.Prestige))
+end
+
 function meta:GetMaxLevel()
 	return self:HasEternityUnlocked() and 250 or MAX_LEVEL
 end
 
 function meta:GetMaxPrestige()
-	return MAX_PRESTIGE
+	return self:HasEternityUnlocked() and 30 or MAX_PRESTIGE
+end
+
+function meta:GetMaxEternity()
+	return MAX_ETERNITIES
 end
 
 function meta:GetMaxSkillLevel(perk)
-	return self:HasEternityUnlocked() and 60 or self:HasPrestigeUnlocked() and 35 or 20
+	return self:HasEternityUnlocked() and (self:HasPerkActive("skills_improver_2") and 80 or 60) or self:HasPrestigeUnlocked() and 35 or 20
 end
 
 

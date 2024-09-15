@@ -54,7 +54,7 @@ function meta:GainLevel()
             if not self:CanLevelup() or self.Level >= self:GetMaxLevel() then break end
             self.XP = self.XP - GAMEMODE:GetReqXP(self)
             self.Level = self.Level + 1
-            self.StatPoints = self.StatPoints + (self:HasEternityUnlocked() and 3 or self:HasPrestigeUnlocked() and 2 or 1)
+            self.StatPoints = self.StatPoints + (self:HasEternityUnlocked() and (self.Level >= 100 and 1 or 3) or self:HasPrestigeUnlocked() and 2 or 1)
         end
 
         if self:HasPerkActive("skills_improver_2") then
@@ -84,8 +84,8 @@ function meta:GainPrestige()
     if self:CanPrestige() and self.Prestige < MAX_PRESTIGE then
         local prevlvl = self.Prestige
         local prevprestigeunlocked = self:HasPrestigeUnlocked()
-        local gainmul = math.floor(math.Clamp(self.XPUsedThisPrestige / GAMEMODE:CalculateXPNeededForLevels(MAX_LEVEL) * 0.6, 1, self:GetMaxPrestige() - prevlvl))
-        self.XP = 0
+        local gainmul = self:GetPrestigeGainMul()
+        self.XP = self.XP * (self:HasPerkActive("prestige_improvement_2") and 0.25 or self:HasPerkActive("prestige_improvement_1") and 0.15 or 0)
         self.XPUsedThisPrestige = 0
         self.Level = 1
         self.StatPoints = 0
@@ -109,6 +109,7 @@ function meta:GainPrestige()
         end
         GAMEMODE:NetworkString_UpdateStats(self)
         GAMEMODE:NetworkString_UpdateSkills(self)
+        self:GainLevel()
     end
 end
 
@@ -123,7 +124,7 @@ function meta:GainEternity()
         self.Level = 1
         self.StatPoints = 0
         self.Prestige = 0
-        self.PrestigePoints = 0
+        self.PrestigePoints = self:HasPerkActive("perk_points_2") and 12 or 0
         self.Eternity = self.Eternity + 1
         self.EternityPoints = self.EternityPoints + 1
 
@@ -131,7 +132,11 @@ function meta:GainEternity()
             local perk = GAMEMODE.PerksData[id]
             if not perk then continue end
             if perk.PrestigeLevel <= 1 then
-                self.UnlockedPerks[id] = nil
+                if self:HasPerkActive("prestige_improvement_2") then
+                    self.PrestigePoints = self.PrestigePoints - perk.Cost
+                else
+                    self.UnlockedPerks[id] = nil
+                end
             end
         end
 

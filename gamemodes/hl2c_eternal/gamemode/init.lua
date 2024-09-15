@@ -145,7 +145,10 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 	end
 	
 	local diff = self:GetDifficulty(true, true)
-	self:SetDifficulty(math.max(1, diff * (diff >= 10 and 0.968 or diff >= 4 and 0.974 or 0.98)))
+	self:SetDifficulty(math.max(1, diff * (
+		diff >= 1000 and 0.957 or diff >= 100 and 0.962 or
+		diff >= 10 and 0.968 or diff >= 4 and 0.974 or 0.98
+	)))
 
 
 	local lowermodelname = string.lower(ply:GetModel())
@@ -306,6 +309,10 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			damagemul = damagemul * 2
 		end
 
+		if attacker:HasPerkActive("damageboost_2") then
+			damagemul = damagemul * math.max(1, 1.4 + attacker.PrestigePoints*0.05)
+		end
+
 		damage = damage * damagemul
 	end
 
@@ -323,6 +330,10 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		if ent:HasPerkActive("super_armor_1") and ent:Armor() > 0 then
 			local limit = self.EndlessMode and 0.45 or 0.05
 			damageresistancemul = damageresistancemul * (1 + (math.Clamp(limit*ent:Armor()/100, 0, limit)))
+		end
+
+		if ent.PrestigePoints < 0 then
+			damageresistancemul = damageresistancemul / (1 - ent.PrestigePoints*0.2)
 		end
 
 
@@ -764,7 +775,7 @@ function GM:OnNPCKilled(npc, killer, weapon)
 				end
 
 				if killer:HasPerkActive("difficult_decision_2") then
-					npckilldiffgainmul = npckilldiffgainmul * 2.25
+					npckilldiffgainmul = npckilldiffgainmul * 3.35
 				end
 			end
 			killer:GiveXP(NPC_XP_VALUES[npc:GetClass()] * xpmul)
@@ -1178,9 +1189,23 @@ function GM:PlayerSpawn(ply)
 	if ply:HasPerkActive("healthboost_1") then
 		maxhp = maxhp + (self.EndlessMode and 85 or 15)
 	end
-	if ply:HasPerkActive("super_armor_1") then
-		maxhp = maxhp + (self.EndlessMode and 30 or 5)
+	if self.EndlessMode then
+		if ply:HasPerkActive("healthboost_2") then
+			maxhp = maxhp + 450
+		end
 	end
+	maxhp = math.min(1e9, maxhp)
+
+	if ply:HasPerkActive("super_armor_1") then
+		maxap = maxap + (self.EndlessMode and 30 or 5)
+	end
+	if self.EndlessMode then
+		if ply:HasPerkActive("hyper_armor_2") then
+			maxap = maxap + 100
+		end
+	end
+	maxap = math.min(1e9, maxap)
+
 
 	if ply.info then
 		if ply.info.health > 0 then
@@ -1481,7 +1506,10 @@ function GM:Think()
 			PrintMessage(HUD_PRINTTALK, "All players have died!")
 
 			local diff = self:GetDifficulty(true, true)
-			self:SetDifficulty(math.max(1, diff * (diff >= 10 and 0.87 or diff >= 4 and 0.89 or 0.91)))
+			self:SetDifficulty(math.max(1, diff * (
+				diff >= 1000 and 0.85 or diff >= 100 and 0.87 or
+				diff >= 10 and 0.87 or diff >= 4 and 0.89 or 0.91
+			)))
 
 			hook.Call("RestartMap", GAMEMODE)
 		end
