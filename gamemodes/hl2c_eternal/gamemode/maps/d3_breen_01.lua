@@ -24,6 +24,8 @@ CITADEL_ENDING = false
 
 if CLIENT then return end
 
+local completed
+
 -- Player spawns
 function hl2cPlayerSpawn( ply )
 
@@ -59,7 +61,7 @@ hook.Add("NextMap", "hl2cEX_NextMap", function()
 	if changingLevel then return end
 	for _,ply in pairs(player.GetAll()) do
 		ply:PrintMessage(HUD_PRINTTALK, "Congratulations, you have completed the campaign!")
-		ply:GiveXP(40)
+		-- ply:GiveXP(40)
 	end
 end)
 
@@ -232,8 +234,11 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 		hook.Call( "NextMap", GAMEMODE )
 
-		for _,ply in pairs(player.GetAll()) do
-			gamemode.Call("PlayerCompletedCampaign", ply)
+		if not completed then
+			for _,ply in pairs(player.GetAll()) do
+				gamemode.Call("PlayerCompletedCampaign", ply)
+			end
+			completed = true
 		end
 	
 	end

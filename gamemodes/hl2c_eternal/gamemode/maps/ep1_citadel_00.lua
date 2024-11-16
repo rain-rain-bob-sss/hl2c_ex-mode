@@ -7,21 +7,32 @@ TRIGGER_CHECKPOINT = {
 	-- { Vector( 4318, 4288, -6344 ), Vector( 4064, 3936, -5944 ) }
 }
 
-MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = true
+-- MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = true
+-- FORCE_RESTART_COUNT = 0
 
 if CLIENT then return end
 
+local shouldnotfreeze
+local allowunlock
+
 function hl2cPlayerSpawn( ply )
-	-- ply:Freeze(true)
+	ply:Freeze(not shouldnotfreeze)
 end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
+function hl2cPlayerPostThink( ply )
+    if shouldnotfreeze then return end
+	ply:Freeze(true)
+end
+hook.Add( "PlayerPostThink", "hl2cPlayerPostThink", hl2cPlayerPostThink )
+
 function hl2cMapEdit()
+    shouldnotfreeze = false
+
     ents.FindByName("trigger_falldeath")[1]:Remove()
 end
 hook.Add("MapEdit", "hl2cMapEdit", hl2cMapEdit)
 
-local allowunlock
 function hl2cAcceptInput(ent, input)
     if !game.SinglePlayer() and string.lower(input) == "scriptplayerdeath" then -- Can break the sequences
         return true
@@ -30,6 +41,15 @@ function hl2cAcceptInput(ent, input)
     if ent:GetName() == "relay_givegravgun_1" and string.lower(input) == "trigger" then
         for _,ply in pairs(player.GetAll()) do
             ply:Give("weapon_physcannon")
+        end
+    end
+
+    if ent:GetName() == "maker_template_gravgun" and string.lower(input) == "setparent" and not shouldnotfreeze then
+        shouldnotfreeze = true
+
+        for _,ply in pairs(player.GetAll()) do
+            ply:Freeze(false)
+            ply:SetHealth(ply:GetMaxHealth())
         end
     end
 

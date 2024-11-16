@@ -286,58 +286,15 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		attacker.NextDamageMul = nil
 	end
 
-	local damagemul,damageresistancemul = 1,1
 	local attackerisworld = attacker:GetClass() == "trigger_hurt" or attacker:GetClass() == "trigger_waterydeath"
 	local ispoisonheadcrab = attacker:GetClass() == "npc_headcrab_poison" or attacker:GetClass() == "npc_headcrab_black"
 
 	if attacker:IsPlayer() then
-		if dmgInfo:IsBulletDamage() then
-			damagemul = damagemul * (1 + ((self.EndlessMode and 0.03 or 0.01) * attacker:GetSkillAmount("Gunnery")))
-		elseif attacker:GetSkillAmount("Gunnery") > 15 then
-			damagemul = damagemul * (1 + (0.025 * (attacker:GetSkillAmount("Gunnery")-15)))
-		end
-
-		if attacker:HasPerkActive("damageboost_1") then
-			damagemul = damagemul * (1 + (self.EndlessMode and 0.47 or 0.06))
-		end
-
-		if attacker:HasPerkActive("critical_damage_1") and math.random(100) <= (self.EndlessMode and 12 or 7) then
-			damagemul = damagemul * (self.EndlessMode and 2.2 or 1.2)
-		end
-
-		if attacker:HasPerkActive("damage_of_eternity_2") then
-			damagemul = damagemul * 2
-		end
-
-		if attacker:HasPerkActive("damageboost_2") then
-			damagemul = damagemul * math.max(1, 1.4 + attacker.PrestigePoints*0.05)
-		end
-
-		damage = damage * damagemul
+		damage = damage * attacker:GetDamageMul(dmgInfo, ent)
 	end
 
 	if ent:IsPlayer() and not attackerisworld and not ispoisonheadcrab then
-		if dmgInfo:IsBulletDamage() then
-			damageresistancemul = damageresistancemul * (1 + ((self.EndlessMode and 0.025 or 0.008) * ent:GetSkillAmount("Defense")))
-		elseif ent:GetSkillAmount("Defense") > 15 then
-			damageresistancemul = damageresistancemul * (1 + (0.02 * ent:GetSkillAmount("Defense")))
-		end
-
-		if ent:HasPerkActive("damageresistanceboost_1") then
-			damageresistancemul = damageresistancemul * (1 + (self.EndlessMode and 0.57 or 0.07))
-		end
-
-		if ent:HasPerkActive("super_armor_1") and ent:Armor() > 0 then
-			local limit = self.EndlessMode and 0.45 or 0.05
-			damageresistancemul = damageresistancemul * (1 + (math.Clamp(limit*ent:Armor()/100, 0, limit)))
-		end
-
-		if ent.PrestigePoints < 0 then
-			damageresistancemul = damageresistancemul / (1 - ent.PrestigePoints*0.2)
-		end
-
-
-		damage = damage / damageresistancemul
+		damage = damage / ent:GetDamageResistanceMul(dmgInfo)
 	end
 
 
@@ -347,19 +304,36 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 	-- if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() then
 	if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() and not attacker:IsFriendlyNPC() then
-		print("increase damage", ent:IsFriendlyNPC(), attacker:IsFriendlyNPC())
+		-- print("increase damage", ent:IsFriendlyNPC(), attacker:IsFriendlyNPC())
 		if not ispoisonheadcrab then
-			damage = damage * math.sqrt(self:GetDifficulty()) --could be square rooted
+			damage = damage * self:GetDifficulty()^0.7
 		elseif ent:IsPlayer() and ent:HasPerkActive("antipoison_1") then
 			damage = damage - math.min(self.EndlessMode and 100 or 25, ent:Health()/2)
 		end
 	end
 	-- if ent:IsNPC() and not ent:IsFriendlyNPC() then
 	if ent:IsNPC() and not ent:IsFriendlyNPC() and (attacker:IsFriendlyNPC() or attacker:IsPlayer()) then
-		print("decrease damage", ent:IsFriendlyNPC())
+		-- print("decrease damage", ent:IsFriendlyNPC())
 		if ent:GetClass() ~= "npc_combinegunship" then
-			damage = damage / math.sqrt(self:GetDifficulty())
+			damage = damage / self:GetDifficulty()^0.55
 		end
+	end
+
+	if ent:IsPlayer() and attacker:IsNPC() and not dmgdirect then
+		if ent:HasPerkActive("uno_reverse_3") and ent:Health() <= ent:GetMaxHealth()*0.75 and math.Rand(1,100) <= 10 + math.max(0, (ent:GetMaxHealth()*0.75 - ent:Health())/ent:GetMaxHealth()*10) then
+			local d = DamageInfo()
+			d:SetDamage(damage)
+			d:SetDamageType(DMG_DIRECT)
+			d:SetDamagePosition(dmgInfo:GetDamagePosition())
+			d:SetDamageForce(dmgInfo:GetDamageForce())
+			d:SetAttacker(ent)
+			d:SetInflictor(inflictor or game.GetWorld())
+			attacker:TakeDamageInfo(d)
+
+			ent:SetHealth(math.min(ent:GetMaxHealth(), ent:Health() + ent:GetMaxHealth()*0.25))
+			return true
+		end
+
 	end
 
 	if ent:IsNPC() and attacker:IsPlayer() and not dmgdirect then
@@ -372,6 +346,11 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 				end
 				ent.DelayedDamageAttacker = attacker
 			end
+		end
+
+		if attacker:HasPerkActive("vampiric_killer_2") then
+			local heal = math.ceil(math.min(ent:Health(), damage)*0.2)
+			attacker:SetHealth(math.min(attacker:Health() + heal, attacker:GetMaxHealth()))
 		end
 	end
 
@@ -753,8 +732,8 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			local npckillxpmul,npckilldiffgainmul = self.XpGainOnNPCKillMul or 1, self.DifficultyGainOnNPCKillMul or 1
 			local npcxpmul = npc.XPGainMult or 1
 
-			local gainfromdifficultymul = math.min(difficulty, killer:GetMaxDifficultyXPGainMul())
-			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and (nonmoddiff >= 6.50 and 2.35 or 1.65) or !self.EndlessMode and 1.4) or 1
+			local gainfromdifficultymul = math.min(difficulty^0.8, killer:GetMaxDifficultyXPGainMul())
+			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and (nonmoddiff >= 6.50 and 1.55 or 1.3) or !self.EndlessMode and 1.25) or 1
 			local xpmul = gainfromdifficultymul * npckillxpmul * npcxpmul * better_knowledge_gain
 
 			if killer:GetSkillAmount("Knowledge") > 15 then
@@ -762,7 +741,7 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			end
 			if self.EndlessMode then
 				if killer:HasPerkActive("difficult_decision_2") then
-					xpmul = xpmul * 1.85
+					xpmul = xpmul * 1.45
 				end
 
 
@@ -1040,6 +1019,10 @@ function GM:PlayerLoadout(ply)
 	
 	end
 
+	-- if ply:IsSuitEquipped() then
+		-- ply:Give("weapon_hl2ce_medkit")
+	-- end
+
 	-- Lastly give physgun to admins
 	if (hl2c_admin_physgun:GetBool() && ply:IsAdmin()) then
 	
@@ -1183,6 +1166,8 @@ function GM:PlayerSpawn(ply)
 	gamemode.Call("PlayerSetModel", ply)
 	gamemode.Call("PlayerLoadout", ply)
 
+	ply.HyperArmorCharge = 0
+
 	-- Set stuff from last level
 	local maxhp = 100 + ((self.EndlessMode and 5 or 1) * ply:GetSkillAmount("Vitality")) -- calculate their max health
 	local maxap = 100 -- calculate their max armor
@@ -1193,6 +1178,9 @@ function GM:PlayerSpawn(ply)
 		if ply:HasPerkActive("healthboost_2") then
 			maxhp = maxhp + 450
 		end
+		if ply:HasPerkActive("celestial_3") then
+			maxhp = maxhp + 320
+		end
 	end
 	maxhp = math.min(1e9, maxhp)
 
@@ -1202,6 +1190,9 @@ function GM:PlayerSpawn(ply)
 	if self.EndlessMode then
 		if ply:HasPerkActive("hyper_armor_2") then
 			maxap = maxap + 100
+		end
+		if ply:HasPerkActive("celestial_3") then
+			maxap = maxap + 80
 		end
 	end
 	maxap = math.min(1e9, maxap)
@@ -1496,6 +1487,7 @@ function GM:ShowSpare2(ply)
 	ply:RemoveVehicle()
 end
 
+local SecondTick = 0
 local delayedDMGTick = 0
 -- Called every frame 
 function GM:Think()
@@ -1524,6 +1516,23 @@ function GM:Think()
 			self:SetDifficulty(math.Clamp((0.55 + (player.GetCount() / 4.7)), DIFFICULTY_RANGE[1], DIFFICULTY_RANGE[2]))
 			game.SetSkillLevel(2)
 			-- game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
+		end
+	end
+
+	if SecondTick < CurTime() then
+		SecondTick = CurTime() + 1
+
+		for _,ply in pairs(player.GetAll()) do
+			if ply:HasPerkActive("hyper_armor_2") then
+				if ply:WaterLevel() < 3 and ply:GetSuitPower() < 100 then
+					ply:SetSuitPower(math.min(100, ply:GetSuitPower() + 1))
+					ply.HyperArmorCharge = 0
+				elseif ply:GetSuitPower() >= 100 and ply:Armor() < ply:GetMaxArmor() then
+					ply.HyperArmorCharge = ply.HyperArmorCharge + 0.2
+					ply:SetArmor(ply:Armor() + math.floor(ply.HyperArmorCharge))
+					ply.HyperArmorCharge = ply.HyperArmorCharge - math.floor(ply.HyperArmorCharge)
+				end
+			end
 		end
 	end
 
@@ -1603,23 +1612,12 @@ end
 -- end
 
 function GM:AcceptInput(ent, input, activator, caller, value)
-	local class = ent:GetClass()
-	local blacklist = {
-		"prop_combine_ball",
-		"path_track",
-		"func_areaportal",
-		"func_tracktrain"
-	}
 	if string.lower(input) == "sethealth" then
 		if value == "0" and (ent:IsPlayer() or ent:IsNPC()) then
 			ent:SetHealth(0)
 			ent:TakeDamage(0)
 		end
 	end
-	if table.HasValue(blacklist, class) then return end
-
-	local col = string.sub(class, 1, 6) == "logic_" and Color(255,255,128) or class == "func_tracktrain" and Color(128,128,255) or string.sub(class, 1, 4) == "env_" and Color(128,255,128) or Color(255,128,128)
-	MsgC(col, ent, "    ", input, "    ", activator, "    ", caller, "    ", value, "    ", ent:GetName(), "\n")
 end
 
 

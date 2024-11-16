@@ -20,10 +20,19 @@ function GM.MakeOptions()
 	list:SetSpacing(4)
 
 
-	local check = vgui.Create("DCheckBoxLabel", Window)
-	check:SetText("Disable Tinnitus/Earringing")
-	check:SetToolTip("Disables annoying tinnitus sound on taking damage by explosion")
-	check:SetConVar("hl2ce_cl_noearringing")
-	check:SizeToContents()
-	list:AddItem(check)
+	local function CreateCheck(name, cvar)
+		local convar = GetConVar(cvar)
+		local check = vgui.Create("DCheckBoxLabel", Window)
+		check:SetText(name)
+		check:SetConVar(cvar)
+		check:SetToolTip(convar and convar:GetHelpText() or "")
+		check:SizeToContents()
+		list:AddItem(check)
+
+		return check
+	end
+
+	CreateCheck("Disable Tinnitus/Earringing", "hl2ce_cl_noearringing")
+	CreateCheck("Don't show Difficulty on HUD", "hl2ce_cl_nohuddifficulty")
+	CreateCheck("Disable Custom HUD", "hl2ce_cl_nocustomhud")
 end

@@ -3,7 +3,8 @@
 
 GM.Pets = {
     ["npc_headcrab"] = {
-        Health = 15
+        Health = 15,
+        DamageMul = 3,
     }
 }
 
@@ -15,3 +16,13 @@ function GM:SpawnHl2cePet(ply, pet)
 
 
 end
+
+function GM:UpgradeHl2cePet(ply, pet)
+    if not ply:HasEternityUnlocked() then
+        return
+    end
+
+
+end
+
+

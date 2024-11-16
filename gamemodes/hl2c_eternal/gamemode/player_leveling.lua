@@ -2,20 +2,20 @@ local meta = FindMetaTable("Player")
 
 function meta:GiveXP(xp, nomul)
     local xpmul = 1
-    xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("better_knowledge_1") and 0.07 or 0.05) or 0.03))
+    xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("better_knowledge_1") and 0.065 or 0.05) or 0.03))
 
     if GAMEMODE.EndlessMode then
         if self:HasPerkActive("difficult_decision_1") then
-            xp = xp * 1.15
+            xpmul = xpmul * 1.1
         end
 
         if self:HasPerkActive("aggressive_gameplay_1") then
-            xp = xp * 1.35
+            xpmul = xpmul * 1.35
         end
     end
 
     local prestigexpmul = 1
-    prestigexpmul = prestigexpmul + math.min(self.Prestige*0.25, 100) + math.min(self.Eternity*1.75, 100) + math.min(self.Celestiality*1.5, 100)
+    prestigexpmul = prestigexpmul + math.min(self.Prestige*0.2, 100) + math.min(self.Eternity*1.2, 100) + math.min(self.Celestiality*5, 100)
 
     xpmul = xpmul * prestigexpmul
 
@@ -42,7 +42,7 @@ function meta:GainLevel()
     if self.IsLevelingup then return end
     if tonumber(self.Level) >= self:GetMaxLevel() then
         if tonumber(self.Prestige) >= MAX_PRESTIGE then
-            self:PrintMessage(HUD_PRINTTALK, "Leve, as well as the Prestige, is maxed. You must become Eternal.")
+            self:PrintMessage(HUD_PRINTTALK, "Prestige is maxed. Become Eternal.")
         else
            self:PrintMessage(HUD_PRINTTALK, "Level is maxed. You must prestige to go further.")
         end
@@ -54,7 +54,10 @@ function meta:GainLevel()
             if not self:CanLevelup() or self.Level >= self:GetMaxLevel() then break end
             self.XP = self.XP - GAMEMODE:GetReqXP(self)
             self.Level = self.Level + 1
-            self.StatPoints = self.StatPoints + (self:HasEternityUnlocked() and (self.Level >= 100 and 1 or 3) or self:HasPrestigeUnlocked() and 2 or 1)
+            self.StatPoints = self.StatPoints + (
+                self:HasCelestialityUnlocked() and (self.Level >= 100 and 2 or 5) or
+                self:HasEternityUnlocked() and (self.Level >= 100 and 1 or 3) or self:HasPrestigeUnlocked() and 2 or 1
+            )
         end
 
         if self:HasPerkActive("skills_improver_2") then
@@ -81,7 +84,7 @@ function meta:GainLevel()
 end
 
 function meta:GainPrestige()
-    if self:CanPrestige() and self.Prestige < MAX_PRESTIGE then
+    if self:CanPrestige() and self.Prestige < self:GetMaxPrestige() then
         local prevlvl = self.Prestige
         local prevprestigeunlocked = self:HasPrestigeUnlocked()
         local gainmul = self:GetPrestigeGainMul()
@@ -114,7 +117,7 @@ function meta:GainPrestige()
 end
 
 function meta:GainEternity()
-    if tonumber(self.Eternity) >= MAX_ETERNITIES then
+    if tonumber(self.Eternity) >= self:GetMaxEternity() then
         self:PrintMessage(HUD_PRINTTALK, "You have reached maximum amount of Eternities. You must Celestialize to go even further beyond.")
     elseif self:CanEternity() then
         local prevlvl = self.Eternity
@@ -165,6 +168,67 @@ function meta:GainEternity()
 
             net.Start("hl2ce_firstprestige")
             net.WriteString("eternity")
+            net.Send(self)
+        end
+
+        GAMEMODE:NetworkString_UpdateStats(self)
+        GAMEMODE:NetworkString_UpdateSkills(self)
+        GAMEMODE:NetworkString_UpdatePerks(self)
+    end
+end
+
+function meta:GainCelestiality()
+    if tonumber(self.Celestiality) >= self:GetMaxCelestiality() then
+        self:PrintMessage(HUD_PRINTTALK, "Celestiality Maxed.")
+    elseif self:CanCelestiality() then
+        local prevlvl = self.Celestiality
+        local prevcelestialityunlocked = self:HasCelestialityUnlocked()
+        self.XP = 0
+        self.XPUsedThisPrestige = 0
+        self.Level = 1
+        self.StatPoints = 0
+        self.Prestige = 0
+        self.PrestigePoints = self:HasPerkActive("perk_points_2") and 12 or 0
+        self.Celestiality = self.Celestiality + 1
+        self.CelestialityPoints = self.CelestialityPoints + 1
+
+        for id,_ in pairs(self.UnlockedPerks) do
+            local perk = GAMEMODE.PerksData[id]
+            if not perk then continue end
+            if perk.PrestigeLevel <= 1 then
+                if self:HasPerkActive("prestige_improvement_2") then
+                    self.PrestigePoints = self.PrestigePoints - perk.Cost
+                else
+                    self.UnlockedPerks[id] = nil
+                end
+            end
+        end
+
+        for id,_ in pairs(GAMEMODE.SkillsInfo) do
+            self["Stat"..id] = 0
+        end
+
+        -- if self:HasEternityUnlocked() then
+            self:PrintMessage(HUD_PRINTTALK, Format("Celestiality increased! (%i --> %i)", prevlvl, self.Celestiality))
+        -- end
+
+        
+        if not prevcelestialityunlocked then
+            PrintMessage(HUD_PRINTTALK, self:Nick().." went celestial for the first time!")
+            local eff = EffectData()
+            for i=0,0.3,0.1 do
+                timer.Simple(i, function()
+                    self:EmitSound("ambient/energy/whiteflash.wav", 75, 90)
+        	        self:EmitSound("weapons/physcannon/energy_disintegrate"..math.random(4, 5)..".wav", 75, 70)
+
+                    eff:SetOrigin(self:GetPos())
+                    util.Effect("TeslaZap", eff)
+                end)
+            end
+            util.ScreenShake(self:GetPos(), 190, 0.8, 10, 1000)
+
+            net.Start("hl2ce_firstprestige")
+            net.WriteString("celestiality")
             net.Send(self)
         end
 

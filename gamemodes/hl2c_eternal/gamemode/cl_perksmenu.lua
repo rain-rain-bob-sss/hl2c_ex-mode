@@ -37,6 +37,24 @@ function GM:CMenu()
 			draw.DrawText("Eternity Points: "..FormatNumber(math.floor(pl.EternityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
+
+		if pl:HasCelestialityUnlocked() then
+			draw.DrawText("Celestialities: "..FormatNumber(math.floor(pl.Celestiality)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			y = y + y_add
+			draw.DrawText("Celestiality Points: "..FormatNumber(math.floor(pl.CelestialityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			y = y + y_add
+		end
+
+		y = y + y_add*2
+
+		draw.DrawText("Min Damage Mul: "..FormatNumber(pl:GetMinDamageMul()).."x", "TargetIDSmall", x, y, Color(205,155,155,alpha), TEXT_ALIGN_LEFT)
+		y = y + y_add
+		draw.DrawText("Max Damage Mul: "..FormatNumber(pl:GetMaxDamageMul()).."x", "TargetIDSmall", x, y, Color(155,205,155,alpha), TEXT_ALIGN_LEFT)
+		y = y + y_add
+		draw.DrawText("Min Damage Resistance Mul: "..FormatNumber(pl:GetMinDamageResistanceMul()).."x", "TargetIDSmall", x, y, Color(205,155,155,alpha), TEXT_ALIGN_LEFT)
+		y = y + y_add
+		draw.DrawText("Max Damage Resistance Mul: "..FormatNumber(pl:GetMaxDamageResistanceMul()).."x", "TargetIDSmall", x, y, Color(155,205,155,alpha), TEXT_ALIGN_LEFT)
+		y = y + y_add
 	end
 	ContextMenu.Think = function()
 	end
@@ -205,6 +223,12 @@ end
 
 
 local perksvgui
+local perks_names = {
+	{"Prestige", "prestige", function(ply) return ply.Prestige or 0 end, function(ply) return ply.PrestigePoints or 0 end},
+	{"Eternity", "eternity", function(ply) return ply.Eternity or 0 end, function(ply) return ply.EternityPoints or 0 end},
+	{"Celestiality", "celestiality", function(ply) return ply.Celestiality or 0 end, function(ply) return ply.CelestialityPoints or 0 end},
+}
+
 
 function GM:PerksMenu()
 	-- Yes.
@@ -246,6 +270,14 @@ function GM:PerksMenu()
 			end
 		end
 	end
+	sheet.Think = function(self)
+		for k,v in pairs(self:GetItems()) do
+			if v.Tab == self:GetActiveTab() then
+				self.CurrentTab = v.Panel
+				break
+			end
+		end
+	end
 
 	local perklist = vgui.Create("DPanelList")
 	perklist:SetSize(850, perksvgui:GetTall() - 25)
@@ -253,6 +285,7 @@ function GM:PerksMenu()
 	perklist:SetSpacing(10)
 	perklist:EnableVerticalScrollbar(true)
 	perklist:EnableHorizontal(true)
+	perklist.Tier = 1
 
 	local perklist2
 	if ply:HasEternityUnlocked() then
@@ -262,6 +295,7 @@ function GM:PerksMenu()
 		perklist2:SetSpacing(10)
 		perklist2:EnableVerticalScrollbar(true)
 		perklist2:EnableHorizontal(true)
+		perklist2.Tier = 2
 	end
 
 	local perklist3
@@ -272,6 +306,7 @@ function GM:PerksMenu()
 		perklist3:SetSpacing(10)
 		perklist3:EnableVerticalScrollbar(true)
 		perklist3:EnableHorizontal(true)
+		perklist3.Tier = 3
 	end
 
 	local perklist4
@@ -294,7 +329,8 @@ function GM:PerksMenu()
 	-- perkpoints:SetMouseInputEnabled(true)
 	-- perkpoints:SetToolTip("")
 	perkpoints.Think = function(panel)
-		local txt = "Prestige points: "..ply.PrestigePoints
+		local curtier = sheet.CurrentTab.Tier or 1
+		local txt = perks_names[curtier][1].." points: "..perks_names[curtier][4](ply)
 		if panel:GetText() == txt then return end
 		panel:SetText(txt)
 		perkpoints:SizeToContents()
@@ -321,17 +357,13 @@ function GM:PerksMenu()
 		for k, v in SortedPairsByMemberValue(GAMEMODE.PerksData, "PrestigeReq") do
 			if prestige ~= v.PrestigeLevel then continue end
 
-			local function GetPrestige(ply)
-				return prestige == 3 and ply.Celestiality or prestige == 2 and ply.Eternity or ply.Prestige
-			end
-
 			local perkpanel = vgui.Create("DPanel")
 			perkpanel:SetPos(5, 5)
 	        local size_x,size_y = 810,150
 			perkpanel:SetSize(size_x, size_y)
 			perkpanel.Paint = function(panel) -- Paint function
 				draw.RoundedBoxEx(8,1,1,panel:GetWide()-2,panel:GetTall()-2,
-				ply:HasPerkUnlocked(k) and Color(40, 200, 40, 25) or v.PrestigeReq > GetPrestige(ply) and Color(75, 75, 75, 50) or Color(200, 40, 40, 25),
+				ply:HasPerkUnlocked(k) and Color(40, 200, 40, 25) or v.PrestigeReq > perks_names[prestige][3](ply) and Color(75, 75, 75, 50) or Color(200, 40, 40, 25),
 				false, false, false, false)
 				surface.SetDrawColor(50, 50, 50, 255)
 				surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
@@ -384,7 +416,7 @@ function GM:PerksMenu()
 			perkprestige:SetFont("TargetIDSmall")
 			perkprestige:SetPos(10, 89)
 			perkprestige:SetSize(size_x - 20, 15)
-			perkprestige:SetText("Prestige need: "..v.PrestigeReq)
+			perkprestige:SetText(perks_names[prestige][1].." needed: "..v.PrestigeReq)
 			perkprestige:SetWrap(true)
 			perkprestige:SetColor(Color(255,155,155,255))
 
@@ -392,9 +424,9 @@ function GM:PerksMenu()
 			local perkapply = vgui.Create("DButton", perkpanel)
 			perkapply:SetSize(size_x - 20, 30)
 			perkapply:SetPos(10, size_y - 35)
-			perkapply:SetText(ply:HasPerkUnlocked(k) and "Unlocked" or v.PrestigeReq > GetPrestige(ply) and "Not enough prestige" or "Unlock")
+			perkapply:SetText(ply:HasPerkUnlocked(k) and "Unlocked" or v.PrestigeReq > perks_names[prestige][3](ply) and "Not enough "..perks_names[prestige][2] or "Unlock")
 			perkapply.Think = function(panel)
-				local txt = ply:HasPerkUnlocked(k) and "Unlocked" or v.PrestigeReq > GetPrestige(ply) and "Not enough prestige" or "Unlock"
+				local txt = ply:HasPerkUnlocked(k) and "Unlocked" or v.PrestigeReq > perks_names[prestige][3](ply) and "Not enough "..perks_names[prestige][2] or "Unlock"
 				if panel:GetText() == txt then return end
 				panel:SetText(txt)	
 			end
@@ -402,7 +434,7 @@ function GM:PerksMenu()
 			perkapply.Paint = function(panel)
 				surface.SetDrawColor(0, 150, 0, 255)
 				surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
-				draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), v.PrestigeReq > GetPrestige(ply) and Color(75, 75, 75, 130) or Color(0, 50, 0, 130))
+				draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), v.PrestigeReq > perks_names[prestige][3](ply) and Color(75, 75, 75, 130) or Color(0, 50, 0, 130))
 			end
 			perkapply.DoClick = function(panel)
 				net.Start("hl2ce_unlockperk")
@@ -494,7 +526,7 @@ function GM:MakePrestigePanel()
 		net.WriteString("prestige")
 		net.SendToServer()
 	end, Color(150, 50, 0, 200)))
-	list:AddItem(MakeText(self.PrestigePanel, "Prestige will reset all your levels, XP and skills, but you will gain +25% boost to xp gain (every prestige) and a perk point.\nPrestigin will also unlock new perks after time.", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Prestige will reset all your levels, XP and skills, but you will gain +20% boost to xp gain (every prestige) and a perk point.\nPrestigin will also unlock new perks after time.", "TargetIDSmall"))
 	list:AddItem(MakeText(self.PrestigePanel, "You must reach Level "..MAX_LEVEL.." and reach max XP for the next level in order to prestige.", "TargetIDSmall"))
 	list:AddItem(MakeText(self.PrestigePanel, "Prestiging for the first time will permanently increase skill points gain to 2 per level and will increase skills max level to 35.", "TargetIDSmall"))
 
@@ -508,7 +540,21 @@ function GM:MakePrestigePanel()
 		net.WriteString("eternity")
 		net.SendToServer()
 	end, Color(50, 150, 200, 200)))
-	list:AddItem(MakeText(self.PrestigePanel, "Eternity to reset your levels, XP, skills, prestiges and prestige perks, but you gain a +175% boost to xp gain (every eternity) and\nEternity point. Eternity perks are more powerful than regular perks.", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Eternity to reset your levels, XP, skills, prestiges and prestige perks, but you gain a +120% boost to xp gain (every eternity) and\nEternity point. Eternity perks are more powerful than regular perks.", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Must be able prestige or be above "..MAX_PRESTIGE.." prestiges in order to Eternity", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Upon eternity you are given lots of buffs. (TO BE IMPLEMENTED)", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Fyi perks do not work yet ffs I STILL NEED WORK TO GET THEM IMPLEMENTED", "TargetIDSmall"))
+
+	list:AddItem(MakeButton("Celestiality", 0, 0, function()
+		if !pl:HasEternityUnlocked() then
+			self.PrestigePanel:Remove()
+		end
+
+		net.Start("hl2ce_prestige")
+		net.WriteString("celestiality")
+		net.SendToServer()
+	end, Color(50, 150, 200, 200)))
+	list:AddItem(MakeText(self.PrestigePanel, "Celestiality will reset all pre-Eternity progress and Eternities.", "TargetIDSmall"))
 	list:AddItem(MakeText(self.PrestigePanel, "Must reach max xp needed for next level, level "..MAX_LEVEL.." at "..MAX_PRESTIGE.." prestiges in order to Eternity", "TargetIDSmall"))
 	list:AddItem(MakeText(self.PrestigePanel, "Upon eternity you are given lots of buffs. (TO BE IMPLEMENTED)", "TargetIDSmall"))
 	list:AddItem(MakeText(self.PrestigePanel, "Fyi perks do not work yet ffs I STILL NEED WORK TO GET THEM IMPLEMENTED", "TargetIDSmall"))

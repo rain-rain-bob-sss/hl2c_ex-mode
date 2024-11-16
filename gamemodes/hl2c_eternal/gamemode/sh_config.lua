@@ -246,7 +246,7 @@ GM.PerksData = {
 	["difficult_decision_1"] = {
 		Name = "Difficult Decision",
 		Description = "+25% personal difficulty (Functions same as difficulty, but only affects you, ignores the difficulty cap.)\nDoesn't work yet",
-		DescriptionEndless = "+75% difficulty gain on NPC kill, increases xp gain by 15%",
+		DescriptionEndless = "+75% difficulty gain on NPC kill, increases xp gain by 10%",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 1
@@ -272,8 +272,8 @@ GM.PerksData = {
 
 	["better_knowledge_1"] = {
 		Name = "Better Knowledge",
-		Description = "+40% xp gain from NPC kills",
-		DescriptionEndless = "2.35x xp gain from NPC kills if difficulty is above 650%, else 1.65x XP.\n+10% boost to bonus xp on map completion, Knowledge skill +2% xp gain per point.",
+		Description = "+25% xp gain from NPC kills",
+		DescriptionEndless = "1.55x xp gain from NPC kills if difficulty is above 650%, else 1.3x XP.\n+5% boost to bonus xp on map completion, Knowledge skill +1.5% xp gain per point.",
 		Cost = 3,
 		PrestigeReq = 5,
 		PrestigeLevel = 1
@@ -330,7 +330,7 @@ GM.PerksData = {
 	["difficult_decision_2"] = {
 		Name = "A very difficult decision",
 		Description = "Doesn't do anything.",
-		DescriptionEndless = "3.35x difficulty gain per NPC kill, and a +85% XP Gain",
+		DescriptionEndless = "3.35x difficulty gain per NPC kill, and a +45% XP Gain",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 2
@@ -384,7 +384,7 @@ GM.PerksData = {
 	["hyper_armor_2"] = {
 		Name = "Hyper Armor I",
 		Description = "Does nothing.",
-		DescriptionEndless = "+100 armor", -- Thinking of another buff for this, but maybe later
+		DescriptionEndless = "+100 armor, also charges AUX power by +1% per second if not submerged underwater\nIf AUX Power is full, charge +1% armor every 5 seconds.", -- Thinking of another buff for this, but maybe later
 		Cost = 3,
 		PrestigeReq = 5,
 		PrestigeLevel = 2
@@ -393,10 +393,56 @@ GM.PerksData = {
 	["vampiric_killer_2"] = {
 		Name = "Vampiric Killer II",
 		Description = "Does nothing.",
-		DescriptionEndless = "You regain HP depending on the damage you do to enemies. (NYI)",
+		DescriptionEndless = "You regain HP depending on the damage you do to enemies.",
 		Cost = 3,
 		PrestigeReq = 5,
 		PrestigeLevel = 2
 	},
 
+
+	-- Celestial Perks
+	["celestial_3"] = {
+		Name = "Celestial.",
+		Description = "Does nothing.",
+		DescriptionEndless = "OP Perk: +320 health, +80 armor, x1.6 damage dealt, 1.7x damage resistance, 1.4x xp gain", -- 1.4x xp gain unimplemented
+		Cost = 1,
+		PrestigeReq = 1,
+		PrestigeLevel = 3
+	},
+
+	["difficult_decision_3"] = {
+		Name = "Difficult Decision III",
+		Description = "Does nothing.",
+		DescriptionEndless = "Increases difficulty gain from NPC kills by x log10(difficulty)*2.5\n1.25x xp gain (NYI)",
+		Cost = 1,
+		PrestigeReq = 3,
+		PrestigeLevel = 3
+	},
+
+	["prestige_improvement_3"] = {
+		Name = "Prestige Improvement III",
+		Description = "Does nothing.",
+		DescriptionEndless = " (NYI)",
+		Cost = 1,
+		PrestigeReq = 2,
+		PrestigeLevel = 3,
+
+	},
+
+	["uno_reverse_3"] = {
+		Name = "Uno Reverse",
+		Description = "Does nothing.",
+		DescriptionEndless = "10% chance to deflect all the damage taken to the attacker and quadruples it (<75% health needed for this to work, the lower hp the better chance). Also recovers 25% health upon activation",
+		Cost = 1,
+		PrestigeReq = 2,
+		PrestigeLevel = 3,
+
+	},
+
+}
+
+
+GM.PlayerConfigurables = {
+	["AutoPrestige"] = {"number", 0, "AutoPrestige", "When to prestige?", 0, math.huge}, -- #1 type, #2 default, #3 name, #4 description, #5 min, #6 max
+	["ShouldNotifyPrestige"] = {"bool", 0, 1},
 }

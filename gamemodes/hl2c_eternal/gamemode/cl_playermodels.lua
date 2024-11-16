@@ -10,17 +10,15 @@ local default_animations = { "idle_all_01", "menu_walk" }
 
 -- Global variable that defines whether the custom playermodel menu is available or not
 CUSTOM_PLAYERMODEL_MENU_ENABLED = false
-
+local hl2c_server_custom_playermodels = CreateConVar("hl2c_server_custom_playermodels", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 
 -- Opens the menu
 function GM:OpenPlayerModelMenu()
 
 	-- Prevent opening the menu
-	if ( !CUSTOM_PLAYERMODEL_MENU_ENABLED || OVERRIDE_PLAYERMODEL_MENU ) then
-	
+	if ( !hl2c_server_custom_playermodels:GetBool() || OVERRIDE_PLAYERMODEL_MENU ) then
 		chat.AddText( Color( 255, 0, 0 ), "Player Model menu is disabled!" )
 		return
-	
 	end
 
 	-- Window frame

@@ -9,6 +9,8 @@ net.Receive("hl2c_updatestats", function(length)
     ply.PrestigePoints = net.ReadFloat()
     ply.Eternity = net.ReadFloat()
     ply.EternityPoints = net.ReadFloat()
+    ply.Celestiality = net.ReadFloat()
+    ply.CelestialityPoints = net.ReadFloat()
 end)
 
 net.Receive("UpdateSkills", function(length)

@@ -10,6 +10,8 @@ function GM:NetworkString_UpdateStats(ply)
     net.WriteFloat(ply.PrestigePoints)
     net.WriteFloat(ply.Eternity)
     net.WriteFloat(ply.EternityPoints)
+    net.WriteFloat(ply.Celestiality)
+    net.WriteFloat(ply.CelestialityPoints)
     net.Send(ply)
 end
 
@@ -70,6 +72,7 @@ net.Receive("hl2ce_unlockperk", function(len, ply)
     local name = net.ReadString()
     local perk = GAMEMODE.PerksData[name]
     if !perk then return end
+    if ply.UnlockedPerks[name] then return end
 
     local cost = perk.Cost
     local prestigelvl = perk.PrestigeLevel
@@ -102,5 +105,9 @@ net.Receive("hl2ce_prestige", function(len, ply)
         ply:GainPrestige()
     elseif prestige == "eternity" then
         ply:GainEternity()
+    elseif prestige == "celestiality" then
+        ply:PrintMessage(3, "There is no such thing as Celestiality.")
+        ply:PrintMessage(3, "Not. Yet. Implemented.")
+        -- ply:GainCelestiality()
     end
 end)

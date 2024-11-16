@@ -23,7 +23,8 @@ local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficult
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.9@9" -- what version?
+GM.Version = "0.7.9#9" -- what version?
+-- Still too much to include changelogs. Meh.
 
 
 -- Constants
@@ -82,6 +83,9 @@ function GM:GetReqXPCount(lvl)
 
 	if lvl >= 250 then
 		totalxpreq = totalxpreq * math.max(1 + (lvl-250) * 0.05, 1)
+	end
+	if lvl >= 400 then
+		totalxpreq = totalxpreq * math.max(1 + (lvl-400) * (0.05+(lvl-400)*0.01), 1)
 	end
 	if lvl >= 1000 then
 		totalxpreq = totalxpreq * math.max(1, 1.0046^(lvl-1000))
@@ -300,6 +304,13 @@ function FormatNumber(val, roundval)
 	if txt then return txt end
 	return math.floor(val*(10^(roundval or 1)))/(10^(roundval or 1))
 end
+
+function GlitchedText(text, prob)
+	local str = ""
+	
+	return str
+end
+
 /*
 function FormatNumber(value)
 	if value == math.huge then return "Infinite" end
