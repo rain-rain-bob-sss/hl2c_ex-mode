@@ -5,6 +5,8 @@ include("sh_config.lua")
 include("sh_globals.lua")
 include("sh_player.lua")
 include("sh_ents.lua")
+include("sh_pets.lua")
+
 
 -- Create console variables to make these config vars easier to access
 local hl2c_admin_physgun = CreateConVar("hl2c_admin_physgun", ADMIN_NOCLIP, FCVAR_REPLICATED + FCVAR_NOTIFY)
@@ -29,7 +31,9 @@ GM.Version = "0.7.9#9" -- what version?
 
 -- Constants
 FRIENDLY_NPCS = {
-	"npc_citizen"
+	"npc_citizen",
+	"monster_scientist",
+	"monster_barney",
 }
 
 GODLIKE_NPCS = {
@@ -44,6 +48,7 @@ GODLIKE_NPCS = {
 	"npc_magnusson",
 	"npc_monk",
 	"npc_mossman",
+	"npc_odessa",
 	"npc_vortigaunt"
 }
 

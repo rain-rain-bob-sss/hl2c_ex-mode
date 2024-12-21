@@ -18,6 +18,7 @@ AddCSLuaFile("sh_init.lua")
 AddCSLuaFile("sh_ents.lua")
 AddCSLuaFile("sh_player.lua")
 AddCSLuaFile("sh_translate.lua")
+AddCSLuaFile("sh_pets.lua")
 
 -- Include the required lua files
 include("sh_init.lua")
@@ -320,7 +321,8 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	end
 
 	if ent:IsPlayer() and attacker:IsNPC() and not dmgdirect then
-		if ent:HasPerkActive("uno_reverse_3") and ent:Health() <= ent:GetMaxHealth()*0.75 and math.Rand(1,100) <= 10 + math.max(0, (ent:GetMaxHealth()*0.75 - ent:Health())/ent:GetMaxHealth()*10) then
+		local chance = (10 + math.max(0, (ent:GetMaxHealth()*0.75 - ent:Health())/ent:GetMaxHealth()*10)) / math.Clamp(1.1^math.max(0, ent.UnoReverseTimesActivated), 0, 100)
+		if ent:HasPerkActive("uno_reverse_3") and ent:Health() <= ent:GetMaxHealth()*0.75 and math.Rand(1,100) <= chance then
 			local d = DamageInfo()
 			d:SetDamage(damage)
 			d:SetDamageType(DMG_DIRECT)
@@ -330,6 +332,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			d:SetInflictor(inflictor or game.GetWorld())
 			attacker:TakeDamageInfo(d)
 
+			ent.UnoReverseTimesActivated = ent.UnoReverseTimesActivated + 1
 			ent:SetHealth(math.min(ent:GetMaxHealth(), ent:Health() + ent:GetMaxHealth()*0.25))
 			return true
 		end
@@ -1167,6 +1170,7 @@ function GM:PlayerSpawn(ply)
 	gamemode.Call("PlayerLoadout", ply)
 
 	ply.HyperArmorCharge = 0
+	ply.UnoReverseTimesActivated = 0
 
 	-- Set stuff from last level
 	local maxhp = 100 + ((self.EndlessMode and 5 or 1) * ply:GetSkillAmount("Vitality")) -- calculate their max health
@@ -1543,6 +1547,27 @@ function GM:Think()
 		end
 		nextAreaOpenTime = CurTime() + 1
 	end
+
+	/*
+	for _,ent in pairs(ents.FindByClass("npc_*")) do
+		if ent.IsPet then
+			-- print(ent)
+			ent:AddRelationship("player D_FR 99")
+			for k,v in pairs(FRIENDLY_NPCS) do
+				for _,e in pairs(ents.FindByClass(v)) do
+					ent:AddEntityRelationship(e, D_FR, 99)
+					e:AddEntityRelationship(ent, D_FR, 99)
+				end
+			end
+			for k,v in pairs(GODLIKE_NPCS) do
+				for _,e in pairs(ents.FindByClass(v)) do
+					ent:AddEntityRelationship(e, D_FR, 99)
+					e:AddEntityRelationship(ent, D_FR, 99)
+				end
+			end
+		end
+	end
+*/
 
 	if delayedDMGTick + 0.5 < CurTime() then
 		for _,ent in pairs(ents.GetAll()) do
