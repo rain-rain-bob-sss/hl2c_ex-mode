@@ -49,8 +49,8 @@ hook.Add("OnEntityCreated", "hl2cOnEntityCreated", hl2cOnEntityCreated)
 
 -- Shouldn't cause the map to be stuck
 local failmap = true
-hook.Add("OnNPCKilled", "AntlionGuardKill", function(ent)
-	if ent:GetName() == "citizen_ambush_guard" then
+hook.Add("OnNPCKilled", "AntlionGuardKill", function(ent, attacker, inflictor)
+	if ent:GetName() == "citizen_ambush_guard" and not inflictor:GetModel() == "models/props_junk/harpoon002a.mdl" then
 		failmap = false
 	end
 end)
@@ -59,6 +59,13 @@ hook.Add("EntityRemoved", "NOANTLIONGUARDREMOVE", function(ent)
 	if failmap and ent:GetName() == "citizen_ambush_guard" and not changingLevel then
 		PrintMessage(3, "The hell was your plan?!")
 		GAMEMODE:RestartMap()
+		local e = EffectData()
+		for _,ply in pairs(player.GetAll()) do
+			e:SetOrigin(ply:GetPos() + ply:OBBCenter())
+			for i=1,20 do
+				util.Effect("Explosion", e)
+			end
+		end
 	end
 end)
 

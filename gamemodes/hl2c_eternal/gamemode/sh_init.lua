@@ -137,14 +137,22 @@ end
 -- Players should never collide with each other or NPC's
 function GM:ShouldCollide(entA, entB)
 
-	-- Player and NPCs
-	if (IsValid(entA) && IsValid(entB) && ((entA:IsPlayer() && (entB:IsPlayer() || entB:IsGodlikeNPC() or entB:IsFriendlyNPC())) || (entB:IsPlayer() && (entA:IsPlayer() || entA:IsGodlikeNPC() || entA:IsFriendlyNPC())))) then
-		return false
-	end
+	if IsValid(entA) && IsValid(entB) then
+		local classa,classb = entA:GetClass(),entB:GetClass()
+		-- Prevent antlion guards from colliding each other
+		if classa == classb or classa == "npc_antlion" and classb == "npc_antlionguard" or classa == "npc_antlionguard" and classb == "npc_antlion" then
+			return false
+		end
 
-	-- Passenger seating
-	if (IsValid(entA) && IsValid(entB) && ((entA:IsPlayer() && entA:InVehicle() && entA:GetAllowWeaponsInVehicle() && entB:IsVehicle()) || (entB:IsPlayer() && entB:InVehicle() && entB:GetAllowWeaponsInVehicle() && entA:IsVehicle()))) then
-		return false
+		-- Player and NPCs
+		if (entA:IsPlayer() && (entB:IsPlayer() || entB:IsGodlikeNPC() or entB:IsFriendlyNPC())) || (entB:IsPlayer() && (entA:IsPlayer() || entA:IsGodlikeNPC() || entA:IsFriendlyNPC())) then
+			return false
+		end
+
+		-- Passenger seating
+		if (entA:IsPlayer() && entA:InVehicle() && entA:GetAllowWeaponsInVehicle() && entB:IsVehicle()) || (entB:IsPlayer() && entB:InVehicle() && entB:GetAllowWeaponsInVehicle() && entA:IsVehicle()) then
+			return false
+		end
 	end
 	
 	return true

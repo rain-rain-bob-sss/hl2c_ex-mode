@@ -814,6 +814,9 @@ function GM:OnNPCKilled(npc, killer, weapon)
 	end
 end
 
+hook.Add("OnNPCKilled", "NoMoreHarpoonInstaKills", function(ent, atk, inf)
+	if inf:IsValid() and inf:GetModel() == "models/props_junk/harpoon002a.mdl" then return false end
+end, HOOK_HIGH)
 
 -- Called when a player tries to pickup a weapon
 local gmod_maxammo = GetConVar("gmod_maxammo")
