@@ -4,7 +4,28 @@ NEXT_MAP = "d1_eli_01"
 
 TRIGGER_DELAYMAPLOAD = { Vector( -762, -3866, -392 ), Vector( -518, -3845, -231 ) }
 
-if CLIENT then return end
+local musicplaying
+
+if CLIENT then
+	net.Receive("d1_canals_13.playmusic", function()
+		local bool = net.ReadBool()
+		local sound = "#*hl2c_eternal/music/chopper_fight.wav"
+		local ply = LocalPlayer()
+
+		if bool then
+			ply:EmitSound(sound, 0, 100, 1, CHAN_STATIC, SND_DELAY, 0)
+		else
+			ply:EmitSound(sound, 0, 100, 1, CHAN_STATIC, SND_DELAY + SND_STOP, 0)
+		end
+	end)
+
+	return
+end
+
+util.AddNetworkString("d1_canals_13.playmusic")
+
+local activated = true
+local sk_helicopter_health = GetConVar("sk_helicopter_health")
 
 -- Player spawns
 function hl2cPlayerSpawn( ply )
@@ -22,16 +43,46 @@ hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 function hl2cMapEdit()
 
 	ents.FindByName( "global_newgame_template" )[ 1 ]:Remove()
+	musicplaying = false
 
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
+hook.Add("PlayerReady", "d1_canals_13.playmusic", function(pl)
+	if musicplaying then
+		net.Start("d1_canals_13.playmusic")
+		net.WriteBool(true)
+		net.Broadcast()
+	end
+end)
+
 hook.Add("AcceptInput", "hl2cAcceptInput", function(ent, input)
+	if GAMEMODE.EXMode and ent:GetName() == "canals_npc_reservoircopter01" and string.lower(input) == "activate" then
+		PrintMessage(3, ">>> OH SHIT HELICOPTER HAS BEEN ACTIVATED SHOOT IT DOWN <<<")
+
+		local hpmul = 0.6 + #player.GetAll()*0.4
+		if hpmul == 1 then
+			ent:SetHealth(ent:Health() * hpmul)
+			ent:SetMaxHealth(ent:Health() * hpmul)
+		end
+
+		musicplaying = true
+		net.Start("d1_canals_13.playmusic")
+		net.WriteBool(true)
+		net.Broadcast()
+	end
+
 	if ent:GetName() == "relay_achievement_heli_1" and string.lower(input) == "trigger" then
+		net.Start("d1_canals_13.playmusic")
+		net.WriteBool(false)
+		net.Broadcast()
+		musicplaying = true
+
 		for _,ply in pairs(player.GetAll()) do
 			ply:GiveXP(369)
 		end
-		print("heli died")
+
+		print("heli died yipee")
 	end
 end)

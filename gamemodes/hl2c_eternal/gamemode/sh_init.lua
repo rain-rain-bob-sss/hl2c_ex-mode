@@ -25,7 +25,7 @@ local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficult
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.9#9" -- what version?
+GM.Version = "0.7.9$9" -- what version?
 -- Still too much to include changelogs. Meh.
 
 

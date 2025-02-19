@@ -52,6 +52,9 @@ GM.ConfigList = {
 	["auto_prestige_enabled"] = "number",
 }
 
+-- DT FLOAT
+DT_FLOAT_ENT_HEALTH = 1
+DT_FLOAT_ENT_MAXHEALTH = 2
 
 
 TEAM_ALIVE = 1

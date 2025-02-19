@@ -253,7 +253,7 @@ end
 function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Gets the attacker
 	local attacker = dmgInfo:GetAttacker()
-	local damage = dmgInfo:GetDamage()
+	local damage = math.min(dmgInfo:GetDamage(), 2^128) -- fuck the infinite damage's float limits
 	local dmgdirect = bit.band(DMG_DIRECT, dmgInfo:GetDamageType()) ~= 0
 
 	-- Godlike NPCs take no damage ever
@@ -366,6 +366,28 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 	if self.EXMode and attacker:GetClass() == "npc_sniper" and attacker.VariantType == 1 then
 		PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
+	end
+
+	local cantakedamage = ent:IsValid() and ent:IsPlayer() and not (ent:HasGodMode() or not gamemode.Call("PlayerShouldTakeDamage", ent, attacker)) or ent:IsValid() and !ent:IsPlayer()
+	if cantakedamage then
+		if ent:Inf_Health() > 2e9 then
+			if damage < ent:Inf_Health() then
+				dmgInfo:SetDamage(math.min(damage, 2e9-1))
+			end
+			print(ent:Inf_Health(), math.log10(damage))
+		end
+		ent:Inf_SetHealth(ent:Inf_Health() - damage)
+	else return true
+	end
+end
+
+function GM:PostEntityTakeDamage(ent, dmginfo, wasdamagetaken)
+	local tookdamage = ent:IsPlayer() and not ent:HasGodMode() and wasdamagetaken or not ent:IsPlayer() and wasdamagetaken
+	if tookdamage then
+		if ent:Inf_Health() > 2e9 then
+			ent:OldSetHealthEX(2.1e9)
+		end
+		ent:Inf_SetHealth(math.max(ent:OldHealthEX(), ent:Inf_Health()))
 	end
 end
 
@@ -545,6 +567,7 @@ function GM:Initialize()
 	}
 	list.Set("Vehicles", "Jalopy", jalopy)
 
+	self:AddResources()
 	self:LoadServerData()
 	
 	print(GAMEMODE.Name.." ("..GAMEMODE.Version..") gamemode loaded")
@@ -1575,10 +1598,13 @@ function GM:Think()
 	if delayedDMGTick + 0.5 < CurTime() then
 		for _,ent in pairs(ents.GetAll()) do
 			if ent.DelayedDamage and ent.DelayedDamage >= 1 then
-				ent.DelayedDamage = ent.DelayedDamage - math.ceil(ent.DelayedDamage*0.2)
+				local mult = (1 - (0.8 / math.max(1, math.log10(ent.DelayedDamage) - 2)))
+				ent.DelayedDamage = ent.DelayedDamage - math.ceil(ent.DelayedDamage*mult)
+
+
 
 				local dmg = DamageInfo()
-				dmg:SetDamage(math.ceil(ent.DelayedDamage*0.2))
+				dmg:SetDamage(math.ceil(ent.DelayedDamage*mult))
 				dmg:SetDamageType(DMG_DIRECT)
 				dmg:SetAttacker(ent.DelayedDamageAttacker or game.GetWorld())
 				dmg:SetInflictor(game.GetWorld())
@@ -1687,5 +1713,9 @@ end
 function GM:PlayerSpawnVehicle(ply, model, name, tbl)
 	if !ply:IsSuperAdmin() then return false end
 	return true
+end
+
+function GM:AddResources()
+	resource.AddFile("sound/hl2c_eternal/music/chopper_fight.wav")
 end
 
