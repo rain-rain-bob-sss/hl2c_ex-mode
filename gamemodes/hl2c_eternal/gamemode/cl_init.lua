@@ -120,7 +120,7 @@ function GM:HUDPaint()
 		local checkpointDistance = math.Round(LocalPlayer():GetPos():Distance(checkpointPosition) / 39)
 		local checkpointPositionScreen = checkpointPosition:ToScreen()
 		surface.SetDrawColor(255, 255, 255, 255)
-	
+
 		if ( ( checkpointPositionScreen.x > 32 ) && ( checkpointPositionScreen.x < ( w - 43 ) ) && ( checkpointPositionScreen.y > 32 ) && ( checkpointPositionScreen.y < ( h - 38 ) ) ) then
 			surface.SetTexture(surface.GetTextureID( "hl2c_nav_marker" ))
 			surface.DrawTexturedRect( checkpointPositionScreen.x - 14, checkpointPositionScreen.y - 14, 28, 28 )
@@ -174,7 +174,7 @@ function GM:HUDPaint()
 		surface.DrawRect(16, ScrH() - 39, 198*math.Clamp(ap/map,0,1), 10)
 	end
 
-	
+
 	-- Are we going to the next map?
 	if nextMapCountdownStart then
 		local nextMapCountdownLeft = math.Round( nextMapCountdownStart + NEXT_MAP_TIME - CurTime() )
@@ -219,7 +219,7 @@ function GM:HUDShouldDraw( name )
 		if self.ShowScoreboard && (LocalPlayer():Team() != TEAM_DEAD) then
 			return false
 		end
-	
+
 		local wep = LocalPlayer():GetActiveWeapon()
 		if IsValid(wep) && (wep.HUDShouldDraw != nil) then
 			return wep.HUDShouldDraw( wep, name )
@@ -414,7 +414,7 @@ end
 -- Called by show help
 function ShowHelp(len)
 	local helpText = "-= ABOUT THIS GAMEMODE =-\nWelcome to Half-Life 2 Campaign EX!\nThis gamemode is based on Half-Life 2 Campaign made by Jai 'Choccy' Fox,\nwith new stuff like Leveling, Skills and more!\n\n-= KEYBOARD SHORTCUTS =-\n[F1] (Show Help) - Opens this menu.\n[F2] (Show Team) - Toggles the navigation marker on your HUD.\n[F3] (Spare 1) - Spawns a vehicle if allowed.\n[F4] (Spare 2) - Removes a vehicle if you have one.\n\n-= OTHER NOTES =-\nOnce you're dead you cannot respawn until the next map.\nDifficulty increases along with XP gain."
-	
+
 	local helpEXMode = GAMEMODE.EXMode and "EX Mode is enabled! Expect Map objectives, NPC variants and chaos here!" or "EX Mode is disabled!"
 	local helpEndlessMode = GAMEMODE.EndlessMode and "\nEndless Mode is enabled. Difficulty cap is increased drastically. Progression eventually becomes exponential." or "\nEndless Mode is disabled. Difficulty is limited, Skills and Perks have limited functionality."
 
@@ -423,9 +423,10 @@ function ShowHelp(len)
 	local helpLabel = vgui.Create("DLabel", helpPanel)
 	local helpLabel2 = vgui.Create("DLabel", helpPanel)
 	local adminbutton
+
 	local pl = LocalPlayer()
 
-	if pl:IsAdmin() then
+	if IsValid(pl) and pl:IsAdmin() then
 		adminbutton = vgui.Create("DButton", helpPanel)
 	end
 
@@ -461,7 +462,7 @@ function ShowHelp(len)
 			surface.DrawRect(0, 0, width, height)
 		end
 	end
-	
+
 	helpMenu:SetTitle( "Help" )
 	helpMenu:Center()
 	helpMenu:MakePopup()
@@ -517,7 +518,7 @@ function GM:ShowSkills()
 	skillsForm:SetSize(278, 175)
 	skillsForm:SetPos(5, 50)
 	skillsForm:EnableVerticalScrollbar(true)
-	skillsForm:SetSpacing(8) 
+	skillsForm:SetSpacing(8)
 	skillsForm:SetName("")
 	skillsForm.Paint = function() end
 
@@ -569,7 +570,7 @@ end
 function GM:ScoreboardHide()
 	self.ShowScoreboard = false
 
-	if scoreboard then	
+	if scoreboard then
 		scoreboard:SetVisible(false)
 	end
 
@@ -605,12 +606,12 @@ end
 function GM:PostPlayerDraw( ply )
 
 	if ( showNav && IsValid( ply ) && ply:Alive() && ( ply:Team() == TEAM_ALIVE ) && ( ply != LocalPlayer() ) ) then
-	
+
 		local bonePosition = ply:GetBonePosition( ply:LookupBone( "ValveBiped.Bip01_Head1" ) || 0 ) + Vector( 0, 0, 16 )
 		cam.Start2D()
 			draw.SimpleText( ply:Name().." ("..ply:Health().."%)", "TargetIDSmall", bonePosition:ToScreen().x, bonePosition:ToScreen().y, self:GetTeamColor( ply ), TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM )
 		cam.End2D()
-	
+
 	end
 
 end
@@ -658,7 +659,7 @@ local function ContextMenuOpen(self)
 		g_ContextMenu:Open()
 		menubar.ParentTo( g_ContextMenu )
 	end
-	
+
 	hook.Call( "ContextMenuOpened", self )
 end
 
@@ -692,12 +693,10 @@ function GM:OnContextMenuOpen()
 end
 
 function GM:OnContextMenuClose()
-	
+
 	if self.AdminMode then
 		ContextMenuClose(self)
 	elseif ContextMenu and ContextMenu:IsValid() then
 		ContextMenu:Close()
 	end
 end
-
-
