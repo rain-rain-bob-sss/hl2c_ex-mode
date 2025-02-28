@@ -216,6 +216,28 @@ function GM:CMenu()
 		end
 	end
 
+	/*
+	if eternityunlocked then
+		local perks = vgui.Create("DButton", ContextMenu)
+		perks:SetSize(buttonsize_x + 20, buttonsize_y)
+		perks:Center()
+		x,y = perks:GetPos()
+		perks:SetPos(x, y + 300)
+		perks:SetText("Upgrades")
+		perks:SetToolTip("")
+		perks:SetTextColor(Color(255,255,255))
+		perks.Paint = function(panel)
+			surface.SetDrawColor(250, 50, 0, 255)
+			surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
+			draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), Color(0, 0, 0, 130))
+		end
+		perks.DoClick = function()
+			gamemode.Call("UpgradesMenu")
+			ContextMenu:Close()
+		end
+	end
+	*/
+
 
 
 end
@@ -341,20 +363,8 @@ function GM:PerksMenu()
 
 
 
-	--------------------------------------------supplies-------------------------------------------------------------
-	
-/*
-	local hoverdesc = vgui.Create("DLabel", perksvgui)
-	hoverdesc:SetFont("TargetIDSmall")
-	hoverdesc:SetPos(150, 0)
-	hoverdesc:SetText("")
-	hoverdesc:SizeToContents()
-	local x,y = hoverdesc:GetSize()
-	hoverdesc:SetSize(810, 30)
-*/
-
 	local function MakePerks(panel, prestige)
-		for k, v in SortedPairsByMemberValue(GAMEMODE.PerksData, "PrestigeReq") do
+		for k, v in SortedPairsByMemberValue(self.PerksData, "PrestigeReq") do
 			if prestige ~= v.PrestigeLevel then continue end
 
 			local perkpanel = vgui.Create("DPanel")

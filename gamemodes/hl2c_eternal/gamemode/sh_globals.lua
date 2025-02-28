@@ -39,8 +39,8 @@ GM.NoProgressionAdvantage = false
 	-- Normal: 110%-200%
 	-- Intermediate: 200-370%
 	-- Hard: 370-650%
-	-- Veteran: 650%-1000%
-	-- Very Hard: 1000%-1900%
+	-- Very Hard: 650%-1000%
+	-- Veteran: 1000%-1900%
 	-- Expert: 1900%-3800%
 	-- Insane: 3800%-1e4%
 	-- Master: 1e4%-3.5e4%

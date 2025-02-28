@@ -213,6 +213,31 @@ function hl2cAcceptInput( ent, input, activator )
 				end
 			end
 		end
+
+		local ent2 = ents.FindByName("turnstyle_1")[1]
+		if ent2 and ent2:IsValid() then
+   		 	local time = math.Rand(5,10)
+			local ctime = CurTime()
+
+			timer.Create("Hl2ce.SPINNNNN", 0, math.ceil(time/engine.TickInterval()), function()
+				if not ent2:IsValid() then return end
+
+			    ent2:SetAngles(ent2:GetAngles() + Angle(0,-360*(CurTime()-ctime)*FrameTime(),0))
+				local phys = ent2:GetPhysicsObject()
+				if phys:IsValid() then
+					phys:SetAngleVelocity(Vector(0, 0, -100))
+				end
+			end)
+
+			local e = EffectData()
+			e:SetOrigin(ent2:GetPos())
+			ent2:Fire("Kill", nil, time)
+			timer.Simple(time, function()
+				for i=1,15 do
+					util.Effect("Explosion", e)
+				end
+			end)
+		end
 	end
 
 	if GAMEMODE.EXMode and ent:GetName() == "luggage_push_explosion1" and string.lower(input) == "explode" then
@@ -245,7 +270,9 @@ function hl2cOnNPCKilled( ent, attacker )
 
 	if GAMEMODE.EXMode then
 		if ent:GetName() == "barney" then
-			PrintMessage(3, "you fucked")
+			timer.Simple(math.Rand(1, 2), function()
+				PrintMessage(3, "you just fucked...")
+			end)
 		end
 	end
 

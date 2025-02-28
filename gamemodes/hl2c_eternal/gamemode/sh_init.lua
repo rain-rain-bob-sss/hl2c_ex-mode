@@ -26,6 +26,7 @@ GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
 GM.Version = "0.7.9$9" -- what version?
+GM.DateVer = "28-02-2025"
 -- Still too much to include changelogs. Meh.
 
 
