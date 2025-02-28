@@ -38,18 +38,20 @@ net.Receive("hl2c_updatestats", function(length, ply)
         GAMEMODE:NetworkString_UpdateStats(ply)
         GAMEMODE:NetworkString_UpdateSkills(ply)
     	GAMEMODE:NetworkString_UpdatePerks(ply)
-    end 
+    end
 end)
 
 net.Receive("UpgradePerk", function(length, ply)
 	local perk = net.ReadString()
     local count = net.ReadUInt(32)
 	local perk2 = "Stat"..perk
+    if not GAMEMODE.SkillsInfo[perk] then return end
 
     local curpoints = ply.StatPoints
     local limit = ply:GetMaxSkillLevel(perk)
 
-    count = math.min(limit - ply[perk2], curpoints)
+    count = math.min(count,curpoints)
+    count = math.min(limit - (tonumber(ply[perk2]) or 0),count)
 
     if tonumber(ply.StatPoints) < 1 then
         ply:PrintMessage(HUD_PRINTTALK, "You need Skill Points to upgrade this skill!")
@@ -91,7 +93,7 @@ net.Receive("hl2ce_unlockperk", function(len, ply)
 
     ply:PrintMessage(3, "Perk Unlocked: "..perk.Name)
     ply.UnlockedPerks[name] = true
-    
+
 
     GAMEMODE:NetworkString_UpdateSkills(ply)
     GAMEMODE:NetworkString_UpdateStats(ply)

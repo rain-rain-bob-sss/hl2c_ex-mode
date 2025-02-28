@@ -8,6 +8,56 @@ include("sh_ents.lua")
 include("sh_pets.lua")
 
 
+local hl2ce_server_allowbhop = CreateConVar("hl2ce_server_allowbhop", 1, FCVAR_REPLICATED + FCVAR_ARCHIVE)
+local hl2ce_server_bhoptype = CreateConVar("hl2ce_server_bhoptype", 1, FCVAR_REPLICATED + FCVAR_ARCHIVE, "1 = normal,2 = old hl2,3 = new hl2")
+
+do
+    local base = "player_sandbox"
+    if not player_manager.GetPlayerClasses()["player_sandbox"] then base = "player_default" end
+    local BASEPLAYER = player_manager.GetPlayerClasses()[base]
+    local PLAYER = table.Copy(BASEPLAYER)
+    local JUMPING
+    function PLAYER:StartMove(move)
+        if bit.band(move:GetButtons(), IN_JUMP) ~= 0 and bit.band(move:GetOldButtons(), IN_JUMP) == 0 and self.Player:OnGround() then -- Only apply the jump boost in FinishMove if the player has jumped during this frame -- Using a global variable is safe here because nothing else happens between SetupMove and FinishMove
+            JUMPING = true
+        end
+    end
+
+    function PLAYER:FinishMove(move)
+        if JUMPING then -- If the player has jumped this frame
+            local forward = move:GetAngles() -- Get their orientation
+            forward.p = 0
+            forward = forward:Forward()
+	    	local speedBoostPerc = ( ( not self.Player:Crouching() ) and 0.5 ) or 0.1
+
+            local speedAddition = math.abs(move:GetForwardSpeed() * speedBoostPerc)
+            local maxSpeed = hl2ce_server_allowbhop:GetBool() and 1e9 or self.Player:GetRunSpeed() * 1.2
+            local newSpeed = speedAddition + move:GetVelocity():Length2D()
+
+			local type = hl2ce_server_bhoptype:GetInt()
+            if newSpeed > maxSpeed then -- Clamp it to make sure they can't bunnyhop to ludicrous speed
+                speedAddition = speedAddition - (newSpeed - maxSpeed)
+            end
+
+			if type == 3 then
+				if move:GetForwardSpeed() < 0 then
+					speedAddition = -speedAddition
+				end
+			elseif type == 1 then
+	            if move:GetVelocity():Dot(forward) < 0 then -- Reverse it if the player is running backwards
+	                speedAddition = -speedAddition
+	            end
+			end
+
+            move:SetVelocity(forward * speedAddition + move:GetVelocity()) -- Apply the speed boost
+        end
+
+        JUMPING = nil
+    end
+
+    player_manager.RegisterClass("player_hl2ce", PLAYER, base)
+end
+
 -- Create console variables to make these config vars easier to access
 local hl2c_admin_physgun = CreateConVar("hl2c_admin_physgun", ADMIN_NOCLIP, FCVAR_REPLICATED + FCVAR_NOTIFY)
 local hl2c_admin_noclip = CreateConVar("hl2c_admin_noclip", ADMIN_PHYSGUN, FCVAR_REPLICATED + FCVAR_NOTIFY)
@@ -27,6 +77,21 @@ GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
 GM.Version = "0.7.9$9" -- what version?
 -- Still too much to include changelogs. Meh.
+
+local hl2ce_bhop if CLIENT then hl2ce_bhop = CreateConVar("hl2ce_bhop", 0, FCVAR_ARCHIVE + FCVAR_USERINFO) end
+local function AutoHop( cmd )
+	local ply = LocalPlayer()
+	if ply:IsBot() then return end
+	if not hl2ce_server_allowbhop:GetBool() then return end
+	if not hl2ce_bhop:GetBool() then return end
+	if bit.band( cmd:GetButtons(), IN_JUMP ) > 0 then
+		if not ply:OnGround() and ply:WaterLevel() < 2 and ply:GetMoveType() == MOVETYPE_WALK then
+			cmd:RemoveKey(IN_JUMP)
+		end
+	end
+end
+hook.Add( "CreateMove", "HL2CE_DoBHop", AutoHop )
+
 
 
 -- Constants
@@ -83,7 +148,7 @@ function GM:GetReqXPCount(lvl)
 	local basexpreq = 152
 	local addxpperlevel = 27
 	local morelvlreq = 1.0715
-	
+
 	local totalxpreq = math.floor(basexpreq + (lvl  * addxpperlevel) ^ morelvlreq)
 
 	if lvl >= 250 then
@@ -99,13 +164,13 @@ function GM:GetReqXPCount(lvl)
 end
 
 -- Called when a gravity gun is attempting to punt something
-function GM:GravGunPunt(ply, ent) 
+function GM:GravGunPunt(ply, ent)
 	if (IsValid(ent) && ent:IsVehicle() && (ent != ply.vehicle) && IsValid(ent.creator)) then
 		return false
 	end
 
 	return true
-end 
+end
 
 
 -- Called when a physgun tries to pick something up
@@ -154,14 +219,14 @@ function GM:ShouldCollide(entA, entB)
 			return false
 		end
 	end
-	
+
 	return true
 end
 
 
 -- Called when a player is being attacked
 function GM:PlayerShouldTakeDamage(ply, attacker)
-	if ((ply:Team() != TEAM_ALIVE) || !ply.vulnerable || (attacker:IsPlayer() && (attacker != ply)) || (attacker:IsVehicle() && IsValid(attacker:GetDriver()) && attacker:GetDriver():IsPlayer()) || attacker:IsGodlikeNPC() || attacker:IsFriendlyNPC()) then	
+	if ((ply:Team() != TEAM_ALIVE) || !ply.vulnerable || (attacker:IsPlayer() && (attacker != ply)) || (attacker:IsVehicle() && IsValid(attacker:GetDriver()) && attacker:GetDriver():IsPlayer()) || attacker:IsGodlikeNPC() || attacker:IsFriendlyNPC()) then
 		return false
 	end
 
@@ -320,7 +385,7 @@ end
 
 function GlitchedText(text, prob)
 	local str = ""
-	
+
 	return str
 end
 
