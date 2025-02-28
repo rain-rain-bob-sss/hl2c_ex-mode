@@ -9,7 +9,6 @@ include("sh_pets.lua")
 
 
 local hl2ce_server_allowbhop = CreateConVar("hl2ce_server_allowbhop", 1, FCVAR_REPLICATED + FCVAR_ARCHIVE)
-local hl2ce_server_bhoptype = CreateConVar("hl2ce_server_bhoptype", 1, FCVAR_REPLICATED + FCVAR_ARCHIVE, "1 = normal,2 = old hl2,3 = new hl2")
 
 do
     local base = "player_sandbox"
@@ -34,19 +33,12 @@ do
             local maxSpeed = hl2ce_server_allowbhop:GetBool() and 1e9 or self.Player:GetRunSpeed() * 1.2
             local newSpeed = speedAddition + move:GetVelocity():Length2D()
 
-			local type = hl2ce_server_bhoptype:GetInt()
             if newSpeed > maxSpeed then -- Clamp it to make sure they can't bunnyhop to ludicrous speed
                 speedAddition = speedAddition - (newSpeed - maxSpeed)
             end
 
-			if type == 3 then
-				if move:GetForwardSpeed() < 0 then
-					speedAddition = -speedAddition
-				end
-			elseif type == 1 then
-	            if move:GetVelocity():Dot(forward) < 0 then -- Reverse it if the player is running backwards
-	                speedAddition = -speedAddition
-	            end
+			if move:GetForwardSpeed() < 0 then
+				speedAddition = -speedAddition
 			end
 
             move:SetVelocity(forward * speedAddition + move:GetVelocity()) -- Apply the speed boost
