@@ -10,6 +10,14 @@ Following maps got a bit of changes in EX:
 - d1_eli_01
 - d1_eli_02
 
+Fall Damage is now affected by difficulty, and damage is also multiplied by max health*0.01 (minimum 1x)
+
+Save Datas now uses JSON Tables (sorry if you got errors or your save got corrupted)
+
+And the 6th, to be added in the future.... MythiLegendaries....?
+
+
+
 0.7.9$9
 Health now can go beyond 2147483648 (BETA)
 Delayed damage can now  use up faster depending on amount of delayed damage left

@@ -146,6 +146,9 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 
 	-- RIP Eternity Upgrades
 	ply.EternityUpgradeValues = {}
+	for upgrade,_ in pairs(self.UpgradesEternity) do
+		ply.EternityUpgradeValues[upgrade] = 0
+	end
 
 
 	if attacker:IsNPC() then
@@ -1017,7 +1020,6 @@ function GM:PlayerInitialSpawn(ply)
 	ply.SessionStats = {}
 
 	ply.EternityUpgradeValues = {}
-
 	for upgrade,_ in pairs(self.UpgradesEternity) do
 		ply.EternityUpgradeValues[upgrade] = 0
 	end

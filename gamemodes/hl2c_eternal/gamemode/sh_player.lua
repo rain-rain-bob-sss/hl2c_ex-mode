@@ -235,7 +235,7 @@ function meta:GetMinDamageMul(dmgInfo, ent)
 	end
 
 	if attacker:HasEternityUnlocked() then
-		damagemul = damagemul * GM.UpgradesEternity["damage_upgrader"].EffectValue(attacker, attacker.EternityUpgradeValues["damage_upgrader"])
+		damagemul = damagemul * attacker:GetEternityUpgradeEffectValue("damage_upgrader")
 	end
 
 	return damagemul
@@ -290,7 +290,7 @@ function meta:GetMinDamageResistanceMul(dmgInfo)
 	end
 
 	if ent:HasEternityUnlocked() then
-		damageresistancemul = damageresistancemul * GM.UpgradesEternity["damageresistance_upgrader"].EffectValue(ent, ent.EternityUpgradeValues["damageresistance_upgrader"])
+		damageresistancemul = damageresistancemul * ent:GetEternityUpgradeEffectValue("damageresistance_upgrader")
 	end
 
 	return damageresistancemul
