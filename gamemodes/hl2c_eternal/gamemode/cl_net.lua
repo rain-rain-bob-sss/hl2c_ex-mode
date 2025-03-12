@@ -2,6 +2,7 @@
 net.Receive("hl2c_updatestats", function(length)
     local ply = LocalPlayer()
     
+    ply.Moneys = net.ReadFloat()
     ply.XP = net.ReadFloat()
     ply.Level = net.ReadFloat()
     ply.StatPoints = net.ReadFloat()
@@ -28,6 +29,12 @@ net.Receive("hl2ce_updateperks", function(length)
     local ply = LocalPlayer()
 
     ply.UnlockedPerks = net.ReadTable()
+end)
+
+net.Receive("hl2ce_updateeternityupgrades", function(length)
+    local ply = LocalPlayer()
+
+    ply.EternityUpgradeValues = net.ReadTable()
 end)
 
 XPGained = 0

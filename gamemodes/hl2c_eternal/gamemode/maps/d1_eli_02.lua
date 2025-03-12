@@ -55,6 +55,24 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
+	if GAMEMODE.EXMode then
+		if ent:GetName() == "logic_disable_airlockB_1" and string.lower(input) == "enablerefire" then
+			ents.FindByName("alyx")[1]:Ignite(5)
+		end
+
+		if ent:GetName() == "monitor_airlock_south" and string.lower(input) == "disable" then
+			local e = EffectData()
+			e:SetOrigin(ent:GetPos())
+			for i=1,10 do
+				util.Effect("Explosion", e)
+			end
+
+			timer.Simple(0, function()
+				ent:Remove()
+			end)
+		end
+	end
+
 end
 hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 

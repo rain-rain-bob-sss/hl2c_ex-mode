@@ -11,6 +11,7 @@ AddCSLuaFile("cl_options.lua")
 AddCSLuaFile("cl_perksmenu.lua")
 AddCSLuaFile("cl_prestige.lua")
 AddCSLuaFile("cl_config.lua")
+AddCSLuaFile("cl_upgradesmenu.lua")
 
 AddCSLuaFile("sh_config.lua")
 AddCSLuaFile("sh_globals.lua")
@@ -30,7 +31,10 @@ include("database_manager/player.lua")
 include("database_manager/server.lua")
 
 include("sv_netstuff.lua")
+include("sv_player.lua")
+
 include("player_leveling.lua")
+
 
 -- Include the configuration for this map
 if file.Exists(GM.VaultFolder.."/gamemode/maps/"..game.GetMap()..".lua", "LUA") then
@@ -139,6 +143,9 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 
 	-- Clear player info
 	ply.info = nil
+
+	-- RIP Eternity Upgrades
+	ply.EternityUpgradeValues = {}
 
 
 	if attacker:IsNPC() then
@@ -301,6 +308,8 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 	if ent:IsPlayer() and attacker:IsValid() and attackerisworld then
 		damage = damage * math.max(1, ent:GetMaxHealth()*0.01)
+	elseif ent:IsPlayer() and attacker == game.GetWorld() and dmgInfo:GetDamageType() == DMG_FALL then
+		damage = damage * math.max(1, ent:GetMaxHealth()*0.01) * self:GetDifficulty()^0.2
 	end
 
 	-- if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() then
@@ -432,13 +441,13 @@ function GM:GrabAndSwitch()
 				}
 			end
 		end
+		plyInfo.EternityUpgradeValues = ply.EternityUpgradeValues
 	
 		local plyID = ply:SteamID64() || ply:UniqueID()
 		file.Write(self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON(plyInfo))
 		self:SavePlayer(ply)
 	end
-	
-	-- PrintMessage(4, "Map change in progress...")
+
 	timer.Simple(1, function() game.ConsoleCommand("changelevel "..NEXT_MAP.."\n") end)
 end
 
@@ -482,6 +491,8 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_unlockperk")
 	util.AddNetworkString("hl2c_updatestats")
 	util.AddNetworkString("hl2ce_updateperks")
+	util.AddNetworkString("hl2ce_buyupgrade")
+	util.AddNetworkString("hl2ce_updateeternityupgrades")
 	
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
@@ -580,6 +591,34 @@ function GM:OnCampaignCompleted()
 end
 
 function GM:PlayerCompletedMap(ply)
+	-- XP
+	local txp = 0
+	local xp = math.Round(math.Rand(4,7)) * math.min(self:GetDifficulty(), ply:GetMaxDifficultyXPGainMul())
+
+	if (self.XP_REWARD_ON_MAP_COMPLETION or 1) > 0 then
+		xp = xp * self.XP_REWARD_ON_MAP_COMPLETION
+		txp = txp + xp
+	end
+	if ply.MapStats.GainedXP then
+		xp = math.floor(ply.MapStats.GainedXP * 0.15)
+		txp = txp + xp
+	end
+
+	if txp > 0 then
+		ply:GiveXP(txp, true)
+		ply:PrintMessage(HUD_PRINTTALK, Format("You were given additional %i XP for completing this map.", txp))
+	end
+
+	-- Moneys
+	local gain = ply.MoneysGain
+
+	if gain > 0 then
+		ply.MoneysGain = 0
+		ply.Moneys = ply.Moneys + gain
+		ply:PrintMessage(3, "You have gained +"..gain.." moneys")
+	end
+
+	self:NetworkString_UpdateStats(ply)
 end
 
 function GM:PlayerCompletedCampaign(ply)
@@ -628,6 +667,7 @@ function GM:OnReloaded()
 			self:NetworkString_UpdateStats(ply)
 			self:NetworkString_UpdateSkills(ply)
 			self:NetworkString_UpdatePerks(ply)
+			self:NetworkString_UpdateEternityUpgrades(ply)
 		end
 	end)
 end
@@ -745,16 +785,17 @@ function GM:OnNPCKilled(npc, killer, weapon)
 
 	-- If the killer is a player then decide what to do with their points
 	if IsValid(killer) && killer:IsPlayer() && IsValid(npc) then
-		if NPC_POINT_VALUES[npc:GetClass()] then
-			killer:AddFrags(NPC_POINT_VALUES[npc:GetClass()])
+		local npcclass = npc:GetClass()
+		if NPC_POINT_VALUES[npcclass] then
+			killer:AddFrags(NPC_POINT_VALUES[npcclass])
 		else
 			killer:AddFrags(1)
 		end
 
-		if NPC_XP_VALUES[npc:GetClass()] then
+		local difficulty,nonmoddiff = self:GetDifficulty(), self:GetDifficulty(nil, true)
+		if NPC_XP_VALUES[npcclass] then
 			-- Too many local this is fine.
-			local difficulty,nonmoddiff = self:GetDifficulty(), self:GetDifficulty(nil, true)
-			local xp = NPC_XP_VALUES[npc:GetClass()] 
+			local xp = NPC_XP_VALUES[npcclass] 
 			local npckillxpmul,npckilldiffgainmul = self.XpGainOnNPCKillMul or 1, self.DifficultyGainOnNPCKillMul or 1
 			local npcxpmul = npc.XPGainMult or 1
 
@@ -783,8 +824,15 @@ function GM:OnNPCKilled(npc, killer, weapon)
 					npckilldiffgainmul = npckilldiffgainmul * 3.35
 				end
 			end
-			killer:GiveXP(NPC_XP_VALUES[npc:GetClass()] * xpmul)
+			killer:GiveXP(NPC_XP_VALUES[npcclass] * xpmul)
 			self:SetDifficulty(nonmoddiff + xp*0.0005*npckilldiffgainmul)
+		end
+
+		if NPC_MONEYS_VALUES[npcclass] then
+			local moneys = NPC_MONEYS_VALUES[npcclass]
+			local npckillxpmul,npckilldiffgainmul = self.MoneysGainOnNPCKillMul or 1
+			local npcxpmul = npc.MoneyGainMult or 1
+			killer:GiveMoneysGain(math.Round(NPC_MONEYS_VALUES[npcclass]*(difficulty^0.25)))
 		end
 
 		if killer:HasPerkActive("vampiric_killer_1") then
@@ -878,6 +926,20 @@ function GM:PlayerCanPickupItem(ply, item)
 	if (ply:Team() != TEAM_ALIVE) then
 		return false
 	end
+	local class = item:GetClass()
+	if class == "item_healthkit" then
+		if ply:HasPerkActive("medkit_enhancer_3") then
+			if ply:Health() < ply:GetMaxHealth() then
+				timer.Simple(0, function() -- using a timer bcoz directly trying to set health while calling the hook won't really work much well
+					-- but even with timer sethealth will still be called 1 tick later (Troublesome, no?)
+					if not ply:IsValid() or not ply:Alive() then return end
+					ply:SetHealth(math.min(ply:GetMaxHealth(), ply:Health() + 100 + ply:GetMaxHealth()*0.2))
+				end)
+				return true
+			end
+		end
+	elseif class == "item_healthvial" then
+	end
 
 	return true
 
@@ -914,7 +976,7 @@ function GM:PlayerInitialSpawn(ply)
 	ply.Eternity = 0
 	ply.EternityPoints = 0
 
-	-- Endless
+	-- Endless?
 	ply.Celestiality = 0
 	ply.CelestialityPoints = 0
 	ply.Rebirths = 0
@@ -922,8 +984,23 @@ function GM:PlayerInitialSpawn(ply)
 	ply.Ascensions = 0
 	ply.AscensionPoints = 0
 
-	-- True Endless
+	-- True Endless...????
 	-- ...but... you sure?
+
+	-- this won't be included since the mastery will be working differently
+	-- ply.Mastery = 0
+	-- ply.MasteryPoints = 0
+
+	-- New 6th prestige type?
+	ply.MythiLegendaries = 0
+	ply.MythiLegendaryPoints = 0
+
+
+
+	ply.Moneys = 0
+	ply.MoneysGain = 0 -- Resets on restart and only gives after map completion
+
+
 
 	for k, v in pairs(self.SkillsInfo) do
 		ply["Stat"..k] = 0
@@ -938,6 +1015,12 @@ function GM:PlayerInitialSpawn(ply)
 
 	ply.MapStats = {}
 	ply.SessionStats = {}
+
+	ply.EternityUpgradeValues = {}
+
+	for upgrade,_ in pairs(self.UpgradesEternity) do
+		ply.EternityUpgradeValues[upgrade] = 0
+	end
 
 	-- Grab previous map info
 	local plyID = ply:SteamID64() || ply:UniqueID()
@@ -957,10 +1040,10 @@ function GM:PlayerInitialSpawn(ply)
 	self:LoadPlayer(ply)
 
 
-	-- Objective Timer
-	net.Start("ObjectiveTimer")
-	net.WriteFloat(self.ObjectiveTimer or 0)
-	net.Broadcast()
+	-- Objective Timer (OUT OF DATE)
+	-- net.Start("ObjectiveTimer")
+	-- net.WriteFloat(self.ObjectiveTimer or 0)
+	-- net.Broadcast()
 	
 
 	-- Send initial player spawn to client
@@ -994,9 +1077,10 @@ function GM:PlayerInitialSpawn(ply)
 end 
 
 function GM:PlayerReady(ply)
-	GAMEMODE:NetworkString_UpdateStats(ply)
-	GAMEMODE:NetworkString_UpdateSkills(ply)
-	GAMEMODE:NetworkString_UpdatePerks(ply)
+	self:NetworkString_UpdateStats(ply)
+	self:NetworkString_UpdateSkills(ply)
+	self:NetworkString_UpdatePerks(ply)
+	self:NetworkString_UpdateEternityUpgrades(ply)
 end
 
 function GM:ReachedCheckpoint(ply) -- ply is activator, not working yet
@@ -1243,6 +1327,10 @@ function GM:PlayerSpawn(ply)
 	
 		ply:SetFrags(ply.info.score)
 		ply:SetDeaths(ply.info.deaths)
+
+		if ply.info.EternityUpgradeValues then
+			ply.EternityUpgradeValues = ply.info.EternityUpgradeValues
+		end
 	else
 		ply:SetHealth(maxhp)
 	end
@@ -1358,11 +1446,11 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 end
 concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then hook.Call("RestartMap", GAMEMODE, 0); end end)
 
-function GM:FailMap(ply) -- ply argument is the one who caused the map to fail, giving them most penalty
+function GM:FailMap(ply) -- ply argument is the one who caused the map to fail, giving them a quite big penalty
 	self:RestartMap()
 
 	if ply and ply:IsValid() and ply:IsPlayer() then
-		local xploss = ply.MapStats.XPGained + 100
+		local xploss = ply.MapStats.XPGained * 1.1
 		ply.XP = ply.XP - xploss
 
 		ply:PrintMessage(3, "Don't cause the map to fail bruh.")
@@ -1640,6 +1728,7 @@ net.Receive("UpdatePlayerModel", UpdatePlayerModel)
 net.Receive("hl2c_playerready", function(len, ply)
 	gamemode.Call("PlayerReady", ply)
 end)
+
 
 -- Dynamic skill level console variable was changed
 local function DynamicSkillToggleCallback(name, old, new)

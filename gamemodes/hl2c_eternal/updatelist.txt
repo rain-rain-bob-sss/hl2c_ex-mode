@@ -1,5 +1,15 @@
 I don't have time for making the update list at the moment.
 
+0.7.9%9
+Moneys. (Can be gained from killing NPCs, but it is only given after you have completed the map)
+Added Eternity Upgrades. The pets were too much to code for them not to be targetted by friendlies.
+Normal damage now follows the Minimum damage. (In case of a code error. Might limit some things a bit more but eh)
+Following maps got a bit of changes in EX:
+- d1_trainstation_01 (got updated earlier on 28-02-2025)
+- d1_canals_01
+- d1_eli_01
+- d1_eli_02
+
 0.7.9$9
 Health now can go beyond 2147483648 (BETA)
 Delayed damage can now  use up faster depending on amount of delayed damage left

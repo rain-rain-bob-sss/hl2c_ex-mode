@@ -3,6 +3,7 @@
 
 function GM:NetworkString_UpdateStats(ply)
     net.Start("hl2c_updatestats")
+    net.WriteFloat(ply.Moneys)
     net.WriteFloat(ply.XP)
     net.WriteFloat(ply.Level)
     net.WriteFloat(ply.StatPoints)
@@ -29,6 +30,12 @@ end
 function GM:NetworkString_UpdatePerks(ply)
     net.Start("hl2ce_updateperks")
     net.WriteTable(ply.UnlockedPerks)
+    net.Send(ply)
+end
+
+function GM:NetworkString_UpdateEternityUpgrades(ply)
+    net.Start("hl2ce_updateeternityupgrades")
+    net.WriteTable(ply.EternityUpgradeValues)
     net.Send(ply)
 end
 
@@ -110,4 +117,43 @@ net.Receive("hl2ce_prestige", function(len, ply)
         ply:PrintMessage(3, "Not. Yet. Implemented.")
         -- ply:GainCelestiality()
     end
+end)
+
+net.Receive("hl2ce_buyupgrade", function(len, ply)
+    if not ply:HasEternityUnlocked() then return end
+	local upg = net.ReadString()
+	local buy = net.ReadString()
+
+	local upgrade = GAMEMODE.UpgradesEternity[upg]
+	if not upgrade then return end
+
+    local old = ply.EternityUpgradeValues[upg]
+    local function BuyUpgrade(ply, upg)
+        local cost = ply:GetEternityUpgradeCost(upg)
+
+		if ply.Moneys >= cost then
+			ply.EternityUpgradeValues[upg] = ply.EternityUpgradeValues[upg] + 1
+			ply.Moneys = ply.Moneys - cost
+            return true
+		end
+        return false
+    end
+
+    if buy == "once" then
+        local success = BuyUpgrade(ply, upg)
+    elseif buy == "max" then
+        for i=1,1000 do
+            local success = BuyUpgrade(ply, upg)
+            if not success then
+                break
+            end
+        end
+    end
+
+    if old != ply.EternityUpgradeValues[upg] then
+        PrintMessage(3, "Increased "..old.." -> "..ply.EternityUpgradeValues[upg])
+    end
+
+    GAMEMODE:NetworkString_UpdateEternityUpgrades(ply)
+	
 end)

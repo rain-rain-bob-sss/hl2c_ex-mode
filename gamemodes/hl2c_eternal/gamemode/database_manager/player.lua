@@ -5,20 +5,14 @@ function GM:LoadPlayer(ply)
         file.CreateDir(self.VaultFolder.."/players/"..string.lower(string.gsub(ply:UniqueID(), ":", "_")))
     end
     if file.Exists(self.VaultFolder.."/players/".. string.lower(string.gsub(ply:UniqueID(), ":", "_") .."/profile.txt"), "DATA") then
-        local TheFile = file.Read(self.VaultFolder.."/players/".. string.lower(string.gsub(ply:UniqueID(), ":", "_") .."/profile.txt"), "DATA")
-        local DataPieces = string.Explode("\n", TheFile)
- 
-        local Output = {}
+        local DataFile = file.Read(self.VaultFolder.."/players/".. string.lower(string.gsub(ply:UniqueID(), ":", "_") .."/profile.txt"), "DATA")
+
+        local DataPieces = util.JSONToTable(DataFile)
  
         for k, v in pairs(DataPieces) do
-            local TheLine = string.Explode(";", v) -- convert txt string to stats table
-            local variable = TheLine[1]
-            local val = TheLine[2]
+            local variable = k
+            local val = v
 
-            if variable == "UnlockedPerks" then
-                ply.UnlockedPerks = util.JSONToTable(val)
-                continue
-            end
             ply[variable] = tonumber(val) or val  -- dump all their stats into their player table
         end
   
@@ -54,24 +48,17 @@ function GM:SavePlayer(ply)
 	Data["EternityPoints"] = ply.EternityPoints
 
     Data["XPUsedThisPrestige"] = ply.XPUsedThisPrestige
+    Data["Moneys"] = ply.Moneys
 
-    Data["UnlockedPerks"] = util.TableToJSON(ply.UnlockedPerks)
+    Data["UnlockedPerks"] = ply.UnlockedPerks
 
 
 	for k, v in pairs(self.SkillsInfo) do
 		Data["Stat"..k] = ply["Stat"..k]
 	end
 
-
-	local StringToWrite = ""
-	for k, v in pairs(Data) do
-		if(StringToWrite == "") then
-			StringToWrite = k ..";".. v
-		else
-			StringToWrite = StringToWrite .."\n".. k ..";".. v
-		end
-	end
+    local savedata = util.TableToJSON(Data, true)
 	
 	print("✓ ".. ply:Nick() .." profile saved into database")	
-	file.Write(self.VaultFolder.."/players/"..string.lower(string.gsub(ply:UniqueID(), ":", "_") .."/profile.txt"), StringToWrite)
+	file.Write(self.VaultFolder.."/players/"..string.lower(string.gsub(ply:UniqueID(), ":", "_") .."/profile.txt"), savedata)
 end

@@ -25,9 +25,8 @@ local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficult
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.9$9" -- what version?
-GM.DateVer = "28-02-2025"
--- Still too much to include changelogs. Meh.
+GM.Version = "0.7.9%9" -- what version?
+GM.DateVer = "12-03-2025"
 
 
 -- Constants
@@ -256,7 +255,7 @@ function FormatNumber(val, roundval)
 	local log10_value = math.floor(math.log10(val))
 
 	local txt
-	local negative = val < 0
+	local negative = val < 0 and "-" or ""
 	roundval = roundval or 2
 	val = math.abs(val)
 	if val >= math.huge then return val end
@@ -311,12 +310,8 @@ function FormatNumber(val, roundval)
 		txt = math.floor(val*(10^roundval))/(10^roundval) .."e-"..math.abs(log10_value)
 	end
 
-	if negative then
-		val = -math.abs(val)
-	end
-
-	if txt then return txt end
-	return math.floor(val*(10^(roundval or 1)))/(10^(roundval or 1))
+	if txt then return negative..txt end
+	return negative..math.floor(val*(10^(roundval or 1)))/(10^(roundval or 1))
 end
 
 function GlitchedText(text, prob)

@@ -17,6 +17,8 @@ function GM:CMenu()
 		local alpha = 125
 		local x,y,y_add = 220,140,18
 		local xp,reqxp = math.floor(pl.XP), self:GetReqXP(pl)
+		draw.DrawText("Moneys: "..FormatNumber(pl.Moneys), "TargetIDSmall", x, y, Color(205,255,205,alpha), TEXT_ALIGN_LEFT)
+		y = y + y_add
 		draw.DrawText("XP: "..FormatNumber(xp).." / "..FormatNumber(reqxp).." ("..math.Round(xp/reqxp * 100,2).."%)", "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
 		draw.DrawText("Level: "..math.floor(pl.Level), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
@@ -197,7 +199,7 @@ function GM:CMenu()
 		end
 	end
 
-	if prestigeunlocked then
+	if false --[[prestigeunlocked]] then -- Not yet.
 		local config = vgui.Create("DButton", ContextMenu)
 		config:SetSize(buttonsize_x + 20, buttonsize_y)
 		config:Center()
@@ -216,27 +218,27 @@ function GM:CMenu()
 		end
 	end
 
-	/*
+	
 	if eternityunlocked then
-		local perks = vgui.Create("DButton", ContextMenu)
-		perks:SetSize(buttonsize_x + 20, buttonsize_y)
-		perks:Center()
-		x,y = perks:GetPos()
-		perks:SetPos(x, y + 300)
-		perks:SetText("Upgrades")
-		perks:SetToolTip("")
-		perks:SetTextColor(Color(255,255,255))
-		perks.Paint = function(panel)
+		local upgrades = vgui.Create("DButton", ContextMenu)
+		upgrades:SetSize(buttonsize_x + 20, buttonsize_y)
+		upgrades:Center()
+		x,y = upgrades:GetPos()
+		upgrades:SetPos(x, y + 300)
+		upgrades:SetText("Upgrades")
+		upgrades:SetToolTip("Upgrades (Unlocks permanently after reaching Eternity)\nYou lose these bought upgrades after dying or leaving midgame.")
+		upgrades:SetTextColor(Color(255,255,255))
+		upgrades.Paint = function(panel)
 			surface.SetDrawColor(250, 50, 0, 255)
 			surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
 			draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), Color(0, 0, 0, 130))
 		end
-		perks.DoClick = function()
+		upgrades.DoClick = function()
 			gamemode.Call("UpgradesMenu")
 			ContextMenu:Close()
 		end
 	end
-	*/
+	
 
 
 
@@ -551,9 +553,9 @@ function GM:MakePrestigePanel()
 		net.SendToServer()
 	end, Color(50, 150, 200, 200)))
 	list:AddItem(MakeText(self.PrestigePanel, "Eternity to reset your levels, XP, skills, prestiges and prestige perks, but you gain a +120% boost to xp gain (every eternity) and\nEternity point. Eternity perks are more powerful than regular perks.", "TargetIDSmall"))
-	list:AddItem(MakeText(self.PrestigePanel, "Must be able prestige or be above "..MAX_PRESTIGE.." prestiges in order to Eternity", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Must be able prestige with the exception of prestige limit or be above "..MAX_PRESTIGE.." prestiges in order to Eternity", "TargetIDSmall"))
 	list:AddItem(MakeText(self.PrestigePanel, "Upon eternity you are given lots of buffs. (TO BE IMPLEMENTED)", "TargetIDSmall"))
-	list:AddItem(MakeText(self.PrestigePanel, "Fyi perks do not work yet ffs I STILL NEED WORK TO GET THEM IMPLEMENTED", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "", "TargetIDSmall"))
 
 	list:AddItem(MakeButton("Celestiality", 0, 0, function()
 		if !pl:HasEternityUnlocked() then
@@ -564,9 +566,9 @@ function GM:MakePrestigePanel()
 		net.WriteString("celestiality")
 		net.SendToServer()
 	end, Color(50, 150, 200, 200)))
-	list:AddItem(MakeText(self.PrestigePanel, "Celestiality will reset all pre-Eternity progress and Eternities.", "TargetIDSmall"))
-	list:AddItem(MakeText(self.PrestigePanel, "Must reach max xp needed for next level, level "..MAX_LEVEL.." at "..MAX_PRESTIGE.." prestiges in order to Eternity", "TargetIDSmall"))
-	list:AddItem(MakeText(self.PrestigePanel, "Upon eternity you are given lots of buffs. (TO BE IMPLEMENTED)", "TargetIDSmall"))
-	list:AddItem(MakeText(self.PrestigePanel, "Fyi perks do not work yet ffs I STILL NEED WORK TO GET THEM IMPLEMENTED", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Celestiality will reset pre-Celestiality progress.", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "Must be able to prestige (Exception: Prestige limit) and reach "..MAX_ETERNITIES.." Eternities", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "", "TargetIDSmall"))
+	list:AddItem(MakeText(self.PrestigePanel, "", "TargetIDSmall"))
 
 end

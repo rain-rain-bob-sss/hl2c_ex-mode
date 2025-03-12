@@ -60,6 +60,34 @@ NPC_XP_VALUES = {
 	["npc_zombie_torso"] = 11.8,
 }
 
+NPC_MONEYS_VALUES = {
+	["npc_antlion"] = 0.8,
+	["npc_antlionguard"] = 280,
+	["npc_barnacle"] = 11,
+	["npc_combinedropship"] = 60,
+	["npc_combinegunship"] = 69,
+	["npc_combine_s"] = 33,
+	["npc_cscanner"] = 6,
+	["npc_clawscanner"] = 7,
+	["npc_fastzombie"] = 19,
+	["npc_fastzombie_torso"] = 11,
+	["npc_headcrab"] = 3,
+	["npc_headcrab_fast"] = 4,
+	["npc_headcrab_black"] = 5,
+	["npc_headcrab_poison"] = 5,
+	["npc_helicopter"] = 55,
+	["npc_hunter"] = 45,
+	["npc_manhack"] = 9,
+	["npc_metropolice"] = 22,
+	["npc_ministrider"] = 15,
+	["npc_stalker"] = 18,
+	["npc_strider"] = 210,
+	["npc_zombie"] = 16,
+	["npc_zombine"] = 27,
+	["npc_poisonzombie"] = 42,
+	["npc_zombie_torso"] = 11,
+}
+
 -- Exclude these NPCs from lag compensation
 NPC_EXCLUDE_LAG_COMPENSATION = {
 	"cycler",
@@ -429,6 +457,16 @@ GM.PerksData = {
 
 	},
 
+	["medkit_enhancer_3"] = {
+		Name = "Medkit Enhancer",
+		Description = "Does nothing.",
+		DescriptionEndless = "Medkits you pick up refill additional +100hp and 20% of your health",
+		Cost = 1,
+		PrestigeReq = 2,
+		PrestigeLevel = 3,
+
+	},
+
 	["uno_reverse_3"] = {
 		Name = "Uno Reverse",
 		Description = "Does nothing.",
@@ -441,8 +479,33 @@ GM.PerksData = {
 
 }
 
+GM.UpgradesEternity = {
+	["damage_upgrader"] = {
+		Name = "Damage Upgrader",
+		Description = "Increases damage multiplier by %s%%",
+		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
+		EffectValue = function(ply, amt)
+			return 1 + 0.1*amt
+		end,
+	},
+
+	["damageresistance_upgrader"] = {
+		Name = "Damage Resistance Upgrader",
+		Description = "+%s%% damage resistance per upgrade (Multiplicative. Past 10x the effect gets softcapped.)",
+		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
+		EffectValue = function(ply, amt)
+			local val = 1.1^amt
+			if val > 10 then
+				val = val / math.max(1, (val/10)^0.25)
+			end
+
+			return val
+		end,
+	},
+}
+
 
 GM.PlayerConfigurables = {
-	["AutoPrestige"] = {"number", 0, "AutoPrestige", "When to prestige?", 0, math.huge}, -- #1 type, #2 default, #3 name, #4 description, #5 min, #6 max
+	["AutoPrestige"] = {"number", 0, "AutoPrestige", "When to prestige?", 0, function(ply) return 1e6 end}, -- #1 type, #2 default, #3 name, #4 description, #5 min (func), #6 max (func)
 	["ShouldNotifyPrestige"] = {"bool", 0, 1},
 }

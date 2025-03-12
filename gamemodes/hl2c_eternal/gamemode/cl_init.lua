@@ -10,6 +10,7 @@ include("cl_options.lua")
 include("cl_perksmenu.lua")
 include("cl_prestige.lua")
 include("cl_config.lua")
+include("cl_upgradesmenu.lua")
 
 local hl2ce_cl_noearringing = CreateClientConVar("hl2ce_cl_noearringing", 0, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 local hl2ce_cl_nohuddifficulty = CreateClientConVar("hl2ce_cl_nohuddifficulty", 0, true, true, "Disables Difficulty text from HUD if not having CMenu Open", 0, 1)
@@ -302,9 +303,21 @@ function GM:PlayerReady()
 	ply.Ascensions = 0
 	ply.AscensionPoints = 0
 
+	-- True Endless
+	ply.MythiLegendaries = 0
+	ply.MythiLegendaryPoints = 0
+
+
+	ply.Moneys = 0
+
 
 	ply.UnlockedPerks = {}
 	ply.DisabledPerks = {}
+	ply.EternityUpgradeValues = {}
+
+	for upgrade,_ in pairs(self.UpgradesEternity) do
+		ply.EternityUpgradeValues[upgrade] = 0
+	end
 end
 
 function GM:SpawnMenuEnabled()
@@ -425,7 +438,7 @@ function ShowHelp(len)
 	local adminbutton
 	local pl = LocalPlayer()
 
-	if pl:IsAdmin() then
+	if pl:IsValid() and pl:IsAdmin() then
 		adminbutton = vgui.Create("DButton", helpPanel)
 	end
 

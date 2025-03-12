@@ -42,6 +42,18 @@ end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
+local function SpawnNPC(class, pos, ang, func)
+	local ent = ents.Create(class)
+	ent:SetPos(pos)
+	ent:SetAngles(ang)
+	if func then
+		func(ent)
+	end
+	ent:Spawn()
+
+	return ent
+end
+
 -- Accept input
 function hl2cAcceptInput( ent, input )
 
@@ -70,5 +82,31 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
+	if GAMEMODE.EXMode then
+		if ent:GetName() == "logic_startScene" and string.lower(input) == "trigger" then
+			timer.Simple(1.5, function()
+				PrintMessage(3, "Chapter 5")
+			end)
+		end
+
+		if ent:GetName() == "logic_Airlock_spriteSpotlights_On" and string.lower(input) == "trigger" then
+			timer.Simple(1.15, function()
+				PrintMessage(3, "We'll be under attack soon aren't we")
+			end)
+		end
+
+		if ent:GetName() == "lcs_mosstour01" and string.lower(input) == "start" then
+			for i=1,5 do
+				SpawnNPC("npc_zombie", Vector(-28+(i-1)*32, 2350, -1280), Angle(0,90,0))
+				SpawnNPC("npc_fastzombie", Vector(-28+(i-1)*32, 2400, -1280), Angle(0,90,0))
+			end
+		end
+	end
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+
+hook.Add("EntityTakeDamage", "hl2cEntTakeDamage", function(ent, dmginfo)
+	if string.lower(ent:GetName()) == "chester" then
+		return true
+	end
+end)
