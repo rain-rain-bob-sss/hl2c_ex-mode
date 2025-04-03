@@ -28,6 +28,45 @@ GM.Author = "Uklejamini"
 GM.Version = "0.7.9%9" -- what version?
 GM.DateVer = "12-03-2025"
 
+do
+    local base = "player_sandbox"
+    if not player_manager.GetPlayerClasses()["player_sandbox"] then base = "player_default" end
+    local BASEPLAYER = player_manager.GetPlayerClasses()[base]
+    local PLAYER = table.Copy(BASEPLAYER)
+    local JUMPING
+    function PLAYER:StartMove(move)
+        if bit.band(move:GetButtons(), IN_JUMP) ~= 0 and bit.band(move:GetOldButtons(), IN_JUMP) == 0 and self.Player:OnGround() then -- Only apply the jump boost in FinishMove if the player has jumped during this frame -- Using a global variable is safe here because nothing else happens between SetupMove and FinishMove
+            JUMPING = true
+        end
+    end
+
+    function PLAYER:FinishMove(move)
+        if JUMPING then -- If the player has jumped this frame
+            local forward = move:GetAngles() -- Get their orientation
+            forward.p = 0
+            forward = forward:Forward()
+	    	local speedBoostPerc = ( ( self.Player:Crouching() ) and 1.575 ) or 0.5
+            if not self.Player:IsSprinting() and not self.Player:Crouching() then speedBoostPerc = 0.375 end
+            local speedAddition = math.abs(move:GetForwardSpeed() * speedBoostPerc)
+            local maxSpeed = 1e9
+            local newSpeed = speedAddition + move:GetVelocity():Length2D()
+            if newSpeed > maxSpeed then -- Clamp it to make sure they can't bunnyhop to ludicrous speed
+                speedAddition = speedAddition - (newSpeed - maxSpeed)
+            end
+
+            if move:GetVelocity():Dot(forward) < 0 then -- Reverse it if the player is running backwards
+                speedAddition = -speedAddition
+            end
+
+            move:SetVelocity(forward * speedAddition + move:GetVelocity()) -- Apply the speed boost
+        end
+
+        JUMPING = nil
+    end
+
+    player_manager.RegisterClass("player_hl2ce", PLAYER, base)
+end
+
 
 -- Constants
 FRIENDLY_NPCS = {

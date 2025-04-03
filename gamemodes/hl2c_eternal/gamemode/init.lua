@@ -1252,7 +1252,7 @@ end
 
 -- Called when a player spawns 
 function GM:PlayerSpawn(ply)
-	player_manager.SetPlayerClass(ply, "player_default")
+	player_manager.SetPlayerClass(ply, "player_hl2ce")
 
 	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (ply:Team() == TEAM_DEAD)) then
 	
