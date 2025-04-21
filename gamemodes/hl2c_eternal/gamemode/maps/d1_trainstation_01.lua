@@ -270,9 +270,7 @@ function hl2cOnNPCKilled( ent, attacker )
 
 	if GAMEMODE.EXMode then
 		if ent:GetName() == "barney" then
-			timer.Simple(math.Rand(1, 2), function()
-				PrintMessage(3, "you just fucked...")
-			end)
+			PrintMessage(3, "...")
 		end
 	end
 

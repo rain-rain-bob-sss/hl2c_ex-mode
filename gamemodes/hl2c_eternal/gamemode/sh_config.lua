@@ -485,7 +485,7 @@ GM.UpgradesEternity = {
 		Description = "Increases damage multiplier by %s%%",
 		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
 		EffectValue = function(ply, amt)
-			return 1 + 0.1*(amt or 0)
+			return 1 + 0.1*amt
 		end,
 	},
 
@@ -494,7 +494,21 @@ GM.UpgradesEternity = {
 		Description = "+%s%% damage resistance per upgrade (Multiplicative. Past 10x the effect gets softcapped.)",
 		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
 		EffectValue = function(ply, amt)
-			local val = 1.1^(amt or 0)
+			local val = 1.1^amt
+			if val > 10 then
+				val = val / math.max(1, (val/10)^0.25)
+			end
+
+			return val
+		end,
+	},
+
+	["difficultygain_upgrader"] = {
+		Name = "Difficulty Gain Upgrader",
+		Description = "+%s%% difficulty gain (Softcaps after 10x)",
+		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
+		EffectValue = function(ply, amt)
+			local val = 1 + 0.1*amt
 			if val > 10 then
 				val = val / math.max(1, (val/10)^0.25)
 			end

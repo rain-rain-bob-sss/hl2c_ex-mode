@@ -296,3 +296,20 @@ function meta:GetMinDamageResistanceMul(dmgInfo)
 	return damageresistancemul
 end
 
+
+function meta:GetOriginalMaxHealth()
+	local maxhp = 100 + ((GAMEMODE.EndlessMode and 5 or 1) * self:GetSkillAmount("Vitality")) -- calculate their max health
+	if self:HasPerkActive("healthboost_1") then
+		maxhp = maxhp + (GAMEMODE.EndlessMode and 85 or 15)
+	end
+	if GAMEMODE.EndlessMode then
+		if self:HasPerkActive("healthboost_2") then
+			maxhp = maxhp + 450
+		end
+		if self:HasPerkActive("celestial_3") then
+			maxhp = maxhp + 320
+		end
+	end
+
+	return maxhp
+end

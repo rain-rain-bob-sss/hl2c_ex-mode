@@ -14,8 +14,7 @@ if CLIENT then return end
 hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
 	if !GAMEMODE.EXMode then return end
 	timer.Simple(1, function()
-		ply:PrintMessage(3, "The combine are still hostile and effect is still active even on this map.")
-		ply:PrintMessage(3, "Keep running.")
+		ply:PrintMessage(3, "Fuck this map.")
 	end)
 end)
 
@@ -71,7 +70,8 @@ function hl2cAcceptInput( ent, input )
 	
 		for _, ply in pairs( player.GetAll() ) do
 		
-			ply:SetPos( Vector( -4956, -4752, 513 ) )
+			ply:SetPos( Vector( -5000, -4840, 513 ) )
+			-- ply:SetPos( Vector( -4956, -4752, 513 ) )
 			ply:SetEyeAngles( Angle( 0, -150, 0 ) )
 		
 		end
@@ -88,6 +88,12 @@ function hl2cEntityTakeDamage(ent, dmginfo)
 	if attacker:IsValid() and attacker:IsNPC() and activewep:IsValid() and activewep:GetClass() == "weapon_stunstick" then
 		ent:SetHealth(0)
 		dmginfo:SetDamage(9e9)
+
+		local explosion = EffectData()
+		explosion:SetOrigin(ent:GetPos())
+		for i=1,3 do
+			util.Effect("Explosion", explosion)
+		end
 	end
 end
 hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", hl2cEntityTakeDamage)
