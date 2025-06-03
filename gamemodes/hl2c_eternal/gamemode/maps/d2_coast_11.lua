@@ -50,7 +50,7 @@ hook.Add("OnEntityCreated", "hl2cOnEntityCreated", hl2cOnEntityCreated)
 -- Shouldn't cause the map to be stuck
 local failmap = true
 hook.Add("OnNPCKilled", "AntlionGuardKill", function(ent, attacker, inflictor)
-	if ent:GetName() == "citizen_ambush_guard" and not inflictor:GetModel() == "models/props_junk/harpoon002a.mdl" then
+	if ent:GetName() == "citizen_ambush_guard" and inflictor:GetModel() ~= "models/props_junk/harpoon002a.mdl" then
 		failmap = false
 	end
 end)

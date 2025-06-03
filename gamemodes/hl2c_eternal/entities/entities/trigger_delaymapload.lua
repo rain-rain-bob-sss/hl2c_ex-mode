@@ -54,9 +54,6 @@ function ENT:StartTouch( ent )
 		PrintMessage( HUD_PRINTTALK, Format( "%s completed the map (%s) [%i of %i]", ent:Name(), string.ToMinutesSeconds( CurTime() - ent.startTime ), team.NumPlayers( TEAM_COMPLETED_MAP ), self.playersAlive))
 
 		gamemode.Call("PlayerCompletedMap", ent)
-
-		if ent.MapStats then -- Map stats display after completing the map (Not yet.)
-		end
 	end
 end
 

@@ -1,3 +1,4 @@
+hl2ce_pets = "disabled"
 -- Not going to be implemented. Too much work for this.
 
 -- GM.Pets = {

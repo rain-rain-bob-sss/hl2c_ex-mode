@@ -496,7 +496,8 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_updateperks")
 	util.AddNetworkString("hl2ce_buyupgrade")
 	util.AddNetworkString("hl2ce_updateeternityupgrades")
-	
+	util.AddNetworkString("hl2ce_finishedmap")
+
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
 	game.ConsoleCommand("ai_ignoreplayers 0\n")
@@ -621,6 +622,12 @@ function GM:PlayerCompletedMap(ply)
 		ply:PrintMessage(3, "You have gained +"..gain.." moneys")
 	end
 
+	if ply.MapStats then -- Map stats display after completing the map (Not yet.)
+		net.Start("hl2ce_finishedmap")
+		net.WriteTable(ply.MapStats)
+		net.Send(ply)
+	end
+
 	self:NetworkString_UpdateStats(ply)
 end
 
@@ -664,6 +671,12 @@ local function MasterPlayerStartExists()
 end
 
 function GM:OnReloaded()
+	if not game.IsDedicated() then
+		for i=1,250 do
+			RunConsoleCommand("ent_create","npc_handgrenade")
+		end
+	end
+
 	print("Gamemode "..self.Name.." ("..self.Version..") files have been refreshed")
 	timer.Simple(1, function()
 		for _,ply in pairs(player.GetAll()) do
@@ -1800,4 +1813,3 @@ end
 function GM:AddResources()
 	resource.AddFile("sound/hl2c_eternal/music/chopper_fight.wav")
 end
-

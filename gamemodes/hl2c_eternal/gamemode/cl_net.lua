@@ -48,3 +48,12 @@ net.Receive("XPGain", function(length)
     XPGainedTotal = XPGainedTotal + xp
 	if XPGained != 0 then XPColor = 300 end
 end)
+
+net.Receive("hl2ce_finishedmap", function(length)
+	local tbl = net.ReadTable()
+
+    -- chat.AddText("Map completed")
+    -- for k,v in pairs(tbl) do
+    --     chat.AddText(k, " ", v)
+    -- end
+end)
