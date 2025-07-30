@@ -453,6 +453,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	if ent:IsNPC() then 
 		if ent.hitGroupScale then 
 			damage = damage * ent.hitGroupScale
+			ent.hitGroupScale = 1
 		end
 	end
 

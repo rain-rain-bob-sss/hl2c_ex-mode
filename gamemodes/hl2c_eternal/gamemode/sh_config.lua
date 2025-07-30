@@ -382,7 +382,7 @@ GM.PerksData = {
 	["bleed_for_8_seconds"] = {
 		Name = "Bleed for 8 seconds",
 		Description = "Does nothing.",
-		DescriptionEndless = "1.25x Damage dealt.\nNPC will bleed for 8 seconds(stackable,max:3) if you damage them.",
+		DescriptionEndless = "1.25x Damage dealt.\nNPC will bleed for 8 seconds(stackable,max:5) if you damage them.",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 2
@@ -545,7 +545,21 @@ GM.UpgradesEternity = {
 		Description = "+%s%% damage resistance per upgrade (Multiplicative. Past 10x the effect gets softcapped.)",
 		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
 		EffectValue = function(ply, amt)
-			local val = 1.1^(amt or 0)
+			local val = 1.1^amt
+			if val > 10 then
+				val = val / math.max(1, (val/10)^0.25)
+			end
+
+			return val
+		end,
+	},
+
+	["difficultygain_upgrader"] = {
+		Name = "Difficulty Gain Upgrader",
+		Description = "+%s%% difficulty gain (Softcaps after 10x)",
+		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
+		EffectValue = function(ply, amt)
+			local val = 1 + 0.1*amt
 			if val > 10 then
 				val = val / math.max(1, (val/10)^0.25)
 			end
