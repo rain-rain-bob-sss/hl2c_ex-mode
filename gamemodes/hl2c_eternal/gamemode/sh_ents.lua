@@ -37,6 +37,18 @@ function meta:SetHealth(value)
 	self:Inf_SetHealth(value)
 end
 
+function meta:InputSetHealth(iNewHealth)
+	local iDelta = abs(self:Health() - iNewHealth)
+	if iNewHealth > self:Health() then 
+		self:SetHealth(iNewHealth)
+	elseif iNewHealth < self:Health() then 
+		local armor = self:Armor()
+		self:SetArmor(0)
+		self:TakeDamage(iDelta,self,self)
+		self:SetArmor(armor)
+	end
+end
+
 meta.OldGetMaxHealthEX = meta.OldGetMaxHealthEX or meta.GetMaxHealth
 function meta:Inf_GetMaxHealth()
 	return math.ceil(tonumber(self:GetDTString(DT_FLOAT_ENT_MAXHEALTH)) or 0)

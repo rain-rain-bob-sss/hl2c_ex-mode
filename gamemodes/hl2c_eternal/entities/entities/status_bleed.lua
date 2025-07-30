@@ -20,14 +20,19 @@ end
 
 function ENT:Think()
     if SERVER then 
-        local remove = (self:GetParent().Alive and not self:GetParent():Alive())
+        local remove = not IsValid(self:GetParent()) or (self:GetParent().Alive and not self:GetParent():Alive())
         if self.RemoveTime ~= 0 or remove then 
             if (self.RemoveTime < CurTime()) or remove then SafeRemoveEntity(self) return end 
         end
         if self.NextBleedTick < CurTime() then
             local victim = self:GetParent()
             victim.bleeddamage = true
-            victim:TakeDamage(4,self:GetOwner(),self)
+            local dmg = DamageInfo()
+            dmg:SetDamage(4)
+            dmg:SetDamageType(self.DamageType or DMG_DIRECT)
+            dmg:SetAttacker(self:GetOwner())
+            dmg:SetInflictor(self)
+            victim:TakeDamageInfo(dmg)
             victim.bleeddamage = false
             self.NextBleedTick = CurTime() + 0.5
         end

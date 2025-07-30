@@ -217,6 +217,10 @@ function meta:GetMaxDamageMul(dmgInfo, ent)
 		damagemul = damagemul * 2
 	end
 
+	if attacker:HasPerkActive("bleed_for_8_seconds") then 
+		damagemul = damagemul * 1.25
+	end
+
 	return damagemul
 end
 
@@ -253,6 +257,10 @@ function meta:GetMinDamageMul(dmgInfo, ent)
 
 	if attacker:HasPerkActive("last_stand") and attacker:LastStand() then 
 		damagemul = damagemul *2
+	end
+
+	if attacker:HasPerkActive("bleed_for_8_seconds") then 
+		damagemul = damagemul * 1.25
 	end
 
 	return damagemul
