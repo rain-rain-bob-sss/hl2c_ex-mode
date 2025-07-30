@@ -20,6 +20,7 @@ if (SERVER) then
         if ent:GetInternalVariable("m_takedamage") <= 0 then return end 
         if dmg == 0 then return end
         --if ent.Alive and not ent:Alive() then return end --? ? ?
+		if ent:GetMaxHealth() <= 0 then return end
         if pos == vector_origin then 
             pos = ent:NearestPoint(ply:EyePos()) 
         end

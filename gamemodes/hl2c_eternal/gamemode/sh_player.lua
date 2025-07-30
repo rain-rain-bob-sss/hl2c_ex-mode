@@ -150,7 +150,7 @@ function meta:GetEternityUpgradeEffectValue(upg, forcevalue)
 
 
 
-	local amt = math.max(0, forcevalue or self.EternityUpgradeValues[upg])
+	local amt = math.max(0, forcevalue or self.EternityUpgradeValues[upg] or 0)
 	if isfunction(upgrade.EffectValue) then
 		return upgrade.EffectValue(self, amt)
 	end
@@ -168,7 +168,7 @@ function meta:GetEternityUpgradeCost(upg, forcevalue)
 	local upgrade = GAMEMODE.UpgradesEternity[upg]
 	if not upgrade then return end
 
-	local amt = math.max(0, forcevalue or self.EternityUpgradeValues[upg])
+	local amt = math.max(0, forcevalue or self.EternityUpgradeValues[upg] or 0)
 	local cost = upgrade.Cost
 
 	if isfunction(cost) then

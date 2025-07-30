@@ -41,6 +41,7 @@ local zvel = CreateClientConVar("hl2ce_dmgnum_startzvel", "0.4", true, true, "Da
 local svel = CreateClientConVar("hl2ce_dmgnum_startvel", "1", true, true, "Damage number's start vel scale", 0.2, 10)
 local lifetime = CreateClientConVar("hl2ce_dmgnum_lifetime", "1", true, true, "Damage number's life time", 0.3, 8)
 local norotateang = CreateClientConVar("hl2ce_dmgnum_norotateang", "1", true, true, "Disable damage number rotating", 0, 1)
+local _2d = CreateClientConVar("hl2ce_dmgnum_2d", "1", true, true, "2D Damage number", 0, 1)
 surface.CreateFont("dmgnum_hl2ce", {
     font = "HalfLife2", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
     extended = false,
@@ -56,6 +57,23 @@ surface.CreateFont("dmgnum_hl2ce", {
     additive = false,
     outline = true,
 })
+
+surface.CreateFont("dmgnum_hl2ce2d", {
+    font = "HalfLife2", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+    extended = false,
+    size = 50,
+    weight = 0,
+    antialias = true,
+    underline = false,
+    italic = false,
+    strikeout = false,
+    symbol = false,
+    rotary = false,
+    shadow = false,
+    additive = false,
+    outline = true,
+})
+
 
 local c = 0
 hook.Add("PostDrawTranslucentRenderables", "DrawDmgNumsHl2CE", function(_, _, sky)
@@ -83,9 +101,15 @@ hook.Add("PostDrawTranslucentRenderables", "DrawDmgNumsHl2CE", function(_, _, sk
             local glowa = math.Clamp(dieon - 1.2 - ct, 0, 1) * 255
             local col = v.Color
             local function drawtext()
-                cam.Start3D2D(v:GetPos(), ang, .05 * scale:GetFloat())
-                draw.SimpleText(v.dmg, "dmgnum_hl2ce" .. (isnumber(v.dmg) and "" or "text"), 0, 0, ColorAlpha(col, alpha), tc, tt)
-                cam.End3D2D()
+                if _2d:GetBool() then
+                    cam.Start3D2D(v:GetPos(), ang, math.max(0.05 * scale:GetFloat(),scale:GetFloat() * (v:GetPos():Distance(EyePos()) / 500) * 0.2))
+                    draw.SimpleText(v.dmg, "dmgnum_hl2ce" .. (isnumber(v.dmg) and "" or "text"), 0, 0, ColorAlpha(col, alpha), tc, tt)
+                    cam.End3D2D()
+                else
+                    cam.Start3D2D(v:GetPos(), ang, .05 * scale:GetFloat())
+                    draw.SimpleText(v.dmg, "dmgnum_hl2ce" .. (isnumber(v.dmg) and "" or "text"), 0, 0, ColorAlpha(col, alpha), tc, tt)
+                    cam.End3D2D()
+                end
             end
 
             drawtext()
