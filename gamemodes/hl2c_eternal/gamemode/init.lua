@@ -970,7 +970,7 @@ function GM:OnNPCKilled(npc, killer, weapon)
 				end
 			end
 			killer:GiveXP(NPC_XP_VALUES[npcclass] * xpmul)
-			self:SetDifficulty(nonmoddiff + xp*0.0005*npckilldiffgainmul)
+			self:SetDifficulty(nonmoddiff + xp*0.0005*npckilldiffgainmul*killer:GetEternityUpgradeEffectValue("difficultygain_upgrader"))
 		end
 
 		if NPC_MONEYS_VALUES[npcclass] then
@@ -1433,20 +1433,8 @@ function GM:PlayerSpawn(ply)
 	ply.UnoReverseTimesActivated = 0
 
 	-- Set stuff from last level
-	local maxhp = 100 + ((self.EndlessMode and 5 or 1) * ply:GetSkillAmount("Vitality")) -- calculate their max health
+	local maxhp = ply:GetOriginalMaxHealth()
 	local maxap = 100 -- calculate their max armor
-	if ply:HasPerkActive("healthboost_1") then
-		maxhp = maxhp + (self.EndlessMode and 85 or 15)
-	end
-	if self.EndlessMode then
-		if ply:HasPerkActive("healthboost_2") then
-			maxhp = maxhp + 450
-		end
-		if ply:HasPerkActive("celestial_3") then
-			maxhp = maxhp + 320
-		end
-	end
-	maxhp = math.min(1e9, maxhp)
 
 	if ply:HasPerkActive("super_armor_1") then
 		maxap = maxap + (self.EndlessMode and 30 or 5)
@@ -1924,6 +1912,9 @@ function GM:AcceptInput(ent, input, activator, caller, value)
 		if value == "0" and (ent:IsPlayer() or ent:IsNPC()) then
 			ent:SetHealth(0)
 			ent:TakeDamage(0)
+		elseif value == "100" and ent:IsPlayer() then -- fucking instakill on trigger
+			ent:SetHealth(ent:GetMaxHealth())
+			return true
 		end
 	end
 end
