@@ -567,7 +567,7 @@ function GM:ShowSkills()
 				Derma_StringRequest("Enter desired SP to apply on a skill", "", 1, function(str)
 					net.Start("UpgradePerk")
 					net.WriteString(k)
-					net.WriteUInt(input.IsShiftDown() and 1e6 or 1, 32)
+					net.WriteUInt(tonumber(str) or 1,32)
 					net.SendToServer()
 				end, nil, "Apply", "Cancel")
 			end

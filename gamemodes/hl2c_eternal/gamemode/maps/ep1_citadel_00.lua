@@ -39,9 +39,11 @@ function hl2cAcceptInput(ent, input)
     end
 
     if ent:GetName() == "relay_givegravgun_1" and string.lower(input) == "trigger" then
-        for _,ply in pairs(player.GetAll()) do
-            ply:Give("weapon_physcannon")
-        end
+        timer.Simple(0.1,function()
+            for _,ply in pairs(player.GetAll()) do
+                ply:Give("weapon_physcannon")
+            end
+        end)
     end
 
     if ent:GetName() == "maker_template_gravgun" and string.lower(input) == "setparent" and not shouldnotfreeze then

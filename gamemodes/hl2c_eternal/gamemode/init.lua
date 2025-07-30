@@ -78,15 +78,29 @@ for _, playerModel in pairs(PLAYER_MODELS) do
 
 end
 
+local function DbgEntTS(ent)
+    return string.format("[%s][%s] %s",ent:EntIndex(),ent:GetName(),ent:GetClass())
+end
+
+function DbgEntInput(ent,input,acti,caller,value)
+	MsgC(Color(0,255,0),DbgEntTS(ent),":",input,Color(255,255,255)," by ",Color(255,255,0),acti,":",caller," value:",value,"\n")
+end
+
+hook.Add("AcceptInput","hl2ce debug",function(ent,input,acti,caller,value)
+	if not DEBUG_HL2CE then return end
+    DbgEntInput(ent,input,acti,caller,value)
+end)
+
+
 
 -- Called when the player attempts to suicide
 function GM:CanPlayerSuicide(ply)
 	if ply:Team() == TEAM_COMPLETED_MAP then
-	
+
 		ply:ChatPrint("You cannot suicide once you've completed the map.")
 		return false
 	elseif ply:Team() == TEAM_DEAD then
-	
+
 		ply:ChatPrint("This may come as a surprise, but you are already dead.")
 		return false
 	end
@@ -98,7 +112,7 @@ function GM:CanPlayerSuicide(ply)
 	end
 */
 	return true
-end 
+end
 
 
 -- Creates a spawn point
@@ -129,12 +143,13 @@ end
 function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 
 	ply.deathPos = ply:EyePos()
+	ply.GravGunGrab = NULL
 
 	-- Add to deadPlayers table to prevent respawning on re-connect
 	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && !table.HasValue(deadPlayers, ply:SteamID())) then
 		table.insert(deadPlayers, ply:SteamID())
 	end
-	
+
 	ply:RemoveVehicle()
 	if (ply:FlashlightIsOn()) then ply:Flashlight(false); end
 	ply:CreateRagdoll()
@@ -154,7 +169,7 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 	if attacker:IsNPC() then
 		ply:PrintMessage(3, "Died by "..Format("#%s", attacker:GetClass()))
 	end
-	
+
 	local diff = self:GetDifficulty(true, true)
 	self:SetDifficulty(math.max(1, diff * (
 		diff >= 1000 and 0.957 or diff >= 100 and 0.962 or
@@ -177,20 +192,20 @@ function GM:PlayerDeathThink(ply)
 	if (ply.NextSpawnTime && (ply.NextSpawnTime > CurTime())) then return; end
 
 	if ((ply:GetObserverMode() != OBS_MODE_ROAMING) && (ply:IsBot() || ply:KeyPressed(IN_ATTACK) || ply:KeyPressed(IN_ATTACK2) || ply:KeyPressed(IN_JUMP))) then
-	
+
 		if ((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) then
-		
+
 			ply:Spectate(OBS_MODE_ROAMING)
 			ply:SetPos(ply.deathPos)
 			ply:SetNoTarget(true)
-		
+
 		else
-		
+
 			ply:SetTeam(TEAM_ALIVE)
 			ply:Spawn()
-		
+
 		end
-	
+
 	end
 
 end
@@ -201,14 +216,14 @@ function GM:OnEntityCreated(ent)
 
 	-- NPC Lag Compensation
 	if (hl2c_server_lag_compensation:GetBool() && ent:IsNPC() && !table.HasValue(NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass())) then
-	
+
 		ent:SetLagCompensated(true)
-	
+
 	end
 
 	-- Vehicle Passenger Seating
 	if (hl2c_server_jeep_passenger_seat:GetBool() && !GetConVar("hl2_episodic"):GetBool() && ent:IsVehicle() && string.find(ent:GetClass(), "prop_vehicle_jeep")) then
-	
+
 		ent.passengerSeat = ents.Create("prop_vehicle_prisoner_pod")
 		ent.passengerSeat:SetPos(ent:LocalToWorld(Vector(21, -32, 18)))
 		ent.passengerSeat:SetAngles(ent:LocalToWorldAngles(Angle(0, -3.5, 0)))
@@ -218,7 +233,7 @@ function GM:OnEntityCreated(ent)
 		ent.passengerSeat:Spawn()
 		ent.passengerSeat:Activate()
 		ent.passengerSeat.allowWeapons = true
-	
+
 	end
 
 	if ent:IsNPC() and not ent:IsFriendlyNPC() and not table.HasValue(GODLIKE_NPCS, ent:GetClass()) then
@@ -245,19 +260,56 @@ end
 function GM:EntityKeyValue(ent, key, value)
 
 	if ((ent:GetClass() == "trigger_changelevel") && (key == "map")) then
-	
+
 		ent.map = value
-	
+
 	end
 
 	if ((ent:GetClass() == "npc_combine_s") && (key == "additionalequipment") && (value == "weapon_shotgun")) then
-	
+
 		ent:SetSkin(1)
-	
+
 	end
 
 end
 
+local NpcsSecondWeapon={
+	npc_metropolice=function(ent,oldwep)
+		local wep="weapon_stunstick"
+		if oldwep:GetClass()=="weapon_smg1" or oldwep:GetClass()=="weapon_shotgun" then
+			wep="weapon_pistol"
+		end
+		if oldwep:GetClass()=="weapon_stunstick" then
+			wep="invis stunstick"
+		end
+		timer.Simple(0.5,function()
+			if IsValid(ent) and ent:Health()>0 and wep then
+				ent:Give(wep=="invis stunstick" and "weapon_stunstick" or wep)
+				if wep=="invis stunstick" and IsValid(ent:GetWeapon("weapon_stunstick")) then
+					local wepent=ent:GetWeapon("weapon_stunstick")
+					wepent:SetNoDraw(true) wepent:SetNotSolid(true)
+					ent:DeleteOnRemove(wepent)
+				end
+			end
+		end)
+	end,
+	npc_combine_s=function(ent,oldwep)
+		local wep="weapon_smg1"
+		if oldwep:GetClass()=="weapon_smg1" then
+			wep=nil
+		end
+		timer.Simple(0.5,function()
+			if IsValid(ent) and ent:Health()>0 and wep then
+				ent:Give(wep)
+			end
+		end)
+	end,
+}
+
+local StunstickDamageMul={
+	npc_manhack=5,
+	npc_cscanner=5
+}
 
 -- Called when an entity has received damage
 function GM:EntityTakeDamage(ent, dmgInfo)
@@ -267,12 +319,12 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	local dmgdirect = bit.band(DMG_DIRECT, dmgInfo:GetDamageType()) ~= 0
 
 	-- Godlike NPCs take no damage ever
-	if (IsValid(ent) && table.HasValue(GODLIKE_NPCS, ent:GetClass())) and not MAP_FORCE_NO_FRIENDLIES then
+	if (IsValid(ent) && ent:IsGodlikeNPC()) then
 		return true
 	end
 
 	-- NPCs cannot be damaged by friends
-	if (IsValid(ent) && ent:IsNPC() && (ent:GetClass() != "npc_turret_ground") && IsValid(attacker) && (ent:Disposition(attacker) == D_LI)) and not MAP_FORCE_NO_FRIENDLIES then
+	if (IsValid(ent) && ent:IsNPC() && (ent:GetClass() != "npc_turret_ground") && IsValid(attacker) && (ent:Disposition(attacker) == D_LI)) and not MAP_FORCE_NO_FRIENDLIES and not ent.AllowFriendlyFire then
 		return true
 	end
 
@@ -286,9 +338,29 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Crowbar and Stunstick should follow skill level
 	if (IsValid(ent) && IsValid(attacker) && attacker:IsPlayer()) then
 		if (IsValid(attacker:GetActiveWeapon()) && ((attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB))) then
-			damage = GetConVar("sk_plr_dmg_crowbar"):GetFloat()
+			--damage = GetConVar("sk_plr_dmg_crowbar"):GetFloat()
+			damage = 25
 		elseif IsValid(attacker:GetActiveWeapon()) && attacker:GetActiveWeapon():GetClass() == "weapon_stunstick" && dmgInfo:GetDamageType() == DMG_CLUB then
-			damage = GetConVar("sk_plr_dmg_stunstick"):GetFloat()
+			damage = GetConVar("sk_plr_dmg_stunstick"):GetFloat() * 1.6
+			dmgInfo:SetDamageType(DMG_CLUB+DMG_SHOCK)
+			if ent:IsNPC() and ((ent:Health()/ent:GetMaxHealth())<=0.75) and not ent:IsFriendlyNPC() then
+				local oldwep=ent:GetActiveWeapon()
+				ent:DropWeapon(nil,nil,attacker:GetAimVector()*20*dmgInfo:GetDamage())
+				if IsValid(oldwep) and NpcsSecondWeapon[ent:GetClass()] then
+					NpcsSecondWeapon[ent:GetClass()](ent,oldwep)
+				end
+			end
+			if ent:IsNPC() or IsValid(ent:GetPhysicsObject()) then
+				local stunstick=attacker:GetActiveWeapon()
+				timer.Simple(0,function()
+					if IsValid(stunstick) then
+						stunstick:SetNextPrimaryFire(CurTime()+0.45)
+					end
+				end)
+			end
+			if StunstickDamageMul[ent:GetClass()] then
+				damage=damage*StunstickDamageMul[ent:GetClass()]
+			end
 		end
 	end
 
@@ -367,6 +439,10 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			local heal = math.ceil(math.min(ent:Health(), damage)*0.2)
 			attacker:SetHealth(math.min(attacker:Health() + heal, attacker:GetMaxHealth()))
 		end
+
+		if attacker:HasPerkActive("bleed_for_8_seconds") and not ent.bleeddamage then 
+			ent:GiveBleed(attacker,8)
+		end
 	end
 
 
@@ -374,10 +450,16 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		damage = damage * math.min(self:GetDifficulty()^0.3, 100000)
 	end
 
+	if ent:IsNPC() then 
+		if ent.hitGroupScale then 
+			damage = damage * ent.hitGroupScale
+		end
+	end
+
 	dmgInfo:SetDamage(damage)
 
 	if self.EXMode and attacker:GetClass() == "npc_sniper" and attacker.VariantType == 1 then
-		PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
+		--PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
 	end
 
 	local cantakedamage = ent:IsValid() and ent:IsPlayer() and not (ent:HasGodMode() or not gamemode.Call("PlayerShouldTakeDamage", ent, attacker)) or ent:IsValid() and !ent:IsPlayer()
@@ -386,20 +468,36 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			if damage < ent:Inf_Health() then
 				dmgInfo:SetDamage(math.min(damage, 2e9-1))
 			end
-			print(ent:Inf_Health(), math.log10(damage))
+			--print(ent:Inf_Health(), math.log10(damage))
 		end
 		ent:Inf_SetHealth(ent:Inf_Health() - damage)
 	else return true
 	end
 end
 
+function GM:EntityFireBullets(ent, data)
+	local ocallback = data.Callback or function() return true,true end
+	function data.Callback(attacker,tr,dmginfo,...)
+		dmginfo:SetDamagePosition(tr.HitPos)
+		return ocallback(attacker,tr,dmginfo,...)
+	end
+	return true
+end
+
 function GM:PostEntityTakeDamage(ent, dmginfo, wasdamagetaken)
-	local tookdamage = ent:IsPlayer() and not ent:HasGodMode() and wasdamagetaken or not ent:IsPlayer() and wasdamagetaken
+	local tookdamage = (ent:IsPlayer() and not ent:HasGodMode() and wasdamagetaken) or (not ent:IsPlayer() and wasdamagetaken)
 	if tookdamage then
 		if ent:Inf_Health() > 2e9 then
 			ent:OldSetHealthEX(2.1e9)
 		end
 		ent:Inf_SetHealth(math.max(ent:OldHealthEX(), ent:Inf_Health()))
+	end
+
+	if tookdamage then
+		local att = dmginfo:GetAttacker()
+		if att:IsPlayer() then 
+			self:SendDamageNumber(att,dmginfo:GetDamage(),dmginfo:GetDamagePosition(),ent,nil,dmginfo:GetDamageType())
+		end
 	end
 end
 
@@ -424,7 +522,7 @@ function GM:GrabAndSwitch()
 	for _, ply in pairs(player.GetAll()) do
 		local plyInfo = {}
 		local plyWeapons = ply:GetWeapons()
-	
+
 		plyInfo.predicted_map = NEXT_MAP
 		plyInfo.health = ply:Health()
 		plyInfo.armor = ply:Armor()
@@ -445,7 +543,7 @@ function GM:GrabAndSwitch()
 			end
 		end
 		plyInfo.EternityUpgradeValues = ply.EternityUpgradeValues
-	
+
 		local plyID = ply:SteamID64() || ply:UniqueID()
 		file.Write(self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON(plyInfo))
 		self:SavePlayer(ply)
@@ -461,7 +559,7 @@ function GM:ShutDown()
 	self:SaveServerData()
 end
 
--- Called immediately after starting the gamemode  
+-- Called immediately after starting the gamemode
 function GM:Initialize()
 	-- Variables and stuff
 	deadPlayers = {}
@@ -473,7 +571,7 @@ function GM:Initialize()
 	self.XP_REWARD_ON_MAP_COMPLETION = self.XP_REWARD_ON_MAP_COMPLETION or 1 -- because it would call true if it was false, we use other values
 	self:SetDifficulty(1)
 	self.EXMode = GetConVar("hl2ce_server_ex_mode_enabled"):GetBool()
-	
+
 	-- Network strings
 	util.AddNetworkString("SetCheckpointPosition")
 	util.AddNetworkString("NextMap")
@@ -483,7 +581,7 @@ function GM:Initialize()
 	util.AddNetworkString("ShowTeam")
 	util.AddNetworkString("UpdatePlayerModel")
 	util.AddNetworkString("ObjectiveTimer")
-	
+
 	util.AddNetworkString("XPGain")
 	util.AddNetworkString("UpdateSkills")
 	util.AddNetworkString("UpgradePerk")
@@ -496,7 +594,9 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_updateperks")
 	util.AddNetworkString("hl2ce_buyupgrade")
 	util.AddNetworkString("hl2ce_updateeternityupgrades")
-	
+
+	util.AddNetworkString("hl2ce_finishedmap")
+
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
 	game.ConsoleCommand("ai_ignoreplayers 0\n")
@@ -511,24 +611,24 @@ function GM:Initialize()
 	game.ConsoleCommand("physcannon_tracelength 250\n")
 	game.ConsoleCommand("physcannon_maxmass 250\n")
 	game.ConsoleCommand("physcannon_pullforce 4000\n")
-	
+
 	-- Episodic
 	if string.find(game.GetMap(), "ep1_") || string.find(game.GetMap(), "ep2_") then
 		game.ConsoleCommand("hl2_episodic 1\n")
 	else
 		game.ConsoleCommand("hl2_episodic 0\n")
 	end
-	
+
 	-- Force game rules such as aux power and max ammo
 	if hl2c_server_force_gamerules:GetBool() then
 		if !AUXPOW then game.ConsoleCommand("gmod_suit 1\n"); end
-		game.ConsoleCommand("gmod_maxammo 0\n")	
+		game.ConsoleCommand("gmod_maxammo 0\n")
 	end
 
 	-- Kill global states
 	-- Reasoning behind this is because changing levels would keep these known states and cause issues on other maps
 	hook.Call("KillAllGlobalStates", GAMEMODE)
-	
+
 	-- Jeep
 	local jeep = {
 		Name = "Jeep",
@@ -540,7 +640,7 @@ function GM:Initialize()
 		}
 	}
 	list.Set("Vehicles", "Jeep", jeep)
-	
+
 	-- Airboat
 	local airboat = {
 		Name = "Airboat Gun",
@@ -554,7 +654,7 @@ function GM:Initialize()
 		}
 	}
 	list.Set("Vehicles", "Airboat", airboat)
-	
+
 	-- Airboat w/gun
 	local airboatGun = {
 		Name = "Airboat Gun",
@@ -568,7 +668,7 @@ function GM:Initialize()
 		}
 	}
 	list.Set("Vehicles", "Airboat Gun", airboatGun)
-	
+
 	-- Jalopy
 	local jalopy = {
 		Name = "Jalopy",
@@ -583,7 +683,7 @@ function GM:Initialize()
 
 	self:AddResources()
 	self:LoadServerData()
-	
+
 	print(GAMEMODE.Name.." ("..GAMEMODE.Version..") gamemode loaded")
 end
 
@@ -634,12 +734,17 @@ function GM:PlayerCompletedCampaign(ply)
 		gamename = "Half-Life 2: Episode One"
 	elseif map == "ep2_outland_12a" then
 		gamename = "Half-Life 2: Episode Two"
+	elseif MAP_COMPLETE_GAME_NAME then
+		gamename = MAP_COMPLETE_GAME_NAME
 	end
 
 	local xp = (1 + math.max(0, 2-math.log10(ply:Frags()))*0.2)
 	if ply.MapStats.GainedXP then
-		xp = xp * ply.MapStats.GainedXP*0.15
+		xp = xp + ply.MapStats.GainedXP*0.5
 	end
+	xp = xp + math.max(500,math.min(20000,ply:Frags() * 200)) ^ 1.25 + 800
+	xp = xp * math.min(5,self:GetDifficulty() ^ 1.25)
+	ply:GiveXP(xp)
 	ply:PrintMessage(3, "Congratulations - you have completed "..gamename)
 	ply:PrintMessage(3, "You were awarded "..xp.." XP")
 end
@@ -650,13 +755,13 @@ local function MasterPlayerStartExists()
 
 	-- Returns true if conditions are met
 	for _, ips in pairs(ents.FindByClass("info_player_start")) do
-	
+
 		if (ips:HasSpawnFlags(1) || INFO_PLAYER_SPAWN) then
-		
+
 			return true
-		
+
 		end
-	
+
 	end
 
 	return false
@@ -671,11 +776,12 @@ function GM:OnReloaded()
 			self:NetworkString_UpdateSkills(ply)
 			self:NetworkString_UpdatePerks(ply)
 			self:NetworkString_UpdateEternityUpgrades(ply)
+			--ply:Kill()
 		end
 	end)
 end
 
--- Called as soon as all map entities have been spawned 
+-- Called as soon as all map entities have been spawned
 function GM:MapEntitiesSpawned()
 
 	-- Remove old spawn points
@@ -701,10 +807,10 @@ function GM:MapEntitiesSpawned()
 			tcp.pos = tcp.max - ((tcp.max - tcp.min) / 2)
 			tcp.skipSpawnpoint = tcpInfo[ 3 ]
 			tcp.OnTouchRun = tcpInfo[ 4 ]
-		
+
 			tcp:SetPos(tcp.pos)
 			tcp:Spawn()
-		
+
 			table.insert(checkpointPositions, tcp.pos)
 		end
 	end
@@ -779,6 +885,41 @@ concommand.Add("hl2ce_admin_respawn", function(ply)
 		end
 	end
 end)
+concommand.Add("hl2ce_admin_dissolve",function(ply)
+	if IsValid(ply) and not ply:IsAdmin() then return end
+	local this = ply:GetEyeTrace().Entity 
+	if not IsValid(this) then return end
+	this:Dissolve()
+	local dmg = DamageInfo()
+	dmg:SetDamage(100000)
+	dmg:SetDamageType(DMG_DISSOLVE)
+	dmg:SetInflictor(this)
+	dmg:SetAttacker(ply)
+	this:SetHealth(0)
+	this.AllowFriendlyFire = true
+	this:TakeDamageInfo(dmg)
+end)
+
+concommand.Add("+hl2ce_admin_dissolve",function(ply)
+	if IsValid(ply) and not ply:IsAdmin() then return end
+	local this = ply:GetEyeTrace().Entity 
+	ply.DissolveSelect = this
+end)
+
+concommand.Add("-hl2ce_admin_dissolve",function(ply)
+	if IsValid(ply) and not ply:IsAdmin() then return end
+	local this = ply.DissolveSelect
+	if not IsValid(this) then return end
+	this:Dissolve()
+	local dmg = DamageInfo()
+	dmg:SetDamage(100000)
+	dmg:SetDamageType(DMG_DISSOLVE)
+	dmg:SetInflictor(this)
+	dmg:SetAttacker(ply)
+	this:SetHealth(0)
+	this.AllowFriendlyFire = true
+	this:TakeDamageInfo(dmg)
+end)
 
 -- Called when an NPC dies
 function GM:OnNPCKilled(npc, killer, weapon)
@@ -798,7 +939,7 @@ function GM:OnNPCKilled(npc, killer, weapon)
 		local difficulty,nonmoddiff = self:GetDifficulty(), self:GetDifficulty(nil, true)
 		if NPC_XP_VALUES[npcclass] then
 			-- Too many local this is fine.
-			local xp = NPC_XP_VALUES[npcclass] 
+			local xp = NPC_XP_VALUES[npcclass]
 			local npckillxpmul,npckilldiffgainmul = self.XpGainOnNPCKillMul or 1, self.DifficultyGainOnNPCKillMul or 1
 			local npcxpmul = npc.XPGainMult or 1
 
@@ -849,42 +990,42 @@ function GM:OnNPCKilled(npc, killer, weapon)
 
 	-- If the NPC is godlike and they die
 	if (IsValid(npc)) then
-	
+
 		if npc:IsGodlikeNPC() then
-		
+
 			if (IsValid(killer) && killer:IsPlayer()) then game.KickID(killer:UserID(), "You killed an important NPC actor!"); end
 			PrintMessage(HUD_PRINTTALK, "Important NPC actor died!")
 			gamemode.Call("RestartMap")
-		
+
 		end
-	
+
 	end
 
 	-- Convert the inflictor to the weapon that they're holding if we can
 	if (IsValid(weapon) && (killer == weapon) && (weapon:IsPlayer() || weapon:IsNPC())) then
-	
-		weapon = weapon:GetActiveWeapon() 
-		if (!IsValid(killer)) then weapon = killer; end 
-	
-	end 
+
+		weapon = weapon:GetActiveWeapon()
+		if (!IsValid(killer)) then weapon = killer; end
+
+	end
 
 	-- Defaults
-	local weaponClass = "World" 
-	local killerClass = "World" 
+	local weaponClass = "World"
+	local killerClass = "World"
 
 	-- Change to actual values if not default
-	if (IsValid(weapon)) then weaponClass = weapon:GetClass(); end 
-	if (IsValid(killer)) then killerClass = killer:GetClass(); end 
+	if (IsValid(weapon)) then weaponClass = weapon:GetClass(); end
+	if (IsValid(killer)) then killerClass = killer:GetClass(); end
 
 	-- Send a message
 	if (IsValid(killer) && killer:IsPlayer()) then
-	
+
 		net.Start("PlayerKilledNPC")
 		net.WriteString(npc:GetClass())
 		net.WriteString(weaponClass)
 		net.WriteEntity(killer)
 		net.Broadcast()
-	
+
 	end
 end
 
@@ -931,6 +1072,7 @@ function GM:PlayerCanPickupItem(ply, item)
 	end
 	local class = item:GetClass()
 	if class == "item_healthkit" then
+		if not ply:HasWeapon("weapon_hl2ce_medkit") then ply:Give("weapon_hl2ce_medkit") end
 		if ply:HasPerkActive("medkit_enhancer_3") then
 			if ply:Health() < ply:GetMaxHealth() then
 				timer.Simple(0, function() -- using a timer bcoz directly trying to set health while calling the hook won't really work much well
@@ -965,7 +1107,7 @@ function GM:PlayerDisconnected(ply)
 end
 
 
--- Called just before the player's first spawn 
+-- Called just before the player's first spawn
 function GM:PlayerInitialSpawn(ply)
 	ply.startTime = CurTime()
 	ply:SetTeam(TEAM_ALIVE)
@@ -1046,7 +1188,7 @@ function GM:PlayerInitialSpawn(ply)
 	-- net.Start("ObjectiveTimer")
 	-- net.WriteFloat(self.ObjectiveTimer or 0)
 	-- net.Broadcast()
-	
+
 
 	-- Send initial player spawn to client
 	net.Start("PlayerInitialSpawn")
@@ -1076,7 +1218,7 @@ function GM:PlayerInitialSpawn(ply)
     	end)
     	print("force restart in 1 sec")
 	end
-end 
+end
 
 function GM:PlayerReady(ply)
 	self:NetworkString_UpdateStats(ply)
@@ -1093,56 +1235,60 @@ end
 function GM:PlayerLoadout(ply)
 
 	if (ply.info && ply.info.loadout) then
-	
+
 		for wep, ammo in pairs(ply.info.loadout) do
-		
+
 			ply:Give(wep)
-		
+
 		end
-	
+
 		if (ply.info.weapon) then
-		
+
 			ply:SelectWeapon(ply.info.weapon)
-		
+
 		end
-	
+
 		ply:RemoveAllAmmo()
-	
+
 		for _, wep in pairs(ply:GetWeapons()) do
-		
+
 			local wepClass = wep:GetClass()
-		
+
 			if (ply.info.loadout[ wepClass ]) then
-			
+
 				wep:SetClip1(tonumber(ply.info.loadout[ wepClass ][ 1 ]))
 				wep:SetClip2(tonumber(ply.info.loadout[ wepClass ][ 2 ]))
 				ply:GiveAmmo(tonumber(ply.info.loadout[ wepClass ][ 3 ]), wep:GetPrimaryAmmoType())
 				ply:GiveAmmo(tonumber(ply.info.loadout[ wepClass ][ 4 ]), wep:GetSecondaryAmmoType())
-			
+
 			end
-		
+
 		end
-	
+
 	elseif (startingWeapons && (#startingWeapons > 0)) then
-	
+
 		for _, wep in pairs(startingWeapons) do
 			if wep[WHITELISTED_WEAPONS] then
 				ply:Give(wep)
 			end
-		
+
 		end
-	
+
 	end
 
-	-- if ply:IsSuitEquipped() then
-		-- ply:Give("weapon_hl2ce_medkit")
-	-- end
+	if ply:IsSuitEquipped() and not MAP_NO_MEDKIT then
+		ply:Give("weapon_hl2ce_medkit").CanUseInCitadel = true
+	end
+
+	if ply:HasWeapon("weapon_crowbar") and not MAP_NO_STUNSTICK and game.GetMap()~="d1_canals_01" then
+		ply:Give("weapon_stunstick")
+	end
 
 	-- Lastly give physgun to admins
 	if (hl2c_admin_physgun:GetBool() && ply:IsAdmin()) then
-	
+
 		ply:Give("weapon_physgun")
-	
+
 	end
 
 	hook.Call("PostPlayerLoadout", GAMEMODE, ply)
@@ -1173,10 +1319,10 @@ end
 function hl2cPlayerSelectSpawn(ply)
 
 	if (MasterPlayerStartExists()) then
-	
+
 		local spawnPoints = ents.FindByClass("info_player_start")
 		return spawnPoints[ #spawnPoints ]
-	
+
 	end
 
 end
@@ -1188,37 +1334,37 @@ function GM:PlayerSetModel(ply)
 
 	-- Stores the model as a variable part of the player
 	if (!hl2c_server_custom_playermodels:GetBool() && ply.info && ply.info.model) then
-	
+
 		ply.modelName = ply.info.model
-	
+
 	else
-	
+
 		local modelName = player_manager.TranslatePlayerModel(ply:GetInfo("cl_playermodel"))
-	
+
 		if (hl2c_server_custom_playermodels:GetBool() || (modelName && table.HasValue(PLAYER_MODELS, string.lower(modelName)))) then
-		
+
 			ply.modelName = modelName
-		
+
 		else
-		
+
 			ply.modelName = table.Random(PLAYER_MODELS)
-		
+
 		end
-	
+
 	end
 
 	if (!hl2c_server_custom_playermodels:GetBool()) then
-	
+
 		if (ply:IsSuitEquipped()) then
-		
+
 			ply.modelName = string.gsub(string.lower(ply.modelName), "group01", "group03")
-		
+
 		else
-		
+
 			ply.modelName = string.gsub(string.lower(ply.modelName), "group03", "group01")
-		
+
 		end
-	
+
 	end
 
 	-- Precache and set the model
@@ -1228,20 +1374,20 @@ function GM:PlayerSetModel(ply)
 
 	-- Skin, modelgroups and player color are primarily a custom playermodel thing
 	if (hl2c_server_custom_playermodels:GetBool()) then
-	
+
 		ply:SetSkin(ply:GetInfoNum("cl_playerskin", 0))
-	
+
 		ply.modelGroups = ply:GetInfo("cl_playerbodygroups")
 		if (ply.modelGroups == nil) then ply.modelGroups = "" end
 		ply.modelGroups = string.Explode(" ", ply.modelGroups)
 		for k = 0, (ply:GetNumBodyGroups() - 1) do
-		
+
 			ply:SetBodygroup(k, (tonumber(ply.modelGroups[ k + 1 ]) || 0))
-		
+
 		end
-	
+
 		ply:SetPlayerColor(Vector(ply:GetInfo("cl_playercolor")))
-	
+
 	end
 
 	-- A hook for those who want to call something after the player model is set
@@ -1250,22 +1396,23 @@ function GM:PlayerSetModel(ply)
 end
 
 
--- Called when a player spawns 
+-- Called when a player spawns
 function GM:PlayerSpawn(ply)
 	player_manager.SetPlayerClass(ply, "player_hl2ce")
 
 	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (ply:Team() == TEAM_DEAD)) then
-	
+
 		ply:Spectate(OBS_MODE_ROAMING)
 		ply:SetPos(ply.deathPos)
 		ply:SetNoTarget(true)
-	
+
 		return
-	
+
 	end
 
 	-- If we made it this far we might might not even be dead
 	ply:SetTeam(TEAM_ALIVE)
+	ply.GravGunGrab = NULL
 
 	-- Player vars
 	ply.givenWeapons = {}
@@ -1318,15 +1465,15 @@ function GM:PlayerSpawn(ply)
 		if ply.info.health > 0 then
 			ply:SetHealth(ply.info.health)
 		end
-	
+
 		if ply.info.armor > 0 then
 			ply:SetArmor(ply.info.armor)
 		end
 
 		if ply.info.Stats then
-			
+
 		end
-	
+
 		ply:SetFrags(ply.info.score)
 		ply:SetDeaths(ply.info.deaths)
 
@@ -1348,7 +1495,7 @@ function GM:PlayerSpawn(ply)
 	if table.HasValue(deadPlayers, ply:SteamID()) then
 		ply:PrintMessage(HUD_PRINTTALK, "You cannot respawn now.")
 		ply.deathPos = ply:EyePos()
-	
+
 		ply:RemoveVehicle()
 		ply:Flashlight(false)
 		ply:SetTeam(TEAM_DEAD)
@@ -1377,9 +1524,9 @@ end
 function GM:PlayerUse(ply, ent)
 
 	if ((ent:GetName() == "telescope_button") || (ply:Team() != TEAM_ALIVE)) then
-	
+
 		return false
-	
+
 	end
 
 	return true
@@ -1465,8 +1612,12 @@ end
 function GM:ScaleNPCDamage(npc, hitGroup, dmgInfo)
 	local attacker = dmgInfo:GetAttacker()
 	-- Where are we hitting?
+	local hitGroupScale = 1
 	if (hitGroup == HITGROUP_HEAD) then
 		hitGroupScale = GetConVarNumber("sk_npc_head")
+		if IsValid(attacker) and attacker:IsPlayer() then 
+			hitGroupScale = hitGroupScale * (1 + attacker:GetSkillAmount("HeadShotMul") * (GAMEMODE.EndlessMode and 0.075 or 0.5))
+		end
 	elseif (hitGroup == HITGROUP_CHEST) then
 		hitGroupScale = GetConVarNumber("sk_npc_chest")
 	elseif (hitGroup == HITGROUP_STOMACH) then
@@ -1479,20 +1630,24 @@ function GM:ScaleNPCDamage(npc, hitGroup, dmgInfo)
 		hitGroupScale = 1
 	end
 
+	npc.lastHitGroup = hitGroup
+	npc.hitGroupScale = hitGroupScale
+
 	-- Calculate the damage
 end
 
 
--- Scale the damage based on being shot in a hitbox 
+-- Scale the damage based on being shot in a hitbox
 function GM:ScalePlayerDamage(ply, hitGroup, dmgInfo)
 
 	-- Where are we even hitting?
+	local hitGroupScale = 1
 	if (hitGroup == HITGROUP_HEAD) then
-		hitGroupScale = GetConVarNumber("sk_player_head")
+		hitGroupScale = 1--GetConVarNumber("sk_player_head")
 	elseif (hitGroup == HITGROUP_CHEST) then
-		hitGroupScale = GetConVarNumber("sk_player_chest")
+		hitGroupScale = 1--GetConVarNumber("sk_player_chest")
 	elseif (hitGroup == HITGROUP_STOMACH) then
-		hitGroupScale = GetConVarNumber("sk_player_stomach")
+		hitGroupScale = 1--GetConVarNumber("sk_player_stomach")
 	elseif ((hitGroup == HITGROUP_LEFTARM) || (hitGroup == HITGROUP_RIGHTARM)) then
 		hitGroupScale = GetConVarNumber("sk_player_arm")
 	elseif ((hitGroup == HITGROUP_LEFTLEG) || (hitGroup == HITGROUP_RIGHTLEG)) then
@@ -1501,8 +1656,10 @@ function GM:ScalePlayerDamage(ply, hitGroup, dmgInfo)
 		hitGroupScale = 1
 	end
 
+	dmgInfo:ScaleDamage(hitGroupScale)
+
 	-- Calculate the damage
-end 
+end
 
 
 -- Called when player presses their help key
@@ -1544,14 +1701,14 @@ function GM:ShowSpare1(ply)
 
 	-- Spawn the vehicle
 	if ALLOWED_VEHICLE then
-	
+
 		local vehicleList = list.Get("Vehicles")
 		local vehicle = vehicleList[ ALLOWED_VEHICLE ]
-	
+
 		if !vehicle then
 			return
 		end
-	
+
 		local plyAngle = ply:EyeAngles()
 		local startpos = ply:GetPos() + Vector(0, 0, 48)
 		local spawnpos = startpos + plyAngle:Forward() * 160
@@ -1571,17 +1728,17 @@ function GM:ShowSpare1(ply)
 		-- Create the new entity
 		ply.vehicle = ents.Create(vehicle.Class)
 		ply.vehicle:SetModel(vehicle.Model)
-	
+
 		-- Set keyvalues
 		for a, b in pairs(vehicle.KeyValues) do
 			ply.vehicle:SetKeyValue(a, b)
 		end
-	
+
 		-- Enable gun on jeep
 		if ALLOWED_VEHICLE == "Jeep" then
 			ply.vehicle:Fire("EnableGun", "1")
 		end
-	
+
 		-- Set pos/angle and spawn
 		ply.vehicle:SetPos(spawnpos)
 		ply.vehicle:SetAngles(Angle(0, plyAngle.y - 90, 0))
@@ -1609,7 +1766,7 @@ end
 
 local SecondTick = 0
 local delayedDMGTick = 0
--- Called every frame 
+-- Called every frame
 function GM:Think()
 
 	-- Restart the map if all players are dead
@@ -1645,12 +1802,17 @@ function GM:Think()
 		for _,ply in pairs(player.GetAll()) do
 			if ply:HasPerkActive("hyper_armor_2") then
 				if ply:WaterLevel() < 3 and ply:GetSuitPower() < 100 then
-					ply:SetSuitPower(math.min(100, ply:GetSuitPower() + 1))
+					ply:SetSuitPower(math.min(100, ply:GetSuitPower() + 3))
 					ply.HyperArmorCharge = 0
 				elseif ply:GetSuitPower() >= 100 and ply:Armor() < ply:GetMaxArmor() then
 					ply.HyperArmorCharge = ply.HyperArmorCharge + 0.2
 					ply:SetArmor(ply:Armor() + math.floor(ply.HyperArmorCharge))
 					ply.HyperArmorCharge = ply.HyperArmorCharge - math.floor(ply.HyperArmorCharge)
+				end
+			end
+			if ply:HasPerkActive("overcharged") then 
+				if ply:WaterLevel() < 3 and ply:GetSuitPower() < 100 then
+					ply:SetSuitPower(math.min(100, ply:GetSuitPower() + 5))
 				end
 			end
 		end
@@ -1711,9 +1873,9 @@ end
 function GM:WeaponEquip(wep)
 
 	if (IsValid(wep) && !table.HasValue(startingWeapons, wep:GetClass())) then
-	
+
 		table.insert(startingWeapons, wep:GetClass())
-	
+
 	end
 
 end
@@ -1765,6 +1927,39 @@ function GM:AcceptInput(ent, input, activator, caller, value)
 	end
 end
 
+function GM:GravGunOnPickedUp( ply, ent )
+	ply.GravGunGrab = ent
+end
+
+
+function GM:GravGunOnDropped( ply, ent )
+	ply.GravGunGrab = NULL
+end
+
+function GM:GravGunPunt( ply, ent )
+	ply.GravGunGrab = NULL
+	return true
+end
+
+function GM:KeyPress(ply,key) 
+	if key == IN_RELOAD and IsFirstTimePredicted() and IsValid(ply) and ply:HasPerkActive("physcannon_dissolve") and IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon():GetClass() == "weapon_physcannon" then
+		local grabbed = ply.GravGunGrab 
+		if IsValid(grabbed) then 
+			if grabbed:MapCreationID() <= 0 then
+				grabbed:Dissolve()
+			end
+			local dmg = DamageInfo()
+			dmg:SetDamage(100000)
+			dmg:SetDamageType(DMG_DISSOLVE)
+			dmg:SetInflictor(ply:GetActiveWeapon())
+			dmg:SetAttacker(ply)
+			grabbed:SetHealth(0)
+			grabbed:TakeDamageInfo(dmg)
+			grabbed:ForcePlayerDrop()
+		end
+	end
+end
+
 
 function GM:PlayerSpawnEffect(ply, model)
 	if !ply:IsSuperAdmin() then return false end
@@ -1809,4 +2004,3 @@ end
 function GM:AddResources()
 	resource.AddFile("sound/hl2c_eternal/music/chopper_fight.wav")
 end
-

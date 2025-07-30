@@ -34,7 +34,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 local allowfail
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput( ent, input,... )
 	if ent == ents.FindByName("citadel_train_lift_glass")[1] and string.lower(input) == "break" then
 		allowfail = true
 		-- print("allowed fail map")
@@ -44,6 +44,9 @@ function hl2cAcceptInput( ent, input )
 		gamemode.Call("RestartMap")
 
 		PrintMessage(3, "You failed the map. (The lift broke.)")
+	end
+	if string.match(ent:GetName(),"stalker") then 
+		--DbgEntInput(ent,input,...)
 	end
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )

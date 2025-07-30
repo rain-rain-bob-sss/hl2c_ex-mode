@@ -23,6 +23,7 @@ net.Receive("UpdateSkills", function(length)
     ply.StatSurgeon = net.ReadFloat()
     ply.StatVitality = net.ReadFloat()
     ply.StatKnowledge = net.ReadFloat()
+    ply.StatHeadShotMul = net.ReadFloat()
 end)
 
 net.Receive("hl2ce_updateperks", function(length)
@@ -47,4 +48,13 @@ net.Receive("XPGain", function(length)
 	XPGained = xp
     XPGainedTotal = XPGainedTotal + xp
 	if XPGained != 0 then XPColor = 300 end
+end)
+
+net.Receive("hl2ce_finishedmap", function(length)
+	local tbl = net.ReadTable()
+
+    -- chat.AddText("Map completed")
+    -- for k,v in pairs(tbl) do
+    --     chat.AddText(k, " ", v)
+    -- end
 end)

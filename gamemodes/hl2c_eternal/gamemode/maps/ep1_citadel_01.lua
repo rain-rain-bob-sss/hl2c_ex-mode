@@ -45,6 +45,11 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	if not game.SinglePlayer() and ent:GetName() == "brush_combineshieldwall4" and string.lower(input) == "enable" then
 	end
 
+	if (ent:GetName() == "cs_training" or ent:GetName() == "cs_training_2") and string.lower(input) == "sethealth" then 
+		ent:SetHealth(value)
+		return true
+	end
+
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 

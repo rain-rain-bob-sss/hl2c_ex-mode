@@ -6,6 +6,7 @@ include("sh_globals.lua")
 include("sh_player.lua")
 include("sh_ents.lua")
 include("sh_pets.lua")
+include("sh_dmgnum.lua")
 
 
 -- Create console variables to make these config vars easier to access
@@ -371,3 +372,7 @@ function FormatNumber(value)
 	return value
 end
 */
+
+function EndlessModeValue(normal,endless)
+	return GAMEMODE.EndlessMode and endless or normal
+end

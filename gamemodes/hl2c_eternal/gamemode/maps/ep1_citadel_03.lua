@@ -24,7 +24,9 @@ hook.Add("Think", "hl2cThink", function()
 	if game.GetGlobalState("super_phys_gun") == GLOBAL_ON then
 		for _, ent in pairs( ents.FindByClass( "weapon_*" ) ) do
 			if ( IsValid( ent ) && ent:IsWeapon() && ( ent:GetClass() != "weapon_physcannon" ) && ( !IsValid( ent:GetOwner() ) || ( IsValid( ent:GetOwner() ) && ent:GetOwner():IsPlayer() ) ) ) then
-				ent:Remove()
+				if not ent.CanUseInCitadel then
+					ent:Remove()
+				end
 			end
 		end
 	end

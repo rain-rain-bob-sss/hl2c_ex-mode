@@ -3,11 +3,11 @@ local meta = FindMetaTable( "Entity" )
 if !meta then return end
 
 function meta:IsFriendlyNPC()
-	return table.HasValue(FRIENDLY_NPCS, self:GetClass()) and not MAP_FORCE_NO_FRIENDLIES
+	return table.HasValue(FRIENDLY_NPCS, self:GetClass()) and not MAP_FORCE_NO_FRIENDLIES and not self.AllowFriendlyFire
 end
 
 function meta:IsGodlikeNPC()
-	return table.HasValue(GODLIKE_NPCS, self:GetClass()) and not MAP_FORCE_NO_FRIENDLIES
+	return table.HasValue(GODLIKE_NPCS, self:GetClass()) and not MAP_FORCE_NO_FRIENDLIES and not self.AllowFriendlyFire
 end
 
 
@@ -59,4 +59,45 @@ if SERVER then
 		self:OldSetMaxHealthEX(math.Clamp(value, -max, max))
 		self:Inf_SetMaxHealth(value)
 	end
+end
+
+
+function meta:GiveStatus(name,lifetime) 
+	local status = scripted_ents.GetStored("status_"..name).t
+	if not status then return nil end
+	local selfstatus = self["status_"..name] or {}
+	self["status_"..name] = selfstatus
+	if status.stackable then 
+		if status.maxstacks then
+			local c = 0
+			for _,v in pairs(selfstatus) do 
+				if IsValid(v) then
+					c = c + 1
+					if c >= status.maxstacks then return v,false end
+				end
+			end
+		end
+	else
+		for _,v in pairs(selfstatus) do 
+				if IsValid(v) then
+					return v,false
+				end
+			end
+	end
+	if SERVER then 
+		local ent = ents.Create("status_"..name)
+		if not IsValid(ent) then return nil,false end
+		ent:SetPos(self:GetPos())
+		ent:SetParent(self)
+		ent.LifeTime = lifetime
+		ent:Spawn()
+		table.insert(selfstatus,ent)
+		return ent,true
+	end
+end
+
+function meta:GiveBleed(owner,lifetime)
+	local bleed,created = self:GiveStatus("bleed",lifetime)
+	bleed:SetOwner(owner)
+	bleed:Setup()
 end

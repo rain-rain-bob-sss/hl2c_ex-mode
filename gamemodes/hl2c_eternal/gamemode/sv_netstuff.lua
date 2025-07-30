@@ -24,6 +24,7 @@ function GM:NetworkString_UpdateSkills(ply)
     net.WriteFloat(ply.StatSurgeon)
     net.WriteFloat(ply.StatVitality)
     net.WriteFloat(ply.StatKnowledge)
+    net.WriteFloat(ply.StatHeadShotMul or 0)
     net.Send(ply)
 end
 
@@ -56,7 +57,8 @@ net.Receive("UpgradePerk", function(length, ply)
     local curpoints = ply.StatPoints
     local limit = ply:GetMaxSkillLevel(perk)
 
-    count = math.min(limit - ply[perk2], curpoints)
+    count = math.min(count,curpoints)
+    count = math.min(limit - (tonumber(ply[perk2]) or 0),count) 
 
     if tonumber(ply.StatPoints) < 1 then
         ply:PrintMessage(HUD_PRINTTALK, "You need Skill Points to upgrade this skill!")
@@ -113,9 +115,13 @@ net.Receive("hl2ce_prestige", function(len, ply)
     elseif prestige == "eternity" then
         ply:GainEternity()
     elseif prestige == "celestiality" then
-        ply:PrintMessage(3, "There is no such thing as Celestiality.")
-        ply:PrintMessage(3, "Not. Yet. Implemented.")
-        -- ply:GainCelestiality()
+        if not HL2CE_CELESTIALITY then
+            ply:PrintMessage(3, "There is no such thing as Celestiality.")
+            ply:PrintMessage(3, "Not. Yet. Implemented.")
+        else
+            ply:PrintMessage(3,"Celestiality is W.I.P\nYou will encounter issues.")
+            ply:GainCelestiality()
+        end
     end
 end)
 

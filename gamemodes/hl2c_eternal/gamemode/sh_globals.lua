@@ -52,6 +52,8 @@ GM.ConfigList = {
 	["auto_prestige_enabled"] = "number",
 }
 
+HL2CE_CELESTIALITY = false
+
 -- DT FLOAT
 DT_FLOAT_ENT_HEALTH = 1
 DT_FLOAT_ENT_MAXHEALTH = 2

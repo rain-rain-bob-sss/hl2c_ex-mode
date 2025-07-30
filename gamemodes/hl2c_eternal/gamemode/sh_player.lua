@@ -7,20 +7,20 @@ if !meta then return end
 function meta:RemoveVehicle()
 
 	if ( CLIENT || !self:IsValid() ) then
-	
+
 		return
-	
+
 	end
 
 	if ( IsValid( self.vehicle ) ) then
-	
+
 		if ( IsValid( self.vehicle:GetDriver() ) && self.vehicle:GetDriver():IsPlayer() ) then
-		
+
 			self.vehicle:GetDriver():ExitVehicle()
-		
+
 		end
 		self.vehicle:Remove()
-	
+
 	end
 
 end
@@ -59,15 +59,15 @@ function meta:CanLevelup()
 end
 
 function meta:CanPrestige()
-	return self.Level > MAX_LEVEL or self.Level >= MAX_LEVEL and self.XP >= GAMEMODE:GetReqXP(self)
+	return self.Level >= MAX_LEVEL and self.XP >= GAMEMODE:GetReqXP(self)
 end
 
 function meta:CanEternity()
-	return self:CanPrestige() and self.Prestige >= MAX_PRESTIGE or self.Prestige > MAX_PRESTIGE
+	return self:CanPrestige() and self.Prestige >= MAX_PRESTIGE
 end
 
 function meta:CanCelestiality()
-	return self:CanPrestige() and self:CanEternity() or self.Eternity > MAX_ETERNITIES
+	return self:CanPrestige() and self:CanEternity() or self.Eternity >= MAX_ETERNITIES
 end
 
 function meta:HasPrestigeUnlocked()
@@ -94,19 +94,19 @@ function meta:GetEternityGainMul()
 end
 
 function meta:GetMaxLevel()
-	return self:HasEternityUnlocked() and 250 or MAX_LEVEL
+	return self:HasCelestialityUnlocked() and 500 or (self:HasEternityUnlocked() and 250 or MAX_LEVEL)
 end
 
 function meta:GetMaxPrestige()
-	return self:HasEternityUnlocked() and 30 or MAX_PRESTIGE
+	return self:HasCelestialityUnlocked() and 200 or (self:HasEternityUnlocked() and 30 or MAX_PRESTIGE)
 end
 
 function meta:GetMaxEternity()
-	return MAX_ETERNITIES
+	return self:HasCelestialityUnlocked() and 25 or MAX_ETERNITIES
 end
 
 function meta:GetMaxCelestiality()
-	return MAX_ETERNITIES
+	return MAX_ETERNITIES --???
 end
 
 function meta:GetMaxSkillLevel(perk)
@@ -147,7 +147,7 @@ end
 function meta:GetEternityUpgradeEffectValue(upg, forcevalue)
 	local upgrade = GAMEMODE.UpgradesEternity[upg]
 	if not upgrade then return 1 end
-	
+
 
 
 	local amt = math.max(0, forcevalue or self.EternityUpgradeValues[upg])
@@ -184,13 +184,22 @@ function meta:GetDamageMul(dmgInfo, ent)
 	local GM = GAMEMODE
 	local damagemul = 1
 
-	damagemul = self:GetMinDamageMul(dmgInfo, ent)
+	if ent ~= attacker then
 
-	if attacker:HasPerkActive("critical_damage_1") and math.random(100) <= (GM.EndlessMode and 12 or 7) then
-		damagemul = damagemul * (GM.EndlessMode and 2.2 or 1.2)
+		damagemul = self:GetMinDamageMul(dmgInfo, ent)
+
+		if attacker:HasPerkActive("critical_damage_1") and math.random(100) <= (GM.EndlessMode and 12 or 7) then
+			damagemul = damagemul * (GM.EndlessMode and 2.2 or 1.2)
+		end
+
 	end
 
+
 	return damagemul
+end
+
+function meta:LastStand()
+	return self:Health() <= self:GetMaxHealth() * EndlessModeValue(0.2,0.4)
 end
 
 function meta:GetMaxDamageMul(dmgInfo, ent)
@@ -202,6 +211,10 @@ function meta:GetMaxDamageMul(dmgInfo, ent)
 
 	if attacker:HasPerkActive("critical_damage_1") then
 		damagemul = damagemul * (GM.EndlessMode and 2.2 or 1.2)
+	end
+
+	if attacker:HasPerkActive("last_stand") and attacker:LastStand() then 
+		damagemul = damagemul * 2
 	end
 
 	return damagemul
@@ -236,6 +249,10 @@ function meta:GetMinDamageMul(dmgInfo, ent)
 
 	if attacker:HasEternityUnlocked() then
 		damagemul = damagemul * attacker:GetEternityUpgradeEffectValue("damage_upgrader")
+	end
+
+	if attacker:HasPerkActive("last_stand") and attacker:LastStand() then 
+		damagemul = damagemul *2
 	end
 
 	return damagemul
@@ -295,4 +312,3 @@ function meta:GetMinDamageResistanceMul(dmgInfo)
 
 	return damageresistancemul
 end
-

@@ -36,12 +36,15 @@ function hl2cAcceptInput( ent, input )
 
     if ent:GetName() == "credits" and string.lower(input) == "rolloutrocredits" then
         -- gamemode.Call()
+        hook.Call( "NextMap", GAMEMODE )
+		for _,ply in pairs(player.GetAll()) do
+			gamemode.Call("PlayerCompletedCampaign", ply)
+		end
     end
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 
 hook.Add("OnMapCompleted", "hl2ceOnMapCompleted", function()
-	PrintMessage(3, "Fuck this map")
 end)
 
 

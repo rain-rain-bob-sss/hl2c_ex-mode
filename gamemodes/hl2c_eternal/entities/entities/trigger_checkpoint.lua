@@ -81,7 +81,9 @@ function ENT:StartTouch( ent )
 		table.remove( checkpointPositions, 1 )
 
 		-- Broadcast in chat who activated checkpoint
-		PrintMessage(HUD_PRINTTALK, ent:Nick().." has activated checkpoint!")
+		if game.MaxPlayers() > 1 then
+			PrintMessage(HUD_PRINTTALK, ent:Nick().." has activated checkpoint!")
+		end
 
 		-- Update checkpoints on the client
 		if checkpointPositions[1] then

@@ -189,18 +189,20 @@ function meta:GainCelestiality()
         self.StatPoints = 0
         self.Prestige = 0
         self.PrestigePoints = self:HasPerkActive("perk_points_2") and 12 or 0
+        self.Eternity = 0
+        self.EternityPoints = 0
         self.Celestiality = self.Celestiality + 1
         self.CelestialityPoints = self.CelestialityPoints + 1
 
         for id,_ in pairs(self.UnlockedPerks) do
             local perk = GAMEMODE.PerksData[id]
             if not perk then continue end
-            if perk.PrestigeLevel <= 1 then
-                if self:HasPerkActive("prestige_improvement_2") then
-                    self.PrestigePoints = self.PrestigePoints - perk.Cost
-                else
+            if perk.PrestigeLevel <= 2 then
+                --if self:HasPerkActive("prestige_improvement_2") then
+                    --self.PrestigePoints = self.PrestigePoints - perk.Cost
+                --else
                     self.UnlockedPerks[id] = nil
-                end
+                --end
             end
         end
 

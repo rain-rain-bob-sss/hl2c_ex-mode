@@ -75,7 +75,7 @@ NPC_MONEYS_VALUES = {
 	["npc_headcrab_fast"] = 4,
 	["npc_headcrab_black"] = 5,
 	["npc_headcrab_poison"] = 5,
-	["npc_helicopter"] = 55,
+	["npc_helicopter"] = 150,
 	["npc_hunter"] = 45,
 	["npc_manhack"] = 9,
 	["npc_metropolice"] = 22,
@@ -202,6 +202,12 @@ GM.SkillsInfo = {
 		DescriptionEndless = "+3% damage dealt with firearms\nAbove Gunnery Level 15: +2.5% damage dealt with non-firearms per point",
 	},
 
+	["HeadShotMul"] = {
+		Name = "Headshot multiplier",
+		Description = "+5% headshot damage",
+		DescriptionEndless = "+7.5% headshot damage",
+	},
+
 	["Defense"] = {
 		Name = "Defense",
 		Description = "+0.8% damage resistance from enemy bullets",
@@ -298,6 +304,24 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
+	["physcannon_dissolve"] = {
+		Name = "Overcharged I",
+		Description = "Press R to dissolve the thing you are grabbing with gravity gun.",
+		DescriptionEndless = "Press R to dissolve the thing you are grabbing with gravity gun.",
+		Cost = 1,
+		PrestigeReq = 3,
+		PrestigeLevel = 1
+	},
+
+	["medkit_charging"] = {
+		Name = "Medkit Improve I",
+		Description = "Healing with medkit(the weapon) charges armor.",
+		DescriptionEndless = "Healing with medkit(the weapon) charges armor.",
+		Cost = 2,
+		PrestigeReq = 5,
+		PrestigeLevel = 1
+	},
+
 	["better_knowledge_1"] = {
 		Name = "Better Knowledge",
 		Description = "+25% xp gain from NPC kills",
@@ -314,6 +338,15 @@ GM.PerksData = {
 		Cost = 3,
 		PrestigeReq = 7,
 		PrestigeLevel = 1
+	},
+
+	["last_stand"] = {
+		Name = "Last Stand",
+		Description = "You deal more damage(+200%) if your health is below 20%.",
+		DescriptionEndless = "You deal more damage(+200%) if your health is below 40%.",
+		Cost = 2,
+		PrestigeReq = 8,
+		PrestigeLevel = 1,
 	},
 
 	["vampiric_killer_1"] = {
@@ -341,6 +374,15 @@ GM.PerksData = {
 		Name = "Damage of Eternity",
 		Description = "Does nothing.",
 		DescriptionEndless = "2x Damage dealt. Has 15% chance to triple the damage and convert that damage to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
+		Cost = 1,
+		PrestigeReq = 1,
+		PrestigeLevel = 2
+	},
+
+	["bleed_for_8_seconds"] = {
+		Name = "Bleed for 8 seconds",
+		Description = "Does nothing.",
+		DescriptionEndless = "1.25x Damage dealt.\nNPC will bleed for 8 seconds(stackable,max:3) if you damage them.",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 2
@@ -412,7 +454,7 @@ GM.PerksData = {
 	["hyper_armor_2"] = {
 		Name = "Hyper Armor I",
 		Description = "Does nothing.",
-		DescriptionEndless = "+100 armor, also charges AUX power by +1% per second if not submerged underwater\nIf AUX Power is full, charge +1% armor every 5 seconds.", -- Thinking of another buff for this, but maybe later
+		DescriptionEndless = "+100 armor, also charges AUX power by +3% per second if not submerged underwater\nIf AUX Power is full, charge +1% armor every 5 seconds.", -- Thinking of another buff for this, but maybe later
 		Cost = 3,
 		PrestigeReq = 5,
 		PrestigeLevel = 2
@@ -422,9 +464,18 @@ GM.PerksData = {
 		Name = "Vampiric Killer II",
 		Description = "Does nothing.",
 		DescriptionEndless = "You regain HP depending on the damage you do to enemies.",
-		Cost = 3,
+		Cost = 2,
 		PrestigeReq = 5,
 		PrestigeLevel = 2
+	},
+
+	["overcharged"] = {
+		Name = "Overcharged II",
+		Description = "Does nothing.",
+		DescriptionEndless = "Charges AUX power by +5% per second if not submerged underwater.",
+		Cost = 1,
+		PrestigeReq = 6,
+		PrestigeLevel = 2,
 	},
 
 

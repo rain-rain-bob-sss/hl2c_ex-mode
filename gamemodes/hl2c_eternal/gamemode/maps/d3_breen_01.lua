@@ -56,6 +56,12 @@ function hl2cPlayerSpawn( ply )
 end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
+hook.Add("WeaponEquip","hl2c_medkit",function(wep,ply)
+	if wep:GetClass() == "weapon_physcannon" then
+		ply:Give("weapon_hl2ce_medkit").CanUseInCitadel = true
+	end
+end)
+
 
 hook.Add("NextMap", "hl2cEX_NextMap", function()
 	if changingLevel then return end
@@ -284,7 +290,9 @@ function hl2cThink()
 		
 			if ( IsValid( ent ) && ent:IsWeapon() && ( ent:GetClass() != "weapon_physcannon" ) && ( !IsValid( ent:GetOwner() ) || ( IsValid( ent:GetOwner() ) && ent:GetOwner():IsPlayer() ) ) ) then
 			
-				ent:Remove()
+				if not ent.CanUseInCitadel then
+					ent:Remove()
+				end
 			
 			end
 		
