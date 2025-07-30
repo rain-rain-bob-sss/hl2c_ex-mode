@@ -62,12 +62,12 @@ function meta:CanPrestige()
 	return self.Level > MAX_LEVEL or self.Level >= MAX_LEVEL and self.XP >= GAMEMODE:GetReqXP(self)
 end
 
-function meta:CanEternity()
-	return self:CanPrestige() and self.Prestige >= MAX_PRESTIGE or self.Prestige > MAX_PRESTIGE
+function meta:CanEternity() -- higher prestige ignores CanPrestige requireent
+	return self.Prestige > MAX_PRESTIGE or self:CanPrestige() and self.Prestige >= MAX_PRESTIGE
 end
 
 function meta:CanCelestiality()
-	return self:CanPrestige() and self:CanEternity() or self.Eternity > MAX_ETERNITIES
+	return self.Eternity > MAX_ETERNITIES or self:CanPrestige() and self:CanEternity() and self.Eternity >= MAX_ETERNITIES
 end
 
 function meta:HasPrestigeUnlocked()

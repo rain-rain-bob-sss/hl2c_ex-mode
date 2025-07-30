@@ -15,7 +15,7 @@ hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", function(ent, dmginfo)
 	local atk = dmginfo:GetAttacker()
-	if (ent:GetClass() == "npc_combine_s" or atk:GetClass() == "npc_rollermine" or atk:GetClass() == "npc_cscanner") and not atk:IsPlayer() then
+	if (ent:GetClass() == "npc_combine_s" or atk:GetClass() == "npc_rollermine" or atk:GetClass() == "npc_cscanner") and not (atk:IsPlayer() or ent:IsPlayer()) then
 		dmginfo:SetDamage(math.huge)
 	end
 end)
@@ -43,6 +43,11 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	end
 
 	if not game.SinglePlayer() and ent:GetName() == "brush_combineshieldwall4" and string.lower(input) == "enable" then
+	end
+
+	if (ent:GetName() == "cs_training" or ent:GetName() == "cs_training_2") and string.lower(input) == "sethealth" then 
+    	ent:SetHealth(value)
+    	return true
 	end
 
 end

@@ -283,14 +283,15 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		-- end
 	-- end
 
-	-- Crowbar and Stunstick should follow skill level
+	-- Crowbar and Stunstick should follow skill level (Redundant)
+	--[[
 	if (IsValid(ent) && IsValid(attacker) && attacker:IsPlayer()) then
 		if (IsValid(attacker:GetActiveWeapon()) && ((attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB))) then
 			damage = GetConVar("sk_plr_dmg_crowbar"):GetFloat()
 		elseif IsValid(attacker:GetActiveWeapon()) && attacker:GetActiveWeapon():GetClass() == "weapon_stunstick" && dmgInfo:GetDamageType() == DMG_CLUB then
 			damage = GetConVar("sk_plr_dmg_stunstick"):GetFloat()
 		end
-	end
+	end]]
 
 	if attacker.NextDamageMul and (ent:IsNPC() or ent:IsPlayer()) then
 		damage = damage * attacker.NextDamageMul
@@ -671,9 +672,10 @@ local function MasterPlayerStartExists()
 end
 
 function GM:OnReloaded()
-	if not game.IsDedicated() then
+	local dothat = false
+	if dothat and not game.IsDedicated() and GetConVar("sv_cheats"):GetBool() then
 		for i=1,250 do
-			RunConsoleCommand("ent_create","npc_handgrenade")
+			RunConsoleCommand("ent_create","npc_handgrenade") -- oh my god what have i done
 		end
 	end
 
@@ -997,8 +999,13 @@ function GM:PlayerInitialSpawn(ply)
 	ply.CelestialityPoints = 0
 	ply.Rebirths = 0
 	ply.RebirthPoints = 0
-	ply.Ascensions = 0
-	ply.AscensionPoints = 0
+	-- Renamed due to Ascension feeling like a low tier prestige (in Revo Idle it's used to boost color mult gain)
+	ply.Transcension = 0
+	ply.TranscensionPoints = 0
+
+	-- New 6th prestige type?
+	ply.MythiLegendaries = 0
+	ply.MythiLegendaryPoints = 0
 
 	-- True Endless...????
 	-- ...but... you sure?
@@ -1007,9 +1014,6 @@ function GM:PlayerInitialSpawn(ply)
 	-- ply.Mastery = 0
 	-- ply.MasteryPoints = 0
 
-	-- New 6th prestige type?
-	ply.MythiLegendaries = 0
-	ply.MythiLegendaryPoints = 0
 
 
 
@@ -1762,9 +1766,12 @@ function GM:AcceptInput(ent, input, activator, caller, value)
 		if value == "0" and (ent:IsPlayer() or ent:IsNPC()) then
 			ent:SetHealth(0)
 			ent:TakeDamage(0)
-		elseif value == "100" and ent:IsPlayer() then -- fucking instakill on trigger
+		elseif value == "100" and ent:IsPlayer() then -- fucking instakills on trigger
 			ent:SetHealth(ent:GetMaxHealth())
 			return true
+		-- else
+		-- 	ent:SetHealth(value)
+		-- 	return true			
 		end
 	end
 end
