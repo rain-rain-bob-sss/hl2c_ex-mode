@@ -335,6 +335,8 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		-- end
 	-- end
 
+	ent.LastAttacker = attacker
+
 	-- Crowbar and Stunstick should follow skill level
 	if (IsValid(ent) && IsValid(attacker) && attacker:IsPlayer()) then
 		if (IsValid(attacker:GetActiveWeapon()) && ((attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB))) then
@@ -925,6 +927,7 @@ concommand.Add("-hl2ce_admin_dissolve",function(ply)
 	this:TakeDamageInfo(dmg)
 end)
 
+
 -- Called when an NPC dies
 function GM:OnNPCKilled(npc, killer, weapon)
 	if (IsValid(killer) && killer:IsVehicle() && IsValid(killer:GetDriver()) && killer:GetDriver():IsPlayer()) then
@@ -1032,6 +1035,19 @@ function GM:OnNPCKilled(npc, killer, weapon)
 
 	end
 end
+
+hook.Add("EntityRemoved","HL2CE_NPCDeathHack",function(ent)
+	if NPC_NO_KILLEDHOOK[ent:GetClass()] and not ent.HL2CEKilled then 
+		ent.HL2CEKilled = true
+		local att = ent:GetLastAttacker()
+		if IsValid(att) then
+			if att:IsPlayer() then 
+				--not hook.Run.
+				GAMEMODE:OnNPCKilled(ent,att,att)
+			end
+		end
+	end
+end)
 
 hook.Add("OnNPCKilled", "NoMoreHarpoonInstaKills", function(ent, atk, inf)
 	if inf:IsValid() and inf:GetModel() == "models/props_junk/harpoon002a.mdl" then return false end

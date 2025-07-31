@@ -122,3 +122,7 @@ function meta:GiveDelayedDamage(owner,damage)
 	ddmg:Setup(damage)
 	return ddmg,created
 end
+
+function meta:GetLastAttacker()
+	return self.LastAttacker or NULL 
+end

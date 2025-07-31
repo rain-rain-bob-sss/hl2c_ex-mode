@@ -31,6 +31,10 @@ NPC_POINT_VALUES = {
 	["npc_strider"] = 3
 }
 
+NPC_NO_KILLEDHOOK = {
+	["npc_sniper"] = true,
+}
+
 NPC_XP_VALUES = {
 	["npc_antlion"] = 0.87, -- in some maps the antlions can spawn indefinitely so best is to make them give least amount of xp per kill
 	-- ["npc_antlion_worker"] = 21.7, -- doesn't work
@@ -39,6 +43,7 @@ NPC_XP_VALUES = {
 	["npc_combinedropship"] = 63,
 	["npc_combinegunship"] = 66,
 	["npc_combine_s"] = 33.5,
+	["npc_sniper"] = 66,
 	["npc_cscanner"] = 6.4,
 	["npc_clawscanner"] = 7.1,
 	["npc_fastzombie"] = 19.5,
@@ -67,6 +72,7 @@ NPC_MONEYS_VALUES = {
 	["npc_combinedropship"] = 60,
 	["npc_combinegunship"] = 69,
 	["npc_combine_s"] = 33,
+	["npc_sniper"] = 50,
 	["npc_cscanner"] = 6,
 	["npc_clawscanner"] = 7,
 	["npc_fastzombie"] = 19,
