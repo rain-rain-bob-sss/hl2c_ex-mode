@@ -335,8 +335,6 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		-- end
 	-- end
 
-	ent.LastAttacker = attacker
-
 	-- Crowbar and Stunstick should follow skill level
 	if (IsValid(ent) && IsValid(attacker) && attacker:IsPlayer()) then
 		if (IsValid(attacker:GetActiveWeapon()) && ((attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB))) then
@@ -505,6 +503,8 @@ function GM:PostEntityTakeDamage(ent, dmginfo, wasdamagetaken)
 			self:SendDamageNumber(att,dmginfo:GetDamage(),dmginfo:GetDamagePosition(),ent,nil,dmginfo:GetDamageType())
 		end
 	end
+
+	if wasdamagetaken then ent.LastAttacker = attacker end
 end
 
 
