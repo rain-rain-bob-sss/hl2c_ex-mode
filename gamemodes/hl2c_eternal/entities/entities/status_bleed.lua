@@ -6,7 +6,7 @@ ENT.LifeTime = 8
 ENT.RemoveTime = 0
 ENT.NextBleedTick = 0
 ENT.stackable = true 
-ENT.maxstacks = 5
+ENT.maxstacks = 3
 
 function ENT:Initialize()
 	self:DrawShadow(false)

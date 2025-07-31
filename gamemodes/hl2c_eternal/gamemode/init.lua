@@ -425,7 +425,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 	if ent:IsNPC() and attacker:IsPlayer() and not dmgdirect then
 		if attacker:HasPerkActive("damage_of_eternity_2") then
-			if math.random(100) <= 15 then
+			if math.random(100) <= 35 then
 				--[[
 				if ent.DelayedDamage then
 					ent.DelayedDamage = ent.DelayedDamage + damage*2
