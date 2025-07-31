@@ -8,11 +8,7 @@ if (SERVER) then
 		net.WriteEntity(ent)
 		net.WriteAngle(ang)
 		net.WriteInt(type, 32)
-		if ent.bleeddamage then
-			net.WriteInt(1, 8)
-		else
-			net.WriteInt(0, 8)
-		end
+		net.WriteInt(ent.cdmgtype or 0,8)
 		net.Send(ply)
 	end
 

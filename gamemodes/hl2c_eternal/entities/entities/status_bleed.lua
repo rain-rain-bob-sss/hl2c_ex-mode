@@ -26,14 +26,14 @@ function ENT:Think()
         end
         if self.NextBleedTick < CurTime() then
             local victim = self:GetParent()
-            victim.bleeddamage = true
+            victim.cdmgtype = 1
             local dmg = DamageInfo()
             dmg:SetDamage(4)
             dmg:SetDamageType(self.DamageType or DMG_DIRECT)
             dmg:SetAttacker(self:GetOwner())
             dmg:SetInflictor(self)
             victim:TakeDamageInfo(dmg)
-            victim.bleeddamage = false
+            victim.cdmgtype = 0
             self.NextBleedTick = CurTime() + 0.5
         end
         self:NextThink(CurTime() + 0.1)

@@ -75,8 +75,9 @@ end
 
 
 function meta:GiveStatus(name,lifetime) 
+	if not scripted_ents.GetStored("status_"..name) then return nil,false end
 	local status = scripted_ents.GetStored("status_"..name).t
-	if not status then return nil end
+	if not status then return nil,false end
 	local selfstatus = self["status_"..name] or {}
 	self["status_"..name] = selfstatus
 	if status.stackable then 
@@ -91,10 +92,10 @@ function meta:GiveStatus(name,lifetime)
 		end
 	else
 		for _,v in pairs(selfstatus) do 
-				if IsValid(v) then
-					return v,false
-				end
+			if IsValid(v) then
+				return v,false
 			end
+		end
 	end
 	if SERVER then 
 		local ent = ents.Create("status_"..name)
@@ -112,4 +113,12 @@ function meta:GiveBleed(owner,lifetime)
 	local bleed,created = self:GiveStatus("bleed",lifetime)
 	bleed:SetOwner(owner)
 	bleed:Setup()
+	return bleed,created
+end
+
+function meta:GiveDelayedDamage(owner,damage)
+	local ddmg,created = self:GiveStatus("delayeddamage")
+	ddmg:SetOwner(owner)
+	ddmg:Setup(damage)
+	return ddmg,created
 end

@@ -426,12 +426,15 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	if ent:IsNPC() and attacker:IsPlayer() and not dmgdirect then
 		if attacker:HasPerkActive("damage_of_eternity_2") then
 			if math.random(100) <= 15 then
+				--[[
 				if ent.DelayedDamage then
 					ent.DelayedDamage = ent.DelayedDamage + damage*2
 				else
 					ent.DelayedDamage = damage*2
 				end
 				ent.DelayedDamageAttacker = attacker
+				]]
+				ent:GiveDelayedDamage(attacker,damage * 2)
 			end
 		end
 
@@ -1836,6 +1839,7 @@ function GM:Think()
 	end
 */
 
+	--[[
 	if delayedDMGTick + 0.5 < CurTime() then
 		for _,ent in pairs(ents.GetAll()) do
 			if ent.DelayedDamage and ent.DelayedDamage >= 1 then
@@ -1855,6 +1859,7 @@ function GM:Think()
 
 		delayedDMGTick = CurTime()
 	end
+	]]
 end
 
 

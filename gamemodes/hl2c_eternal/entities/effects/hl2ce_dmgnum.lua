@@ -31,6 +31,18 @@ for i, v in ipairs({"r", "g", "b"}) do
     colcvar_bleed[v] = CreateClientConVar("hl2ce_dmgnum_colbleed_" .. v, a, true, true, "Damage number's bleed damage color", 0, 255)
 end
 
+local colcvar_delayeddamage = {}
+for i, v in ipairs({"r", "g", "b"}) do
+    local a = 0
+    if v == "g" then
+        a = 0
+    elseif v == "b" then
+        a = 255
+    end
+
+    colcvar_delayeddamage[v] = CreateClientConVar("hl2ce_dmgnum_coldelayeddamage_" .. v, a, true, true, "Damage number's delayed damage color", 0, 255)
+end
+
 --aifijasufsihtzsy WHAT?
 local enabled = CreateClientConVar("hl2ce_dmgnum_enabled", "1", true, true, "Enable damage number", 0, 1)
 local b = CreateClientConVar("hl2ce_dmgnum_bounce", "0.5", true, true, "Damage number's bounce", 0, 1)
@@ -74,6 +86,42 @@ surface.CreateFont("dmgnum_hl2ce2d", {
     outline = true,
 })
 
+surface.CreateFont( "dmgnum_hl2cetext", {
+	font = "Verdana", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+	extended = false,
+	size = 50,
+	weight = 100,
+	--blursize = 4,
+	--scanlines = 2,
+	antialias = true,
+	underline = false,
+	italic = false,
+	strikeout = false,
+	symbol = false,
+	rotary = false,
+	shadow = false,
+	additive = false,
+	outline = true,
+} )
+
+surface.CreateFont( "dmgnum_hl2ce2dtext", {
+	font = "Verdana", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+	extended = false,
+	size = 50,
+	weight = 100,
+	--blursize = 4,
+	--scanlines = 2,
+	antialias = true,
+	underline = false,
+	italic = false,
+	strikeout = false,
+	symbol = false,
+	rotary = false,
+	shadow = false,
+	additive = false,
+	outline = true,
+} )
+
 
 local c = 0
 hook.Add("PostDrawTranslucentRenderables", "DrawDmgNumsHl2CE", function(_, _, sky)
@@ -103,7 +151,7 @@ hook.Add("PostDrawTranslucentRenderables", "DrawDmgNumsHl2CE", function(_, _, sk
             local function drawtext()
                 if _2d:GetBool() then
                     cam.Start3D2D(v:GetPos(), ang, math.max(0.05 * scale:GetFloat(),scale:GetFloat() * (v:GetPos():Distance(EyePos()) / 500) * 0.2))
-                    draw.SimpleText(v.dmg, "dmgnum_hl2ce" .. (isnumber(v.dmg) and "" or "text"), 0, 0, ColorAlpha(col, alpha), tc, tt)
+                    draw.SimpleText(v.dmg, "dmgnum_hl2ce2d" .. (isnumber(v.dmg) and "" or "text"), 0, 0, ColorAlpha(col, alpha), tc, tt)
                     cam.End3D2D()
                 else
                     cam.Start3D2D(v:GetPos(), ang, .05 * scale:GetFloat())
@@ -136,7 +184,9 @@ function EFFECT:Init(data)
     local dmg = data:GetMagnitude()
     local type = data:GetDamageType()
     local isfire = bit.band(type, DMG_BURN) == DMG_BURN or bit.band(type, DMG_SLOWBURN) == DMG_SLOWBURN
-    local isbleed = data:GetFlags() == 1
+    local cdmgtype = data:GetFlags()
+    if isfire then cdmgtype = -1 end
+    if dmg <= 0 then return self:Remove() end
 
     ang:RotateAroundAxis(ang:Up(), -90)
     ang:RotateAroundAxis(ang:Forward(), 90)
@@ -159,8 +209,15 @@ function EFFECT:Init(data)
     p:SetVelocity(radvec * 30 * svel:GetFloat())
     p:SetAngles(ang)
 
+    local cdmgtypecvars = {
+        [-1] = colcvar_fire,
+        [0] = colcvar,
+        [1] = colcvar_bleed,
+        [2] = colcvar_delayeddamage,
+    }
+
     local col = {}
-    for i, v in pairs(isbleed and colcvar_bleed or (isfire and colcvar_fire or colcvar)) do
+    for i, v in pairs(cdmgtypecvars[cdmgtype]) do
         col[i] = v:GetFloat()
     end
 
