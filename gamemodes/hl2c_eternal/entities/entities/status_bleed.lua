@@ -28,7 +28,7 @@ function ENT:Think()
             local victim = self:GetParent()
             victim.cdmgtype = 1
             local dmg = DamageInfo()
-            dmg:SetDamage(4)
+            dmg:SetDamage(2)
             dmg:SetDamageType(self.DamageType or DMG_DIRECT)
             dmg:SetAttacker(self:GetOwner())
             dmg:SetInflictor(self)
