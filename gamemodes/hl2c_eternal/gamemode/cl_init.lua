@@ -15,6 +15,7 @@ include("cl_upgradesmenu.lua")
 local hl2ce_cl_noearringing = CreateClientConVar("hl2ce_cl_noearringing", 0, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 local hl2ce_cl_nohuddifficulty = CreateClientConVar("hl2ce_cl_nohuddifficulty", 0, true, true, "Disables Difficulty text from HUD if not having CMenu Open", 0, 1)
 local hl2ce_cl_nocustomhud = CreateClientConVar("hl2ce_cl_nocustomhud", 0, true, true, "Disables the HL2 Health and Armor Bars", 0, 1)
+local hl2ce_cl_nodamageindicator = CreateClientConVar("hl2ce_cl_nodamageindicator", 0, true, true, "Disables the HL2 Damage Indicator", 0, 1)
 
 timeleft = timeleft or 0
 
@@ -229,6 +230,8 @@ function GM:HUDShouldDraw( name )
 		if (name == "CHudHealth" or name == "CHudBattery") and not hl2ce_cl_nocustomhud:GetBool() then
 			return false
 		end
+
+		if name == "CHudDamageIndicator" and hl2ce_cl_nodamageindicator:GetBool() then return false end
 	end
 	return true
 end
