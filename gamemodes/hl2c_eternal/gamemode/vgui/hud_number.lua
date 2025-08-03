@@ -1,5 +1,5 @@
 local color_txt = Color(255,235,20,255)
-local color_bg = Color(0,0,0,128)
+local color_bg = Color(0,0,0,76)
 local SSH = ScreenScaleH
 
 local PANEL = {}
