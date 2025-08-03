@@ -26,8 +26,10 @@ function PANEL:Think()
         newArmor = math.max(LocalPlayer():Armor(),0)
     end
 
+    self.Blur = math.max(0,self.Blur - 3 * FrameTime())
     if newArmor == self.Armor then return end
     self.Armor = newArmor
+    self.Blur = 3
 
     self:SetDisplayValue(self.Armor)
 end

@@ -43,12 +43,20 @@ function PANEL:Init()
         self.SmallNumberAlpha = delta
         self.Blur = delta * 1
     end)
+    self.LowHealth = Derma_Anim("LowHealth",self,function(self,anim,delta,data)
+        self.FGColor = Color(255,235,20,255):Lerp(Color(255,0,0),delta)
+    end)
+    self.NotLowHealth = Derma_Anim("NotLowHealth",self,function(self,anim,delta,data)
+        self.FGColor = Color(255,235,20,255):Lerp(Color(255,0,0),1 - delta)
+    end)
 end
 
 function PANEL:Think()
 
     if self.HealthIncreasedAbove20:Active() then self.HealthIncreasedAbove20:Run() end
     if self.HealthIncreasedBelow20:Active() then self.HealthIncreasedBelow20:Run() end
+    if self.LowHealth:Active() then self.LowHealth:Run() end
+    if self.NotLowHealth:Active() then self.NotLowHealth:Run() end
 
     local newHealth = 0
     local maxHealth = 0
@@ -63,10 +71,19 @@ function PANEL:Think()
 
     if self.Health >= LocalPlayer():GetMaxHealth() * 0.2 then 
         self.HealthIncreasedBelow20:Stop()
+        self.LowHealth:Stop()
+        if self.Low then 
+            self.NotLowHealth:Start(1)
+            self.Low = false
+        end
         self.HealthIncreasedAbove20:Start(2)
     else
+        self.NotLowHealth:Stop()
         self.HealthIncreasedAbove20:Stop()
-        self.HealthIncreasedBelow20:Start(1)
+        if not self.Low then
+            self.LowHealth:Start(1) self.Low = true
+            self.HealthIncreasedBelow20:Start(1)
+        end
     end
 
     self.NumberFont = self.Health > 999 and "HL2CEHudNumbersSmall" or "HL2CEHudNumbers"
