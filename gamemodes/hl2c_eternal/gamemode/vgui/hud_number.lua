@@ -1,6 +1,5 @@
 local color_txt = Color(255,235,20,255)
 local color_bg = Color(0,0,0,128)
-local SS = ScreenScale
 local SSH = ScreenScaleH
 
 local PANEL = {}
@@ -120,12 +119,16 @@ function PANEL:SetIsTime(state)
     self.IsTime = state
 end
 
-function PANEL:PaintNumbers(font,xpos,ypos,value)
+function PANEL:PaintNumbers(font,xpos,ypos,value,secondary)
     surface.SetFont(font)
     local text = ""
-    if not self.IsTime then 
+
+    local IsTime = (secondary and self.SecondaryIsTime) or self.IsTime
+    local IsPercent = (secondary and self.SecondaryIsPercent) or self.IsPercent
+
+    if not IsTime and not IsPercent then 
         text = math.Round(value)
-    else
+    elseif not IsPercent then
         local Minutes = value / 60
         local Seconds = value - Minutes * 60
         if Seconds < 10 then 
@@ -133,6 +136,8 @@ function PANEL:PaintNumbers(font,xpos,ypos,value)
         else
             text = string.format("%d:%d",Minutes,Seconds)
         end
+    else
+        text = math.Round(value * 100) .. "%"
     end
 
     local charWidth = surface.GetTextSize(font,"0")
@@ -179,7 +184,7 @@ function PANEL:Paint(w,h)
 
     if self.DisplaySecondaryValue then 
         surface.SetTextColor(self.FGColor)
-        self:PaintNumbers(self.SmallNumberFont,SSH(self.digit2_xpos),SSH(self.digit2_ypos),self.SecondaryValue)
+        self:PaintNumbers(self.SmallNumberFont,SSH(self.digit2_xpos),SSH(self.digit2_ypos),self.SecondaryValue,true)
     end
 
     self:PaintLabel()

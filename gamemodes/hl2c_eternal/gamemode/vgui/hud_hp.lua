@@ -4,10 +4,27 @@ local Localize = function(token,def)
     return phrase
 end
 
+local SSH = ScreenScaleH
+
+surface.CreateFont("HL2CEHudDefault1", {
+    font = "Verdana",
+    size = SSH(9),
+    weight = 700,
+    blursize = 0,
+    scanlines = 0,
+    antialias = true,
+    additive = true
+})
+
 local PANEL = {}
 
 PANEL.Health = 0
 PANEL.digit_xpos = 50
+PANEL.digit2_xpos = 8
+PANEL.digit2_ypos = 27
+PANEL.DisplaySecondaryValue = true
+PANEL.SecondaryIsPercent = true
+PANEL.SmallNumberFont = "HL2CEHudDefault1"
 
 function PANEL:Reset()
     self.Health = -1
@@ -32,8 +49,10 @@ function PANEL:Think()
     if self.HealthIncreasedBelow20:Active() then self.HealthIncreasedBelow20:Run() end
 
     local newHealth = 0
+    local maxHealth = 0
     if IsValid(LocalPlayer()) then
         newHealth = math.max(LocalPlayer():Health(),0)
+        maxHealth = LocalPlayer():GetMaxHealth()
     end
 
     if newHealth == self.Health then return end
@@ -52,6 +71,7 @@ function PANEL:Think()
     self.NumberGlowFont = self.Health > 999 and "HL2CEHudNumbersSmallGlow" or "HL2CEHudNumbersGlow"
     self.digit_ypos = self.Health > 999 and 10 or 2
     self:SetDisplayValue(self.Health)
+    self:SetSecondaryValue(self.Health / maxHealth)
 end
 
 function PANEL:ShouldDraw()
