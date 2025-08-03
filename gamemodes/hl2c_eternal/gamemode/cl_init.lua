@@ -11,6 +11,9 @@ include("cl_perksmenu.lua")
 include("cl_prestige.lua")
 include("cl_config.lua")
 include("cl_upgradesmenu.lua")
+include("vgui/hud_number.lua")
+include("vgui/hud_hp.lua")
+include("vgui/hud_armor.lua")
 
 local hl2ce_cl_noearringing = CreateClientConVar("hl2ce_cl_noearringing", 0, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 local hl2ce_cl_nohuddifficulty = CreateClientConVar("hl2ce_cl_nohuddifficulty", 0, true, true, "Disables Difficulty text from HUD if not having CMenu Open", 0, 1)
@@ -96,6 +99,28 @@ function GM:Think()
 	end
 
 	self.PreviousDifficulty = difficulty
+
+	if hl2ce_cl_nocustomhud:GetBool() then
+		if not IsValid(self.HealthHUD) then 
+			self.HealthHUD = vgui.Create("HudHealth")
+			self.HealthHUD:SetWide(ScreenScaleH(102))
+			self.HealthHUD:SetTall(ScreenScaleH(36))
+			self.HealthHUD:SetPos(ScreenScaleH(16),ScreenScaleH(432))
+			self.HealthHUD:ParentToHUD()
+		end
+		if not IsValid(self.ArmorHUD) then 
+			self.ArmorHUD = vgui.Create("HudArmor")
+			self.ArmorHUD:SetWide(ScreenScaleH(108))
+			self.ArmorHUD:SetTall(ScreenScaleH(36))
+			self.ArmorHUD:SetPos(ScreenScaleH(140),ScreenScaleH(432))
+			self.ArmorHUD:ParentToHUD()
+		end
+		self.HealthHUD:SetVisible(true)
+		self.ArmorHUD:SetVisible(true)
+	else
+		if IsValid(self.HealthHUD) then self.HealthHUD:SetVisible(false) end
+		if IsValid(self.ArmorHUD) then self.ArmorHUD:SetVisible(false) end
+	end
 end
 
 -- Called every frame to draw the hud
@@ -227,7 +252,7 @@ function GM:HUDShouldDraw( name )
 			return wep.HUDShouldDraw( wep, name )
 		end
 
-		if (name == "CHudHealth" or name == "CHudBattery") and not hl2ce_cl_nocustomhud:GetBool() then
+		if (name == "CHudHealth" or name == "CHudBattery") then
 			return false
 		end
 
@@ -611,6 +636,8 @@ end
 
 function GM:OnReloaded()
 	timer.Simple(1, function()
+		if IsValid(self.HealthHUD) then self.HealthHUD:Remove() end
+		if IsValid(self.ArmorHUD) then self.ArmorHUD:Remove() end
 		net.Start("hl2c_updatestats")
 		net.WriteString("reloadstats")
 		net.SendToServer()
