@@ -1146,8 +1146,13 @@ function GM:PlayerInitialSpawn(ply)
 	ply.CelestialityPoints = 0
 	ply.Rebirths = 0
 	ply.RebirthPoints = 0
-	ply.Ascensions = 0
-	ply.AscensionPoints = 0
+	-- Renamed due to Ascension feeling like a low tier prestige (in Revo Idle it's used to boost color mult gain)
+	ply.Transcension = 0
+	ply.TranscensionPoints = 0
+
+	-- New 6th prestige type?
+	ply.MythiLegendaries = 0
+	ply.MythiLegendaryPoints = 0
 
 	-- True Endless...????
 	-- ...but... you sure?

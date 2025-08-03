@@ -153,7 +153,7 @@ function hl2cAcceptInput( ent, input, activator )
 		if GAMEMODE:GetDifficulty() > 15 and ent:GetName() == "scene2_flash_mode_2" and string.lower(input) == "enablerefire" then
 			if gman_killed then return true end
 
-			if math.random(20) == 1 then
+			if math.random(10) == 1 then
 				local gman = ents.FindByName("gman")[1]
 
 				if gman and gman:IsValid() then
@@ -276,9 +276,13 @@ function hl2cAcceptInput( ent, input, activator )
 			activator:TakeDamage(1) -- kill it
 		end
 
-		if ent:GetName() == "storage_room_door" then
+		if GAMEMODE:GetDifficulty() > 10 and ent:GetName() == "storage_room_door" then
 			local entity = ents.FindByClass("npc_barney")[1]
 			if !entity or !entity:IsValid() then return end
+
+			barney_killed_themselves = true
+
+			entity:SetHealth(1)
 
 			for i=1,30 do
 				local exp = ents.Create("env_explosion")
@@ -319,7 +323,21 @@ function hl2cOnNPCKilled( ent, attacker )
 
 	if GAMEMODE.EXMode then
 		if ent:GetName() == "barney" then
-			PrintMessage(3, "...")
+			if barney_killed_themselves or ent == attacker then
+				PrintMessage(3, table.Random({
+					"wow barney killed themselves",
+					"Hold ze fuck up how is this possible?!",
+					"Fuck you gman you set this up!!!",
+					"Barney died... the world is in danger.",
+					"ARE YOU FUCKIN--",
+				}))
+			else
+				PrintMessage(3, table.Random({
+					"...yeah let's just skip this part",
+					"Did you softlocked? Congrats.",
+					"You just killed barney on your own.",
+				}))
+			end
 		end
 
 		if ent:GetName() == "gman" then
