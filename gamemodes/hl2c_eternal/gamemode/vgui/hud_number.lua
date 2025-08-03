@@ -165,7 +165,9 @@ function PANEL:Paint(w,h)
     end
 
     if self.DisplayValue then 
-        surface.SetTextColor(self.FGColor)
+        local col = self.FGColor:Copy()
+        col.a = col.a * (self.NumberAlpha or 1)
+        surface.SetTextColor(col)
         self:PaintNumbers(self.NumberFont,SSH(self.digit_xpos),SSH(self.digit_ypos),self.Value)
 
         local fl = self.Blur
@@ -174,7 +176,7 @@ function PANEL:Paint(w,h)
                 self:PaintNumbers(self.NumberGlowFont,SSH(self.digit_xpos),SSH(self.digit_ypos),self.Value)
             else
                 local col = self.FGColor:Copy() --update your game if you don't have this function
-                col.b = col.b * fl
+                col.a = col.a * fl
                 surface.SetTextColor(col)
                 self:PaintNumbers(self.NumberGlowFont,SSH(self.digit_xpos),SSH(self.digit_ypos),self.Value)
             end
@@ -183,7 +185,9 @@ function PANEL:Paint(w,h)
     end
 
     if self.DisplaySecondaryValue then 
-        surface.SetTextColor(self.FGColor)
+        local col = self.FGColor:Copy()
+        col.a = col.a * (self.SmallNumberAlpha or 1)
+        surface.SetTextColor(col)
         self:PaintNumbers(self.SmallNumberFont,SSH(self.digit2_xpos),SSH(self.digit2_ypos),self.SecondaryValue,true)
     end
 

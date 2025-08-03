@@ -36,9 +36,11 @@ end
 function PANEL:Init()
     self:Reset()
     self.HealthIncreasedAbove20 = Derma_Anim("HealthIncreasedAbove20",self,function(self,anim,delta,data)
+        self.SmallNumberAlpha = (1 - delta)
         self.Blur = (1 - delta) * 3
     end)
     self.HealthIncreasedBelow20 = Derma_Anim("HealthIncreasedBelow20",self,function(self,anim,delta,data)
+        self.SmallNumberAlpha = delta
         self.Blur = delta * 1
     end)
 end
@@ -61,10 +63,10 @@ function PANEL:Think()
 
     if self.Health >= LocalPlayer():GetMaxHealth() * 0.2 then 
         self.HealthIncreasedBelow20:Stop()
-        self.HealthIncreasedAbove20:Start(1)
+        self.HealthIncreasedAbove20:Start(2)
     else
         self.HealthIncreasedAbove20:Stop()
-        self.HealthIncreasedBelow20:Start(0.5)
+        self.HealthIncreasedBelow20:Start(1)
     end
 
     self.NumberFont = self.Health > 999 and "HL2CEHudNumbersSmall" or "HL2CEHudNumbers"
