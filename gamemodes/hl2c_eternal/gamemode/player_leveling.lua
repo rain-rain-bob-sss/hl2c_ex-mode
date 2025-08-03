@@ -1,28 +1,7 @@
 local meta = FindMetaTable("Player")
 
 function meta:GiveXP(xp, nomul)
-    local xpmul = 1
-    xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("better_knowledge_1") and 0.065 or 0.05) or 0.03))
-
-    if GAMEMODE.EndlessMode then
-        if self:HasPerkActive("difficult_decision_1") then
-            xpmul = xpmul * 1.1
-        end
-
-        if self:HasPerkActive("aggressive_gameplay_1") then
-            xpmul = xpmul * 1.35
-        end
-    end
-
-    local prestigexpmul = 1
-    prestigexpmul = prestigexpmul + math.min(self.Prestige*0.2, 100) + math.min(self.Eternity*1.2, 100) + math.min(self.Celestiality*5, 100)
-
-    xpmul = xpmul * prestigexpmul
-
-    if nomul then
-        xpmul = 1
-        prestigexpmul = 1
-    end
+    local xpmul = self:GetXPMul(nomul)
 
     self.XP = self.XP + xp*xpmul
     if self.MapStats then

@@ -337,3 +337,31 @@ function meta:GetOriginalMaxHealth()
 
 	return maxhp
 end
+
+function meta:GetXPMul(nomul)
+	if nomul then return XP_GAIN_MUL end
+	local xpmul = XP_GAIN_MUL
+	xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("better_knowledge_1") and 0.065 or 0.05) or 0.03))
+
+    if GAMEMODE.EndlessMode then
+        if self:HasPerkActive("difficult_decision_1") then
+            xpmul = xpmul * 1.1
+        end
+
+        if self:HasPerkActive("aggressive_gameplay_1") then
+            xpmul = xpmul * 1.35
+        end
+    end
+
+    local prestigexpmul = 1
+    prestigexpmul = prestigexpmul + math.min(self.Prestige*0.2, 100) + math.min(self.Eternity*1.2, 100) + math.min(self.Celestiality*5, 100)
+
+    xpmul = xpmul * prestigexpmul
+	return xpmul
+end
+
+function meta:GetMoneyMul(nomul)
+	if nomul then return MONEY_GAIN_MUL end
+	local moneymul = MONEY_GAIN_MUL
+	return moneymul
+end

@@ -17,6 +17,9 @@ NEXT_MAP_PERCENT = 60
 -- Seconds before the next map loads (Default: 60)
 NEXT_MAP_TIME = 60
 
+XP_GAIN_MUL = 1
+MONEY_GAIN_MUL = 1
+
 
 -- Points to give a player for killing an NPC (if non-one)
 NPC_POINT_VALUES = {
