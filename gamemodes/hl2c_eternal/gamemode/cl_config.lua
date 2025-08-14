@@ -1,8 +1,6 @@
 GM.ConfigData = GM.ConfigData or {}
-
-
 function GM:PlayerConfiguration()
-/*
+	--[[
 	if IsValid(self.ConfigPanel) then self.ConfigPanel:Remove() end
 
 	local pl = LocalPlayer()
@@ -50,5 +48,5 @@ function GM:PlayerConfiguration()
 	end
 
 	list:AddItem(MakeText(self.ConfigPanel, "Fyi perks do not work yet ffs I STILL NEED WORK TO GET THEM IMPLEMENTED", "TargetIDSmall"))
-*/
+	]]
 end

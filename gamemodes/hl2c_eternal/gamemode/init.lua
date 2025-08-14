@@ -15,6 +15,7 @@ AddCSLuaFile("cl_upgradesmenu.lua")
 AddCSLuaFile("vgui/hud_number.lua")
 AddCSLuaFile("vgui/hud_hp.lua")
 AddCSLuaFile("vgui/hud_armor.lua")
+AddCSLuaFile("vgui/hud_timespent.lua")
 
 AddCSLuaFile("sh_config.lua")
 AddCSLuaFile("sh_globals.lua")
@@ -245,6 +246,9 @@ function GM:OnEntityCreated(ent)
 	end
 
 	timer.Simple(0, function()
+		if not IsValid(ent) then return end
+
+		ent.OData = ent:GetData()
 		if !ent:IsNPC() then return end
 		if ent.ent_MaxHealthMul then
 			ent:SetMaxHealth(ent.ent_MaxHealthMul * ent:Health())
@@ -272,6 +276,17 @@ function GM:EntityKeyValue(ent, key, value)
 
 		ent:SetSkin(1)
 
+	end
+
+	local lkey = string.lower(key)
+
+	if string.StartsWith(lkey,"on") then 
+		ent.HL2CEOutputs = ent.HL2CEOutputs or {}
+		ent.HL2CEOutputs[key] = ent.HL2CEOutputs[key] or {}
+		table.insert(ent.HL2CEOutputs[key],value)
+	else
+		ent.HL2CEKeyValues = ent.HL2CEKeyValues or {}
+		ent.HL2CEKeyValues[key] = value
 	end
 
 end
@@ -793,6 +808,8 @@ end
 -- Called as soon as all map entities have been spawned
 function GM:MapEntitiesSpawned()
 
+	self.RespawningEntities = {}
+
 	-- Remove old spawn points
 	if (MasterPlayerStartExists()) then
 		for _, ips in pairs(ents.FindByClass("info_player_start")) do
@@ -1050,7 +1067,52 @@ hook.Add("EntityRemoved","HL2CE_NPCDeathHack",function(ent)
 			end
 		end
 	end
+
+	if MAP_ENTITIES_RESPAWN and (MAP_CAN_RESPAWN_ENTITIES[ent:GetClass()] or (MAP_CAN_RESPAWN_ENTITY and MAP_CAN_RESPAWN_ENTITY(ent))) then
+		local _,map_force = MAP_CAN_RESPAWN_ENTITY(ent)
+		GAMEMODE:AddToRespawn(ent,map_force)
+	end
+
 end)
+
+GM.RespawningEntities = {}
+function GM:RespawnEntity(data)
+	local ent = ents.Create(data.classname)
+	if not IsValid(ent) then return end
+	ent:SpawnWithData(data)
+	ent:EmitSound("AlyxEmp.Charge")
+	return ent
+end
+
+function GM:RespawnThink(data)
+	for k,data in pairs(self.RespawningEntities) do 
+		if (data.respawntime or 0) < CurTime() then
+			self:RespawnEntity(data)
+			self.RespawningEntities[k] = nil
+		end
+	end
+end
+
+function GM:AddToRespawn(ent,map_force)
+
+	if not mapforce then
+		if (not ent.CanRespawn) and ent:MapCreationID() == -1 then return end
+		if ent:IsWeapon() and IsValid(ent:GetOwner()) then return end
+	end
+
+	print("added ",ent," to respawning entities")
+
+	local data = table.Copy(ent.OData or ent:GetData())
+	data.respawntime = CurTime() + MAP_ENTITIES_RESPAWNTIME or 15
+	self.RespawningEntities[ent:GetCreationID()] = data
+end
+
+function GM:WeaponEquip(wep,owner)
+	if MAP_ENTITIES_RESPAWN and (MAP_CAN_RESPAWN_WEAPONS[ent:GetClass()] or (MAP_CAN_RESPAWN_ENTITY and MAP_CAN_RESPAWN_ENTITY(ent))) then
+		local _,map_force = MAP_CAN_RESPAWN_ENTITY(ent)
+		GAMEMODE:AddToRespawn(ent,map_force)
+	end
+end
 
 hook.Add("OnNPCKilled", "NoMoreHarpoonInstaKills", function(ent, atk, inf)
 	if inf:IsValid() and inf:GetModel() == "models/props_junk/harpoon002a.mdl" then return false end
@@ -1884,6 +1946,9 @@ function GM:Think()
 		delayedDMGTick = CurTime()
 	end
 	]]
+
+
+	self:RespawnThink()
 end
 
 
@@ -1945,6 +2010,13 @@ function GM:AcceptInput(ent, input, activator, caller, value)
 			ent:SetHealth(ent:GetMaxHealth())
 			return true
 		end
+	end
+
+	if input == "AddOutput" then 
+		local pos = string.find( value, " ", 1, true )
+		local name, value = value:sub( 1, pos - 1 ), value:sub( pos + 1 )
+		value = value:gsub( ":", "," )
+		GAMEMODE:EntityKeyValue(ent,name,value)
 	end
 end
 

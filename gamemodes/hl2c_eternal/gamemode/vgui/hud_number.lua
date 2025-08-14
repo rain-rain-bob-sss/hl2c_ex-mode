@@ -1,5 +1,20 @@
 local color_txt = Color(255,235,20,255)
 local color_bg = Color(0,0,0,76)
+
+local cs = file.Read("resource/ClientScheme.res","GAME")
+if cs then
+
+    HUD_CLIENTSCEHEME = util.KeyValuesToTable(cs,true,true).BaseSettings
+
+else
+
+    HUD_CLIENTSCEHEME = {}
+
+end
+
+--color_txt = HUD_CLIENTSCEHEME.FgColor or color_txt
+--color_bg = HUD_CLIENTSCEHEME.BgColor or color_bg
+
 local SSH = ScreenScaleH
 
 local PANEL = {}
@@ -129,7 +144,7 @@ function PANEL:PaintNumbers(font,xpos,ypos,value,secondary)
     if not IsTime and not IsPercent then 
         text = math.Round(value)
     elseif not IsPercent then
-        local Minutes = value / 60
+        local Minutes = math.floor(value / 60)
         local Seconds = value - Minutes * 60
         if Seconds < 10 then 
             text = string.format("%d:0%d",Minutes,Seconds)
@@ -137,7 +152,7 @@ function PANEL:PaintNumbers(font,xpos,ypos,value,secondary)
             text = string.format("%d:%d",Minutes,Seconds)
         end
     else
-        text = math.Round(value * 100) .. "%"
+        text = math.Round(value * 100,1) .. "%"
     end
 
     local charWidth = surface.GetTextSize(font,"0")
@@ -154,44 +169,59 @@ function PANEL:PaintLabel()
     surface.DrawText(self.LabelText)
 end
 
-function PANEL:Paint(w,h)
-
+function PANEL:Draw(w,h,xoffset,yoffset,x2offset,y2offset,fg,bg,fg2,value,value2,blur,alpha,numalpha,smallnumalpha)
     if self.ShouldDraw and not self:ShouldDraw() then return true end
 
+    xoffset = xoffset or 0
+    yoffset = yoffset or 0
+
+    x2offset = x2offset or 0
+    y2offset = y2offset or 0
+
     if self.ShouldDrawBackground then 
-        local col = self.BGColor
-        col.a = col.a * self.Alpha
+        local col = (bg or self.BGColor):Copy()
+        col.a = col.a * (alpha or self.Alpha)
         draw.RoundedBox(8,0,0,w,h,col)
     end
 
     if self.DisplayValue then 
-        local col = self.FGColor:Copy()
-        col.a = col.a * (self.NumberAlpha or 1)
+        local col = (fg or self.FGColor):Copy()
+        col.a = col.a * ((numalpha or self.NumberAlpha) or 1)
         surface.SetTextColor(col)
-        self:PaintNumbers(self.NumberFont,SSH(self.digit_xpos),SSH(self.digit_ypos),self.Value)
+        self:PaintNumbers(self.NumberFont,SSH(self.digit_xpos) + xoffset,SSH(self.digit_ypos) + yoffset,value or self.Value)
 
-        local fl = self.Blur
+        local fl = blur or self.Blur
         while fl > 0 do
             if fl >= 1 then 
-                self:PaintNumbers(self.NumberGlowFont,SSH(self.digit_xpos),SSH(self.digit_ypos),self.Value)
+                self:PaintNumbers(self.NumberGlowFont,SSH(self.digit_xpos) + xoffset,SSH(self.digit_ypos) + yoffset,value or self.Value)
             else
-                local col = self.FGColor:Copy() --update your game if you don't have this function
+                local col = (fg or self.FGColor):Copy() --update your game if you don't have this function
                 col.a = col.a * fl
                 surface.SetTextColor(col)
-                self:PaintNumbers(self.NumberGlowFont,SSH(self.digit_xpos),SSH(self.digit_ypos),self.Value)
+                self:PaintNumbers(self.NumberGlowFont,SSH(self.digit_xpos) + xoffset,SSH(self.digit_ypos) + yoffset,value or self.Value)
             end
             fl = fl - 1
         end
     end
 
     if self.DisplaySecondaryValue then 
-        local col = self.FGColor:Copy()
-        col.a = col.a * (self.SmallNumberAlpha or 1)
+        local col = (fg2 or self.FGColor):Copy()
+        col.a = col.a * ((smallnumalpha or self.SmallNumberAlpha) or 1)
         surface.SetTextColor(col)
-        self:PaintNumbers(self.SmallNumberFont,SSH(self.digit2_xpos),SSH(self.digit2_ypos),self.SecondaryValue,true)
+        self:PaintNumbers(self.SmallNumberFont,SSH(self.digit2_xpos) + x2offset,SSH(self.digit2_ypos) + y2offset,value2 or self.SecondaryValue,true)
     end
 
     self:PaintLabel()
+end
+
+function PANEL:DrawTable(w,h,tbl)
+    self:Draw(w,h,tbl.x,tbl.y,tbl.x2,tbl.y2,tbl.fg,tbl.bg,tbl.fg2,tbl.value,tbl.value2,tbl.blur,tbl.alpha,tbl.numalpha,tbl.smallnumalpha)
+end
+
+function PANEL:Paint(w,h)
+
+    self:Draw(w,h)
+    
 end
 
 function PANEL:Init()

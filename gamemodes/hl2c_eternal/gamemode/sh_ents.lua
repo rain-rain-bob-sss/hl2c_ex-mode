@@ -126,3 +126,54 @@ end
 function meta:GetLastAttacker()
 	return self.LastAttacker or NULL 
 end
+
+if SERVER then 
+	function meta:OverrideMapCreationID(id)
+		self.MapCreationIDOverride = id
+	end
+	meta.HCEOldMapCreationID = meta.HCEOldMapCreationID or meta.MapCreationID 
+	function meta:MapCreationID(...)
+		if self.MapCreationIDOverride then
+			return self.MapCreationIDOverride
+		end
+		return self:HCEOldMapCreationID(...)
+	end
+
+	function meta:GetData(withsavetbl)
+		return {
+			classname = self:GetClass(),
+			pos = self:GetPos(),
+			ang = self:GetAngles(),
+			model = self:GetModel(),
+			name = self:GetName(),
+			spawnflags = self:GetSpawnFlags(),
+			keyvalues = self.HL2CEKeyValues or {},
+			outputs = self.HL2CEOutputs or {},
+			mapcreationid = self:MapCreationID(),
+			savetable = withsavetbl and self:GetSaveTable() or {},
+		}
+	end
+
+	function meta:SpawnWithData(data)
+		self:SetPos(data.pos)
+		self:SetAngles(data.ang)
+		self:SetModel(data.model)
+		self:SetSpawnFlags(data.spawnflags)
+		self:SetName(data.name)
+		for i, outputs in pairs(data.outputs or {}) do
+			for _, output in pairs(outputs) do
+				local str = i.." "..output
+				self:Fire("AddOutput",str)
+			end
+		end
+		self.HL2CEOutputs = data.outputs
+		self:Spawn()
+		self:Activate()
+
+		for i,v in pairs(data.savetable) do 
+			self:SetSaveValue(i,v)
+		end
+
+		self:OverrideMapCreationID(data.mapcreationid)
+	end
+end

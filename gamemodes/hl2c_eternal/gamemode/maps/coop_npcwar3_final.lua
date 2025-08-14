@@ -4,6 +4,24 @@ FORCE_PLAYER_RESPAWNING = true
 
 FORCE_DIFFICULTY = 7.5
 
+MAP_ENTITIES_RESPAWN = true
+MAP_CAN_RESPAWN_ENTITIES = {
+}
+
+MAP_CAN_RESPAWN_WEAPONS = {
+}
+
+MAP_CAN_RESPAWN_ENTITY = function(ent)
+	if string.StartsWith(ent:GetClass(),"item_") then 
+		return true
+	end
+	if string.StartsWith(ent:GetClass(),"weapon_") then 
+		return true
+	end
+end
+
+MAP_ENTITIES_RESPAWNTIME = 5
+
 if CLIENT then return end
 
 hook.Add("PlayerSpawn", "hl2cPlayerSpawn", function(ply)

@@ -4,6 +4,12 @@ local Localize = function(token,def)
     return phrase
 end
 
+local color_txt = Color(255,235,20,255)
+local color_txtred = Color(255,235,20,255)
+
+--color_txt = HUD_CLIENTSCEHEME.FgColor or color_txt
+--color_txtred = HUD_CLIENTSCEHEME.BrightDamagedFg or color_txtred
+
 local SSH = ScreenScaleH
 
 surface.CreateFont("HL2CEHudDefault1", {
@@ -44,11 +50,21 @@ function PANEL:Init()
         self.Blur = delta * 1
     end)
     self.LowHealth = Derma_Anim("LowHealth",self,function(self,anim,delta,data)
-        self.FGColor = Color(255,235,20,255):Lerp(Color(255,0,0),delta)
+        self.FGColor = color_txt:Lerp(color_txtred,delta)
     end)
     self.NotLowHealth = Derma_Anim("NotLowHealth",self,function(self,anim,delta,data)
-        self.FGColor = Color(255,235,20,255):Lerp(Color(255,0,0),1 - delta)
+        self.FGColor = color_txt:Lerp(color_txtred,1 - delta)
     end)
+end
+
+function PANEL:GetNumberFont()
+    if self.Health > 999 then
+        if self.Health > 9999999 then 
+            return "HL2CEHudNumbersVerySmall","HL2CEHudNumbersVerySmallGlow",14
+        end
+        return "HL2CEHudNumbersSmall","HL2CEHudNumbersSmallGlow",10
+    end
+    return "HL2CEHudNumbers","HL2CEHudNumbersGlow",2
 end
 
 function PANEL:Think()
@@ -86,9 +102,10 @@ function PANEL:Think()
         end
     end
 
-    self.NumberFont = self.Health > 999 and "HL2CEHudNumbersSmall" or "HL2CEHudNumbers"
-    self.NumberGlowFont = self.Health > 999 and "HL2CEHudNumbersSmallGlow" or "HL2CEHudNumbersGlow"
-    self.digit_ypos = self.Health > 999 and 10 or 2
+    local font,glowfont,dypos = self:GetNumberFont()
+    self.NumberFont = font
+    self.NumberGlowFont = glowfont
+    self.digit_ypos = dypos
     self:SetDisplayValue(self.Health)
     self:SetSecondaryValue(self.Health / maxHealth)
 end

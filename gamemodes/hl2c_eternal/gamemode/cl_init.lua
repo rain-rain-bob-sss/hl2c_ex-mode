@@ -14,11 +14,13 @@ include("cl_upgradesmenu.lua")
 include("vgui/hud_number.lua")
 include("vgui/hud_hp.lua")
 include("vgui/hud_armor.lua")
+include("vgui/hud_timespent.lua")
 
-local hl2ce_cl_noearringing = CreateClientConVar("hl2ce_cl_noearringing", 0, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
+local hl2ce_cl_noearringing = CreateClientConVar("hl2ce_cl_noearringing", 1, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 local hl2ce_cl_nohuddifficulty = CreateClientConVar("hl2ce_cl_nohuddifficulty", 0, true, true, "Disables Difficulty text from HUD if not having CMenu Open", 0, 1)
-local hl2ce_cl_nocustomhud = CreateClientConVar("hl2ce_cl_nocustomhud", 0, true, true, "Disables the HL2 Health and Armor Bars", 0, 1)
-local hl2ce_cl_nodamageindicator = CreateClientConVar("hl2ce_cl_nodamageindicator", 0, true, true, "Disables the HL2 Damage Indicator", 0, 1)
+--local hl2ce_cl_huddifficultytype = CreateClientConVar("hl2ce_cl_huddifficultytype", 1, true, true, "Difficulty HUD Type", 0, 1)
+local hl2ce_cl_nocustomhud = CreateClientConVar("hl2ce_cl_nocustomhud", 1, true, true, "Disables the HL2 Health and Armor Bars", 0, 1)
+local hl2ce_cl_nodamageindicator = CreateClientConVar("hl2ce_cl_nodamageindicator", 1, true, true, "Disables the HL2 Damage Indicator", 0, 1)
 
 timeleft = timeleft or 0
 
@@ -83,7 +85,6 @@ function EasyButton(parent, text, xpadding, ypadding)
 	return dpanel
 end
 
-
 function GM:Think()
 	local difficulty = self:GetDifficulty()
 
@@ -120,6 +121,19 @@ function GM:Think()
 	else
 		if IsValid(self.HealthHUD) then self.HealthHUD:SetVisible(false) end
 		if IsValid(self.ArmorHUD) then self.ArmorHUD:SetVisible(false) end
+	end
+
+	if not IsValid(self.TimeSpent) and IsValid(LocalPlayer()) and LocalPlayer():Alive() then 
+		self.TimeSpent = vgui.Create("HudTimeSpent")
+		self.TimeSpent:SetLabelText("TIME SPENT:")
+		self.TimeSpent:SetWide(ScreenScaleH(102))
+		self.TimeSpent:SetTall(ScreenScaleH(36))
+		self.TimeSpent:SetPos(ScrW() / 2 - self.TimeSpent:GetWide() / 2,ScreenScaleH(8))
+		self.TimeSpent:ParentToHUD()
+		self.TimeSpent.StartTime = CurTime()
+		local x,y = self.TimeSpent:GetPos()
+		self.TimeSpent.x = x
+		self.TimeSpent.y = y
 	end
 end
 
@@ -367,6 +381,17 @@ function GM:PlayerBindPress( ply, bind, down )
 		-- return true
 	-- end
 
+	if (bind == "invnext" or bind == "invprev" or string.StartsWith(bind,"slot")) and down and not GetConVar("hud_fastswitch"):GetBool() then
+		local timespent = self.TimeSpent 
+		if IsValid(timespent) then 
+			timespent:AlphaTo(0,0.1,0,function()
+				timer.Create("timespent_alpha255",1,1,function()
+					timespent:AlphaTo(255,0.25,0)
+				end)
+			end)
+		end
+	end
+
 	return false
 end
 
@@ -413,6 +438,7 @@ end
 function NextMap( len )
 
 	nextMapCountdownStart = net.ReadFloat()
+	if IsValid(GAMEMODE.TimeSpent) then GAMEMODE.TimeSpent.Freeze = true end
 
 end
 net.Receive( "NextMap", NextMap )
@@ -638,6 +664,7 @@ function GM:OnReloaded()
 	timer.Simple(1, function()
 		if IsValid(self.HealthHUD) then self.HealthHUD:Remove() end
 		if IsValid(self.ArmorHUD) then self.ArmorHUD:Remove() end
+		if IsValid(self.TimeSpent) then self.TimeSpent:Remove() end
 		net.Start("hl2c_updatestats")
 		net.WriteString("reloadstats")
 		net.SendToServer()
