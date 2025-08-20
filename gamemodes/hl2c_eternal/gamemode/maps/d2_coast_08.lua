@@ -1,4 +1,4 @@
-INFO_PLAYER_SPAWN = { Vector( 3328, 1505, 1537 ), -90 }
+INFO_PLAYER_SPAWN = { Vector( 3328, 1505, 1537 ) + Vector(0,3450,0), -90 }
 
 NEXT_MAP = "d2_coast_07"
 
@@ -28,7 +28,7 @@ function hl2cMapEdit()
 
 	local propblock = ents.Create( "prop_physics" )
 	propblock:SetName( "prop_block" )
-	propblock:SetPos( Vector( 3328, 1575, 1600 ) )
+	propblock:SetPos( Vector( 3328, 1575, 1600 ) + Vector(0,3450,0) )
 	propblock:SetModel( "models/props_wasteland/rockcliff01b.mdl" )
 	propblock:DrawShadow( false )
 	propblock:Spawn()
@@ -49,11 +49,11 @@ function hl2cAcceptInput( ent, input )
 		for _, ply in pairs( player.GetAll() ) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
-			ply:SetPos( Vector( 2991, -6946, 1932 ) )
+			ply:SetPos( Vector( 2991, -6946, 1932 ) + Vector(0,3450,0) )
 			ply:SetEyeAngles( Angle( 0, 0, 0 ) )
 		
 		end
-		GAMEMODE:CreateSpawnPoint( Vector( 2991, -6946, 1932 ), 0 )
+		GAMEMODE:CreateSpawnPoint( Vector( 2991, -6946, 1932 ) + Vector(0,3450,0), 0 )
 	
 		if ( !file.Exists( "hl2c_eternal/d2_coast_08.txt", "DATA" ) ) then
 		
