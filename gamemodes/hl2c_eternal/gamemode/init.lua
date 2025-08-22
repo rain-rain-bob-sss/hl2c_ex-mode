@@ -1,3 +1,5 @@
+if ulx then function ulx.uteamEnabled() return false end end
+
 -- Send the required lua files to the client
 AddCSLuaFile("cl_calcview.lua")
 AddCSLuaFile("cl_init.lua")
@@ -171,14 +173,17 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 
 
 	if attacker:IsNPC() then
-		ply:PrintMessage(3, "Died by "..Format("#%s", attacker:GetClass()))
+		ply:PrintMessage(3, "Killed by ")
+		ply:PrintMessage(3, "#"..attacker:GetClass())
 	end
 
-	local diff = self:GetDifficulty(true, true)
-	self:SetDifficulty(math.max(1, diff * (
-		diff >= 1000 and 0.957 or diff >= 100 and 0.962 or
-		diff >= 10 and 0.968 or diff >= 4 and 0.974 or 0.98
-	)))
+	if attacker ~= ply then
+		local diff = self:GetDifficulty(true, true)
+		self:SetDifficulty(math.max(1, diff * (
+			diff >= 1000 and 0.957 or diff >= 100 and 0.962 or
+			diff >= 10 and 0.968 or diff >= 4 and 0.974 or 0.98
+		)))
+	end
 
 
 	local lowermodelname = string.lower(ply:GetModel())
@@ -243,6 +248,13 @@ function GM:OnEntityCreated(ent)
 	if ent:IsNPC() and not ent:IsFriendlyNPC() and not table.HasValue(GODLIKE_NPCS, ent:GetClass()) then
 		ent.ent_MaxHealthMul = (ent.ent_MaxHealthMul or 1) * math.min(self:GetDifficulty()^0.3, 100000)
 		ent.ent_HealthMul = (ent.ent_HealthMul or 1) * math.min(self:GetDifficulty()^0.3, 100000)
+	end
+
+	if ent:GetClass() == "entityflame" then 
+		local victim = ent:GetParent()
+		if IsValid(victim) and IsValid(victim.LastAttacker) then
+			ent.OverrideAttacker = victim.LastAttacker
+		end
 	end
 
 	timer.Simple(0, function()
@@ -333,6 +345,9 @@ local StunstickDamageMul={
 function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Gets the attacker
 	local attacker = dmgInfo:GetAttacker()
+
+	if attacker.OverrideAttacker then dmgInfo:SetAttacker(attacker.OverrideAttacker) end
+
 	local damage = math.min(dmgInfo:GetDamage(), 2^128) -- fuck the infinite damage's float limits
 	local dmgdirect = bit.band(DMG_DIRECT, dmgInfo:GetDamageType()) ~= 0
 
@@ -1565,9 +1580,11 @@ function GM:PlayerSpawn(ply)
 	ply:SetMaxArmor(maxap)
 
 	-- Players should avoid players
-	ply:SetCustomCollisionCheck(!game.SinglePlayer())
+	ply:SetNoCollideWithTeammates(true)
+	ply:SetCustomCollisionCheck(true)
 	ply:SetAvoidPlayers(false)
 	ply:SetNoTarget(false)
+	ply:CollisionRulesChanged()
 
 	-- If the player died before, kill them again
 	if table.HasValue(deadPlayers, ply:SteamID()) then

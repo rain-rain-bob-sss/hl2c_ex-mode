@@ -5,7 +5,8 @@ local Localize = function(token,def)
 end
 
 local color_txt = Color(255,235,20,255)
-local color_txtred = Color(255,235,20,255)
+local color_txtred = Color(255,0,0,255)
+local color_bg = Color(0,0,0,76)
 
 --color_txt = HUD_CLIENTSCEHEME.FgColor or color_txt
 --color_txtred = HUD_CLIENTSCEHEME.BrightDamagedFg or color_txtred
@@ -49,12 +50,15 @@ function PANEL:Init()
         self.SmallNumberAlpha = delta
         self.Blur = delta * 1
     end)
-    self.LowHealth = Derma_Anim("LowHealth",self,function(self,anim,delta,data)
-        self.FGColor = color_txt:Lerp(color_txtred,delta)
+    self.HLow = Derma_Anim("HealthLow",self,function(self,_,delta,_)
+        if delta == 1 then return self.HLow:Start(0.8) end
+
+        local red = 0
+        if delta <= 0.3 then red = delta / 0.3 else delta = delta - 0.3 red = (1 - (delta / 0.7)) * 100 end
+        self.BGColor.r = red
     end)
-    self.NotLowHealth = Derma_Anim("NotLowHealth",self,function(self,anim,delta,data)
-        self.FGColor = color_txt:Lerp(color_txtred,1 - delta)
-    end)
+    self.BGColor = self.BGColor:Copy()
+    self.FGColor = self.FGColor:Copy()
 end
 
 function PANEL:GetNumberFont()
@@ -67,12 +71,23 @@ function PANEL:GetNumberFont()
     return "HL2CEHudNumbers","HL2CEHudNumbersGlow",2
 end
 
+local clr_add = function(a,b)
+    return Color(a.r + b.r,a.g + b.g,a.b + b.b)
+end
+
+local clr_subtract = function(a,b)
+    return Color(a.r - b.r,a.g - b.g,a.b - b.b)
+end
+
+local clr_mul = function(a,b)
+    return Color(a.r * b,a.g * b,a.b * b)
+end
+
 function PANEL:Think()
 
     if self.HealthIncreasedAbove20:Active() then self.HealthIncreasedAbove20:Run() end
     if self.HealthIncreasedBelow20:Active() then self.HealthIncreasedBelow20:Run() end
-    if self.LowHealth:Active() then self.LowHealth:Run() end
-    if self.NotLowHealth:Active() then self.NotLowHealth:Run() end
+    if self.HLow:Active() then self.HLow:Run() end
 
     local newHealth = 0
     local maxHealth = 0
@@ -81,26 +96,32 @@ function PANEL:Think()
         maxHealth = LocalPlayer():GetMaxHealth()
     end
 
+    if self.Low then 
+        self.FGColor = clr_add(self.FGColor,clr_mul(clr_subtract(color_txtred,self.FGColor),RealFrameTime() * 5))
+    else
+        self.FGColor = clr_add(self.FGColor,clr_mul(clr_subtract(color_txt,self.FGColor),RealFrameTime() * 5))
+    end
+
     if newHealth == self.Health then return end
 
     self.Health = newHealth
 
     if self.Health >= LocalPlayer():GetMaxHealth() * 0.2 then 
-        self.HealthIncreasedBelow20:Stop()
-        self.LowHealth:Stop()
-        if self.Low then 
-            self.NotLowHealth:Start(1)
-            self.Low = false
-        end
+        self.HealthIncreasedBelow20:Stop() 
+        self.Low = false
         self.HealthIncreasedAbove20:Start(2)
+        self.HLow:Stop()
+        self.BGColor.r = 0
     else
-        self.NotLowHealth:Stop()
         self.HealthIncreasedAbove20:Stop()
         if not self.Low then
-            self.LowHealth:Start(1) self.Low = true
+            self.Low = true
             self.HealthIncreasedBelow20:Start(1)
+            self.HLow:Start(1)
         end
     end
+
+    
 
     local font,glowfont,dypos = self:GetNumberFont()
     self.NumberFont = font
