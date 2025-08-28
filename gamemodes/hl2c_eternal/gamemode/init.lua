@@ -142,6 +142,7 @@ function GM:CreateTDML(min, max)
 	tdml.min = min
 	tdml.max = max
 	tdml:Spawn()
+	return tdml
 end
 
 
@@ -278,9 +279,13 @@ end
 -- Called when map entities spawn
 function GM:EntityKeyValue(ent, key, value)
 
-	if ((ent:GetClass() == "trigger_changelevel") && (key == "map")) then
+	if ((ent:GetClass() == "trigger_changelevel")) then
 
-		ent.map = value
+		if (key == "map") then
+			ent.map = value
+		elseif (key == "landmark") then
+			ent.landmark = value
+		end
 
 	end
 
@@ -867,7 +872,8 @@ function GM:MapEntitiesSpawned()
 		for _, tcl in pairs(ents.FindByClass("trigger_changelevel")) do
 			if (tcl.map == NEXT_MAP) then
 				local tclMin, tclMax = tcl:WorldSpaceAABB()
-				GAMEMODE:CreateTDML(tclMin, tclMax)
+				local tdml = GAMEMODE:CreateTDML(tclMin, tclMax)
+				tdml.landmark = tcl.landmark
 			end
 			tcl:Remove()
 		end
