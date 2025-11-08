@@ -26,12 +26,13 @@ function meta:RemoveVehicle()
 end
 
 function meta:GetMaxDifficultyXPGainMul()
-	return self:HasEternityUnlocked() and 250 or self:HasPrestigeUnlocked() and 75 or 15
+	return math.huge
+	-- return self:HasEternityUnlocked() and 250 or self:HasPrestigeUnlocked() and 75 or 15
 end
 
 function meta:GetSkillAmount(stat)
 	if GAMEMODE.NoProgressionAdvantage then return 0 end
-	return math.Clamp(self["Stat"..stat] or 0, 0, GAMEMODE.EndlessMode and 1e6 or 10)
+	return math.Clamp(self.Skills[stat] or 0, 0, GAMEMODE.EndlessMode and 1e6 or 10)
 end
 
 function meta:HasPerkUnlocked(perk)
@@ -59,11 +60,12 @@ function meta:CanLevelup()
 end
 
 function meta:CanPrestige()
-	return self.Level > MAX_LEVEL or self.Level >= MAX_LEVEL and self.XP >= GAMEMODE:GetReqXP(self)
+	return infmath.ConvertInfNumberToNormalNumber(self.Level) > MAX_LEVEL or infmath.ConvertInfNumberToNormalNumber(self.Level) >= MAX_LEVEL and
+	self.XP >= GAMEMODE:GetReqXP(self)
 end
 
 function meta:CanEternity() -- higher prestige ignores CanPrestige requireent
-	return self.Prestige > MAX_PRESTIGE or self:CanPrestige() and self.Prestige >= MAX_PRESTIGE
+	return self.PrestigePoints >= InfNumber(2)^31
 end
 
 function meta:CanCelestiality()
@@ -71,26 +73,32 @@ function meta:CanCelestiality()
 end
 
 function meta:HasPrestigeUnlocked()
-	return self.Prestige > 0 or self:HasEternityUnlocked()
+	return infmath.ConvertInfNumberToNormalNumber(self.Prestige) > 0 or self:HasEternityUnlocked()
 end
 
 function meta:HasEternityUnlocked()
-	return self.Eternity > 0 or self:HasCelestialityUnlocked()
+	return infmath.ConvertInfNumberToNormalNumber(self.Eternity) > 0 or self:HasCelestialityUnlocked()
 end
 
 function meta:HasCelestialityUnlocked()
-	return self.Celestiality > 0
+	return infmath.ConvertInfNumberToNormalNumber(self.Celestiality) > 0
 end
 
 function meta:GetPrestigeGainMul()
-	return math.floor(math.Clamp(
+	return infmath.floor(infmath.max(self.XPUsedThisPrestige / GAMEMODE:CalculateXPNeededForLevels(MAX_LEVEL) * 0.6, 1))
+--[[
+	return infmath.floor(infmath.Clamp(
 		self.XPUsedThisPrestige / GAMEMODE:CalculateXPNeededForLevels(MAX_LEVEL) * 0.6,
 		1, self:GetMaxPrestige() - self.Prestige))
+]]
 end
 
 function meta:GetEternityGainMul()
-	return math.floor(math.Clamp(self.Prestige / MAX_ETERNITIES,
-		1, self:GetMaxEternity() - self.Eternity))
+	return 1
+--[[
+	return infmath.floor(math.Clamp(self.Prestige / MAX_ETERNITIES,
+	1, self:GetMaxEternity() - self.Eternity))
+	]]
 end
 
 function meta:GetMaxLevel()
@@ -182,9 +190,7 @@ end
 function meta:GetDamageMul(dmgInfo, ent)
 	local attacker = self
 	local GM = GAMEMODE
-	local damagemul = 1
-
-	damagemul = self:GetMinDamageMul(dmgInfo, ent)
+	local damagemul = self:GetMinDamageMul(dmgInfo, ent)
 
 	if attacker:HasPerkActive("critical_damage_1") and math.random(100) <= (GM.EndlessMode and 12 or 7) then
 		damagemul = damagemul * (GM.EndlessMode and 2.2 or 1.2)
@@ -196,9 +202,7 @@ end
 function meta:GetMaxDamageMul(dmgInfo, ent)
 	local attacker = self
 	local GM = GAMEMODE
-	local damagemul = 1
-
-	damagemul = self:GetMinDamageMul(dmgInfo, ent)
+	local damagemul = self:GetMinDamageMul(dmgInfo, ent)
 
 	if attacker:HasPerkActive("critical_damage_1") then
 		damagemul = damagemul * (GM.EndlessMode and 2.2 or 1.2)
@@ -210,7 +214,7 @@ end
 function meta:GetMinDamageMul(dmgInfo, ent)
 	local attacker = self
 	local GM = GAMEMODE
-	local damagemul = 1
+	local damagemul = InfNumber(1)
 
 	if dmgInfo and dmgInfo:IsBulletDamage() then
 		damagemul = damagemul * (1 + ((GM.EndlessMode and 0.03 or 0.01) * attacker:GetSkillAmount("Gunnery")))
@@ -227,7 +231,11 @@ function meta:GetMinDamageMul(dmgInfo, ent)
 	end
 
 	if attacker:HasPerkActive("damageboost_2") then
-		damagemul = damagemul * math.max(1, 1.4 + attacker.PrestigePoints*0.05)
+		local d = attacker.PrestigePoints*0.05
+
+		damagemul = damagemul * infmath.max(1, 1.4 + (
+			d > InfNumber(1) and
+			d^(1/(d:log10())^0.5) or d))
 	end
 
 	if attacker:HasPerkActive("celestial_3") then
@@ -242,27 +250,23 @@ function meta:GetMinDamageMul(dmgInfo, ent)
 end
 
 function meta:GetDamageResistanceMul(dmgInfo)
-	local damageresistancemul = 1
+	local damageresistancemul = self:GetMinDamageResistanceMul(dmgInfo)
 	local ent = self
 	local GM = GAMEMODE
-
-	damageresistancemul = self:GetMinDamageResistanceMul(dmgInfo)
 
 	return damageresistancemul
 end
 
 function meta:GetMaxDamageResistanceMul(dmgInfo)
-	local damageresistancemul = 1
+	local damageresistancemul = self:GetMinDamageResistanceMul(dmgInfo)
 	local ent = self
 	local GM = GAMEMODE
-
-	damageresistancemul = self:GetMinDamageResistanceMul(dmgInfo)
 
 	return damageresistancemul
 end
 
 function meta:GetMinDamageResistanceMul(dmgInfo)
-	local damageresistancemul = 1
+	local damageresistancemul = InfNumber(1)
 	local ent = self
 	local GM = GAMEMODE
 
@@ -285,7 +289,7 @@ function meta:GetMinDamageResistanceMul(dmgInfo)
 		damageresistancemul = damageresistancemul * 1.7
 	end
 
-	if ent.PrestigePoints < 0 then
+	if infmath.ConvertInfNumberToNormalNumber(ent.PrestigePoints) < 0 then
 		damageresistancemul = damageresistancemul / (1 - ent.PrestigePoints*0.2)
 	end
 

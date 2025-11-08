@@ -16,34 +16,34 @@ function GM:CMenu()
 	ContextMenu.Paint = function(panel)
 		local alpha = 125
 		local x,y,y_add = 220,140,18
-		local xp,reqxp = math.floor(pl.XP), self:GetReqXP(pl)
+		local xp,reqxp = pl.XP, self:GetReqXP(pl)
 		draw.DrawText("Moneys: "..FormatNumber(pl.Moneys), "TargetIDSmall", x, y, Color(205,255,205,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("XP: "..FormatNumber(xp).." / "..FormatNumber(reqxp).." ("..math.Round(xp/reqxp * 100,2).."%)", "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText("XP: "..FormatNumber(xp).." / "..FormatNumber(reqxp)..(xp >= InfNumber(MAX_NUMBER) and " ("..FormatNumber(infmath.Round(xp/reqxp* 100,2)).."%)" or ""), "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("Level: "..math.floor(pl.Level), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText("Level: "..tostring(pl.Level), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("Skill Points: "..math.floor(pl.StatPoints), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText("Skill Points: "..FormatNumber(pl.StatPoints), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
 
 		if pl:HasPrestigeUnlocked() then
-			draw.DrawText("Prestige: "..FormatNumber(math.floor(pl.Prestige)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText("Prestige: "..FormatNumber(pl.Prestige), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText("Prestige Points: "..FormatNumber(math.floor(pl.PrestigePoints)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText("Prestige Points: "..FormatNumber(pl.PrestigePoints), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
 		if pl:HasEternityUnlocked() then
-			draw.DrawText("Eternities: "..FormatNumber(math.floor(pl.Eternity)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText("Eternities: "..FormatNumber(pl.Eternity), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText("Eternity Points: "..FormatNumber(math.floor(pl.EternityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText("Eternity Points: "..FormatNumber(pl.EternityPoints), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
 		if pl:HasCelestialityUnlocked() then
-			draw.DrawText("Celestialities: "..FormatNumber(math.floor(pl.Celestiality)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText("Celestialities: "..FormatNumber(pl.Celestiality), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText("Celestiality Points: "..FormatNumber(math.floor(pl.CelestialityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText("Celestiality Points: "..FormatNumber(pl.CelestialityPoints), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
@@ -345,7 +345,7 @@ function GM:PerksMenu()
 	local perkpoints = vgui.Create("DLabel", perksvgui)
 	perkpoints:SetFont("TargetIDSmall")
 	perkpoints:SetPos(10, 3)
-	perkpoints:SetText("Prestige points: "..ply.PrestigePoints)
+	perkpoints:SetText("Prestige points: "..tostring(ply.PrestigePoints))
 	perkpoints:SizeToContents()
 	local x,y = perkpoints:GetSize()
 	perkpoints:SetSize(math.min(x, 350), 25)
@@ -354,7 +354,7 @@ function GM:PerksMenu()
 	-- perkpoints:SetToolTip("")
 	perkpoints.Think = function(panel)
 		local curtier = sheet.CurrentTab.Tier or 1
-		local txt = perks_names[curtier][1].." points: "..perks_names[curtier][4](ply)
+		local txt = perks_names[curtier][1].." points: "..tostring(perks_names[curtier][4](ply))
 		if panel:GetText() == txt then return end
 		panel:SetText(txt)
 		perkpoints:SizeToContents()
@@ -368,6 +368,7 @@ function GM:PerksMenu()
 	local function MakePerks(panel, prestige)
 		for k, v in SortedPairsByMemberValue(self.PerksData, "PrestigeReq") do
 			if prestige ~= v.PrestigeLevel then continue end
+			local prestigereq = isinfnumber(v.PrestigeReq) and v.PrestigeReq or InfNumber(v.PrestigeReq)
 
 			local perkpanel = vgui.Create("DPanel")
 			perkpanel:SetPos(5, 5)
@@ -375,7 +376,7 @@ function GM:PerksMenu()
 			perkpanel:SetSize(size_x, size_y)
 			perkpanel.Paint = function(panel) -- Paint function
 				draw.RoundedBoxEx(8,1,1,panel:GetWide()-2,panel:GetTall()-2,
-				ply:HasPerkUnlocked(k) and Color(40, 200, 40, 25) or v.PrestigeReq > perks_names[prestige][3](ply) and Color(75, 75, 75, 50) or Color(200, 40, 40, 25),
+				ply:HasPerkUnlocked(k) and Color(40, 200, 40, 25) or prestigereq > perks_names[prestige][3](ply) and Color(75, 75, 75, 50) or Color(200, 40, 40, 25),
 				false, false, false, false)
 				surface.SetDrawColor(50, 50, 50, 255)
 				surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
@@ -385,6 +386,7 @@ function GM:PerksMenu()
 			perkname:SetFont("TargetID")
 			perkname:SetPos(0, 10)
 			perkname:SetText(v.Name)
+			perkname:SetTextColor(color_white)
 			if v.GetTextColor then
 				perkname:SetTextColor(v.GetTextColor())
 			end
@@ -428,7 +430,7 @@ function GM:PerksMenu()
 			perkprestige:SetFont("TargetIDSmall")
 			perkprestige:SetPos(10, 89)
 			perkprestige:SetSize(size_x - 20, 15)
-			perkprestige:SetText(perks_names[prestige][1].." needed: "..v.PrestigeReq)
+			perkprestige:SetText(perks_names[prestige][1].." needed: "..tostring(prestigereq))
 			perkprestige:SetWrap(true)
 			perkprestige:SetColor(Color(255,155,155,255))
 
@@ -436,9 +438,9 @@ function GM:PerksMenu()
 			local perkapply = vgui.Create("DButton", perkpanel)
 			perkapply:SetSize(size_x - 20, 30)
 			perkapply:SetPos(10, size_y - 35)
-			perkapply:SetText(ply:HasPerkUnlocked(k) and "Unlocked" or v.PrestigeReq > perks_names[prestige][3](ply) and "Not enough "..perks_names[prestige][2] or "Unlock")
+			perkapply:SetText(ply:HasPerkUnlocked(k) and "Unlocked" or prestigereq > perks_names[prestige][3](ply) and "Not enough "..perks_names[prestige][2] or "Unlock")
 			perkapply.Think = function(panel)
-				local txt = ply:HasPerkUnlocked(k) and "Unlocked" or v.PrestigeReq > perks_names[prestige][3](ply) and "Not enough "..perks_names[prestige][2] or "Unlock"
+				local txt = ply:HasPerkUnlocked(k) and "Unlocked" or prestigereq > perks_names[prestige][3](ply) and "Not enough "..perks_names[prestige][2] or "Unlock"
 				if panel:GetText() == txt then return end
 				panel:SetText(txt)	
 			end
@@ -446,7 +448,7 @@ function GM:PerksMenu()
 			perkapply.Paint = function(panel)
 				surface.SetDrawColor(0, 150, 0, 255)
 				surface.DrawOutlinedRect(0, 0, panel:GetWide(), panel:GetTall())
-				draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), v.PrestigeReq > perks_names[prestige][3](ply) and Color(75, 75, 75, 130) or Color(0, 50, 0, 130))
+				draw.RoundedBox(2, 0, 0, panel:GetWide(), panel:GetTall(), prestigereq > perks_names[prestige][3](ply) and Color(75, 75, 75, 130) or Color(0, 50, 0, 130))
 			end
 			perkapply.DoClick = function(panel)
 				net.Start("hl2ce_unlockperk")

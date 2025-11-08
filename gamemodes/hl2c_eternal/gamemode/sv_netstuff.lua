@@ -3,27 +3,22 @@
 
 function GM:NetworkString_UpdateStats(ply)
     net.Start("hl2c_updatestats")
-    net.WriteFloat(ply.Moneys)
-    net.WriteFloat(ply.XP)
-    net.WriteFloat(ply.Level)
-    net.WriteFloat(ply.StatPoints)
-    net.WriteFloat(ply.Prestige)
-    net.WriteFloat(ply.PrestigePoints)
-    net.WriteFloat(ply.Eternity)
-    net.WriteFloat(ply.EternityPoints)
-    net.WriteFloat(ply.Celestiality)
-    net.WriteFloat(ply.CelestialityPoints)
+    net.WriteInfNumber(ply.Moneys)
+    net.WriteInfNumber(ply.XP)
+    net.WriteInfNumber(ply.Level)
+    net.WriteInfNumber(ply.StatPoints)
+    net.WriteInfNumber(ply.Prestige)
+    net.WriteInfNumber(ply.PrestigePoints)
+    net.WriteInfNumber(ply.Eternity)
+    net.WriteInfNumber(ply.EternityPoints)
+    net.WriteInfNumber(ply.Celestiality)
+    net.WriteInfNumber(ply.CelestialityPoints)
     net.Send(ply)
 end
 
 function GM:NetworkString_UpdateSkills(ply)
     net.Start("UpdateSkills")
-    net.WriteFloat(ply.StatDefense)
-    net.WriteFloat(ply.StatGunnery)
-    net.WriteFloat(ply.StatMedical)
-    net.WriteFloat(ply.StatSurgeon)
-    net.WriteFloat(ply.StatVitality)
-    net.WriteFloat(ply.StatKnowledge)
+    net.WriteTable(ply.Skills)
     net.Send(ply)
 end
 
@@ -51,24 +46,24 @@ end)
 net.Receive("UpgradePerk", function(length, ply)
 	local perk = net.ReadString()
     local count = net.ReadUInt(32)
-	local perk2 = "Stat"..perk
+    local sks = ply.Skills
 
     local curpoints = ply.StatPoints
     local limit = ply:GetMaxSkillLevel(perk)
 
-    count = math.min(limit - ply[perk2], curpoints)
+    count = infmath.ConvertInfNumberToNormalNumber(infmath.min(limit - sks[perk], curpoints))
 
-    if tonumber(ply.StatPoints) < 1 then
+    if infmath.ConvertInfNumberToNormalNumber(ply.StatPoints) < 1 then
         ply:PrintMessage(HUD_PRINTTALK, "You need Skill Points to upgrade this skill!")
 		return false
 	end
 
-    if tonumber(ply[perk2]) >= limit then
+    if tonumber(sks[perk]) >= limit then
         ply:PrintMessage(HUD_PRINTTALK, "You have reached the max amount of points for this skill!")
 		return false
 	end
 
-	ply[perk2] = ply[perk2] + count
+	ply[perk] = sks[perk] + count
 	ply.StatPoints = ply.StatPoints - count
     ply:PrintMessage(HUD_PRINTTALK, "Increased "..perk.." by "..count.." point!")
     GAMEMODE:NetworkString_UpdateStats(ply)
@@ -81,11 +76,12 @@ net.Receive("hl2ce_unlockperk", function(len, ply)
     if !perk then return end
     if ply.UnlockedPerks[name] then return end
 
-    local cost = perk.Cost
+    local cost = infmath.ConvertNumberToInfNumber(perk.Cost)
     local prestigelvl = perk.PrestigeLevel
+    local prestigereq = infmath.ConvertNumberToInfNumber(perk.PrestigeReq)
     local prestigetype = prestigelvl == 3 and "Celestiality" or prestigelvl == 2 and "Eternity" or prestigelvl == 1 and "Prestige"
 
-    if ply[prestigetype] < perk.PrestigeReq then
+    if ply[prestigetype] < prestigereq then
         ply:PrintMessage(3, "Not enough "..prestigetype)
         return
     end

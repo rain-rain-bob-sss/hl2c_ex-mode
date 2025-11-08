@@ -2,27 +2,24 @@
 net.Receive("hl2c_updatestats", function(length)
     local ply = LocalPlayer()
     
-    ply.Moneys = net.ReadFloat()
-    ply.XP = net.ReadFloat()
-    ply.Level = net.ReadFloat()
-    ply.StatPoints = net.ReadFloat()
-    ply.Prestige = net.ReadFloat()
-    ply.PrestigePoints = net.ReadFloat()
-    ply.Eternity = net.ReadFloat()
-    ply.EternityPoints = net.ReadFloat()
-    ply.Celestiality = net.ReadFloat()
-    ply.CelestialityPoints = net.ReadFloat()
+    ply.Moneys = net.ReadInfNumber()
+    ply.XP = net.ReadInfNumber()
+    ply.Level = net.ReadInfNumber()
+    ply.StatPoints = net.ReadInfNumber()
+    ply.Prestige = net.ReadInfNumber()
+    ply.PrestigePoints = net.ReadInfNumber()
+    ply.Eternity = net.ReadInfNumber()
+    ply.EternityPoints = net.ReadInfNumber()
+    ply.Celestiality = net.ReadInfNumber()
+    ply.CelestialityPoints = net.ReadInfNumber()
 end)
 
 net.Receive("UpdateSkills", function(length)
     local ply = LocalPlayer()
+    if !ply:IsValid() then return end
 
-    ply.StatDefense = net.ReadFloat()
-    ply.StatGunnery = net.ReadFloat()
-    ply.StatMedical = net.ReadFloat()
-    ply.StatSurgeon = net.ReadFloat()
-    ply.StatVitality = net.ReadFloat()
-    ply.StatKnowledge = net.ReadFloat()
+    if !ply.Skills then ply.Skills = {} end
+    table.Merge(ply.Skills, net.ReadTable() or {})
 end)
 
 net.Receive("hl2ce_updateperks", function(length)
@@ -37,12 +34,12 @@ net.Receive("hl2ce_updateeternityupgrades", function(length)
     ply.EternityUpgradeValues = net.ReadTable()
 end)
 
-XPGained = 0
-XPGainedTotal = 0
+XPGained = InfNumber(0)
+XPGainedTotal = InfNumber(0)
 XPColor = 0
 
 net.Receive("XPGain", function(length)
-	local xp = net.ReadFloat()
+	local xp = net.ReadInfNumber()
 
 	XPGained = xp
     XPGainedTotal = XPGainedTotal + xp

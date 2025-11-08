@@ -1,4 +1,5 @@
 -- Send the required lua files to the client
+AddCSLuaFile("break_infinity.lua")
 AddCSLuaFile("cl_calcview.lua")
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("cl_playermodels.lua")
@@ -156,9 +157,9 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 	end
 	
 	local diff = self:GetDifficulty(true, true)
-	self:SetDifficulty(math.max(1, diff * (
-		diff >= 1000 and 0.957 or diff >= 100 and 0.962 or
-		diff >= 10 and 0.968 or diff >= 4 and 0.974 or 0.98
+	self:SetDifficulty(infmath.max(1, diff * (
+		diff >= InfNumber(1000) and 0.957 or diff >= InfNumber(100) and 0.962 or
+		diff >= InfNumber(10) and 0.968 or diff >= InfNumber(4) and 0.974 or 0.98
 	)))
 
 
@@ -222,17 +223,20 @@ function GM:OnEntityCreated(ent)
 	end
 
 	if ent:IsNPC() and not ent:IsFriendlyNPC() and not table.HasValue(GODLIKE_NPCS, ent:GetClass()) then
-		ent.ent_MaxHealthMul = (ent.ent_MaxHealthMul or 1) * math.min(self:GetDifficulty()^0.3, 100000)
-		ent.ent_HealthMul = (ent.ent_HealthMul or 1) * math.min(self:GetDifficulty()^0.3, 100000)
+		local diff = self:GetDifficulty()^0.1
+		local diff2 = infmath.max(1, diff/1e10)^0.1
+
+		ent.ent_MaxHealthMul = (ent.ent_MaxHealthMul or 1) * infmath.min(diff, 1e5) * diff2
+		ent.ent_HealthMul = (ent.ent_HealthMul or 1) * infmath.min(diff, 1e5) * diff2
 	end
 
 	timer.Simple(0, function()
 		if !ent:IsNPC() then return end
 		if ent.ent_MaxHealthMul then
-			ent:SetMaxHealth(ent.ent_MaxHealthMul * ent:Health())
+			ent:SetMaxHealth(infmath.ConvertInfNumberToNormalNumber(ent.ent_MaxHealthMul * ent:Health()))
 		end
 		if ent.ent_HealthMul then
-			ent:SetHealth(ent.ent_HealthMul * ent:Health())
+			ent:SetHealth(infmath.ConvertInfNumberToNormalNumber(ent.ent_HealthMul * ent:Health()))
 		end
 		if ent.ent_Color then
 			ent:SetColor(ent.ent_Color)
@@ -263,7 +267,7 @@ end
 function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Gets the attacker
 	local attacker = dmgInfo:GetAttacker()
-	local damage = math.min(dmgInfo:GetDamage(), 2^128) -- fuck the infinite damage's float limits
+	local damage = InfNumber(math.min(dmgInfo:GetDamage(), 2^128)) -- fuck the infinite damage's float limits
 	local dmgdirect = bit.band(DMG_DIRECT, dmgInfo:GetDamageType()) ~= 0
 
 	-- Godlike NPCs take no damage ever
@@ -355,10 +359,11 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	if ent:IsNPC() and attacker:IsPlayer() and not dmgdirect then
 		if attacker:HasPerkActive("damage_of_eternity_2") then
 			if math.random(100) <= 15 then
+				local delayed = infmath.ConvertInfNumberToNormalNumber(damage)*2
 				if ent.DelayedDamage then
-					ent.DelayedDamage = ent.DelayedDamage + damage*2
+					ent.DelayedDamage = ent.DelayedDamage + delayed
 				else
-					ent.DelayedDamage = damage*2
+					ent.DelayedDamage = delayed
 				end
 				ent.DelayedDamageAttacker = attacker
 			end
@@ -372,10 +377,15 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 
 	if ent ~= attacker and ent:IsNPC() and attacker:IsNPC() and (not attacker:IsFriendlyNPC() and not ent:IsFriendlyNPC()) then
-		damage = damage * math.min(self:GetDifficulty()^0.3, 100000)
+		damage = damage * infmath.min(self:GetDifficulty()^0.3, 1e30)
 	end
 
+	infmath.ConvertInfNumberToNormalNumber(damage)
 	dmgInfo:SetDamage(damage)
+
+	if attacker:IsPlayer() then
+		-- attacker:PrintMessage(3, tostring(damage))
+	end
 
 	if self.EXMode and attacker:GetClass() == "npc_sniper" and attacker.VariantType == 1 then
 		PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
@@ -384,12 +394,12 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	local cantakedamage = ent:IsValid() and ent:IsPlayer() and not (ent:HasGodMode() or not gamemode.Call("PlayerShouldTakeDamage", ent, attacker)) or ent:IsValid() and !ent:IsPlayer()
 	if cantakedamage then
 		if ent:Inf_Health() > 2e9 then
-			if damage < ent:Inf_Health() then
-				dmgInfo:SetDamage(math.min(damage, 2e9-1))
+			if infmath.ConvertInfNumberToNormalNumber(damage) < ent:Inf_Health() then
+				dmgInfo:SetDamage(infmath.ConvertInfNumberToNormalNumber(infmath.min(damage, 2e9-1)))
 			end
-			print(ent:Inf_Health(), math.log10(damage))
+
+			ent:Inf_SetHealth(infmath.ConvertInfNumberToNormalNumber(ent:Inf_Health() - damage))
 		end
-		ent:Inf_SetHealth(ent:Inf_Health() - damage)
 	else return true
 	end
 end
@@ -598,29 +608,29 @@ end
 function GM:PlayerCompletedMap(ply)
 	-- XP
 	local txp = 0
-	local xp = math.Round(math.Rand(4,7)) * math.min(self:GetDifficulty(), ply:GetMaxDifficultyXPGainMul())
+	local xp = math.Round(math.Rand(4,7)) * infmath.min(self:GetDifficulty(), ply:GetMaxDifficultyXPGainMul())
 
 	if (self.XP_REWARD_ON_MAP_COMPLETION or 1) > 0 then
 		xp = xp * self.XP_REWARD_ON_MAP_COMPLETION
 		txp = txp + xp
 	end
 	if ply.MapStats.GainedXP then
-		xp = math.floor(ply.MapStats.GainedXP * 0.15)
+		xp = infmath.floor(ply.MapStats.GainedXP * 0.15)
 		txp = txp + xp
 	end
 
-	if txp > 0 then
+	if infmath.ConvertInfNumberToNormalNumber(txp) > 0 then
 		ply:GiveXP(txp, true)
-		ply:PrintMessage(HUD_PRINTTALK, Format("You were given additional %i XP for completing this map.", txp))
+		ply:PrintMessage(HUD_PRINTTALK, Format("You were given additional %s XP for completing this map.", tostring(txp)))
 	end
 
 	-- Moneys
 	local gain = ply.MoneysGain
 
-	if gain > 0 then
+	if infmath.ConvertInfNumberToNormalNumber(gain) > 0 then
 		ply.MoneysGain = 0
 		ply.Moneys = ply.Moneys + gain
-		ply:PrintMessage(3, "You have gained +"..gain.." moneys")
+		ply:PrintMessage(3, "You have gained +"..tostring(gain).." moneys")
 	end
 
 	if ply.MapStats then -- Map stats display after completing the map (Not yet.)
@@ -776,11 +786,12 @@ function GM:NextMap()
 	end)
 end
 concommand.Add("hl2ce_next_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then NEXT_MAP_TIME = 0; hook.Call("NextMap", GAMEMODE); else ply:PrintMessage(HUD_PRINTTALK, "You are not admin!") end end)
-concommand.Add("hl2ce_admin_respawn", function(ply)
-	if IsValid(ply) && ply:IsAdmin() && (!ply:Alive() || table.HasValue(deadPlayers, ply:SteamID())) && !changingLevel then
+concommand.Add("hl2ce_admin_respawn", function(ply, cmd, args)
+	if IsValid(ply) && ply:IsAdmin() && (!ply:Alive() || table.HasValue(deadPlayers, ply:SteamID()) or args[1] == "force") && !changingLevel then
 		table.RemoveByValue(deadPlayers, ply:SteamID())
 		ply:SetTeam(TEAM_ALIVE)
 		timer.Simple(0, function()
+			ply:KillSilent()
 			ply:Spawn()
 		end)
 		print(ply:Nick().." used respawn command!")
@@ -817,8 +828,8 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			local npckillxpmul,npckilldiffgainmul = self.XpGainOnNPCKillMul or 1, self.DifficultyGainOnNPCKillMul or 1
 			local npcxpmul = npc.XPGainMult or 1
 
-			local gainfromdifficultymul = math.min(difficulty^0.8, killer:GetMaxDifficultyXPGainMul())
-			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and (nonmoddiff >= 6.50 and 1.55 or 1.3) or !self.EndlessMode and 1.25) or 1
+			local gainfromdifficultymul = infmath.min(difficulty^0.8, killer:GetMaxDifficultyXPGainMul())
+			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and (infmath.ConvertInfNumberToNormalNumber(nonmoddiff) >= 6.50 and 1.55 or 1.3) or !self.EndlessMode and 1.25) or 1
 			local xpmul = gainfromdifficultymul * npckillxpmul * npcxpmul * better_knowledge_gain
 
 			if killer:GetSkillAmount("Knowledge") > 15 then
@@ -850,7 +861,7 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			local moneys = NPC_MONEYS_VALUES[npcclass]
 			local npckillxpmul,npckilldiffgainmul = self.MoneysGainOnNPCKillMul or 1
 			local npcxpmul = npc.MoneyGainMult or 1
-			killer:GiveMoneysGain(math.Round(NPC_MONEYS_VALUES[npcclass]*(difficulty^0.25)))
+			killer:GiveMoneysGain(infmath.Round(NPC_MONEYS_VALUES[npcclass]*(difficulty^0.25)))
 		end
 
 		if killer:HasPerkActive("vampiric_killer_1") then
@@ -985,27 +996,29 @@ function GM:PlayerInitialSpawn(ply)
 	ply.startTime = CurTime()
 	ply:SetTeam(TEAM_ALIVE)
 
-	ply.XP = 0
-	ply.Level = 1
-	ply.StatPoints = 0
+	ply.XP = InfNumber(0)
+	ply.Level = InfNumber(0)
+	ply.StatPoints = InfNumber(0)
 
-	ply.Prestige = 0
-	ply.PrestigePoints = 0
-	ply.Eternity = 0
-	ply.EternityPoints = 0
+	ply.Prestige = InfNumber(0)
+	ply.PrestigePoints = InfNumber(0)
+	ply.Universe = InfNumber(0)
+	ply.EternityPoints = InfNumber(0)
+	ply.Eternity = InfNumber(0)
+	ply.EternityPoints = InfNumber(0)
 
 	-- Endless?
-	ply.Celestiality = 0
-	ply.CelestialityPoints = 0
-	ply.Rebirths = 0
-	ply.RebirthPoints = 0
+	ply.Celestiality = InfNumber(0)
+	ply.CelestialityPoints = InfNumber(0)
+	ply.Rebirths = InfNumber(0)
+	ply.RebirthPoints = InfNumber(0)
 	-- Renamed due to Ascension feeling like a low tier prestige (in Revo Idle it's used to boost color mult gain)
-	ply.Transcension = 0
-	ply.TranscensionPoints = 0
+	ply.Transcension = InfNumber(0)
+	ply.TranscensionPoints = InfNumber(0)
 
 	-- New 6th prestige type?
-	ply.MythiLegendaries = 0
-	ply.MythiLegendaryPoints = 0
+	ply.MythiLegendaries = InfNumber(0)
+	ply.MythiLegendaryPoints = InfNumber(0)
 
 	-- True Endless...????
 	-- ...but... you sure?
@@ -1017,16 +1030,16 @@ function GM:PlayerInitialSpawn(ply)
 
 
 
-	ply.Moneys = 0
+	ply.Moneys = InfNumber(0)
 	ply.MoneysGain = 0 -- Resets on restart and only gives after map completion
 
 
-
+	ply.Skills = {}
 	for k, v in pairs(self.SkillsInfo) do
-		ply["Stat"..k] = 0
+		ply.Skills[k] = 0
 	end
 
-	ply.XPUsedThisPrestige = 0
+	ply.XPUsedThisPrestige = InfNumber(0)
 
 	ply.UnlockedPerks = {}
 	ply.DisabledPerks = {}
@@ -1623,9 +1636,9 @@ function GM:Think()
 			PrintMessage(HUD_PRINTTALK, "All players have died!")
 
 			local diff = self:GetDifficulty(true, true)
-			self:SetDifficulty(math.max(1, diff * (
-				diff >= 1000 and 0.85 or diff >= 100 and 0.87 or
-				diff >= 10 and 0.87 or diff >= 4 and 0.89 or 0.91
+			self:SetDifficulty(infmath.max(1, diff * (
+				diff >= InfNumber(1000) and 0.85 or diff >= InfNumber(100) and 0.87 or
+				diff >= InfNumber(10) and 0.87 or diff >= InfNumber(4) and 0.89 or 0.91
 			)))
 
 			hook.Call("RestartMap", GAMEMODE)

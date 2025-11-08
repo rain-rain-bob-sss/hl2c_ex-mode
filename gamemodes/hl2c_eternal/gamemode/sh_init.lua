@@ -1,6 +1,9 @@
 -- Include the required lua files
 DeriveGamemode("sandbox")
 
+include("break_infinity.lua")
+INFNUMBER_ZERO = InfNumber(0) -- do NOT change.
+
 include("sh_config.lua")
 include("sh_globals.lua")
 include("sh_player.lua")
@@ -25,8 +28,8 @@ local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficult
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.7.9^9" -- what version?
-GM.DateVer = "21-04-2025"
+GM.Version = "0.inf" -- what version?
+GM.DateVer = "08-11-2025"
 
 
 -- Constants
@@ -68,8 +71,14 @@ end
 
 function GM:CalculateXPNeededForLevels(lvl)
 	local xp = 0
-	for i=1,math.min(1e6, lvl) do
-		xp = xp + self:GetReqXPCount(i)
+	if lvl >= 1000 then
+		for i=lvl-1000,lvl do
+			xp = xp + self:GetReqXPCount(i)
+		end
+	else
+		for i=1,infmath.ConvertInfNumberToNormalNumber(infmath.min(1e6, lvl)) do
+			xp = xp + self:GetReqXPCount(i)
+		end
 	end
 
 	return xp
@@ -83,19 +92,24 @@ function GM:GetReqXPCount(lvl)
 	local basexpreq = 152
 	local addxpperlevel = 27
 	local morelvlreq = 1.0715
-	
-	local totalxpreq = math.floor(basexpreq + (lvl  * addxpperlevel) ^ morelvlreq)
+	lvl_inf = lvl
+	lvl = infmath.ConvertInfNumberToNormalNumber(lvl)
+
+	local totalxpreq = InfNumber(basexpreq)
+	totalxpreq = totalxpreq + ((lvl_inf * addxpperlevel) ^ morelvlreq)
 
 	if lvl >= 250 then
-		totalxpreq = totalxpreq * math.max(1 + (lvl-250) * 0.05, 1)
+		totalxpreq = totalxpreq * infmath.max(1 + (lvl_inf-250) * 0.05, 1)
 	end
 	if lvl >= 400 then
-		totalxpreq = totalxpreq * math.max(1 + (lvl-400) * (0.05+(lvl-400)*0.01), 1)
+		totalxpreq = totalxpreq * infmath.max(InfNumber(1) + (lvl_inf-400) * (0.05+(lvl_inf-400)*0.01), 1)
 	end
 	if lvl >= 1000 then
-		totalxpreq = totalxpreq * math.max(1, 1.0046^(lvl-1000))
+		local l = lvl_inf-1000
+		totalxpreq = totalxpreq * infmath.max(1, (1.0046+(l/1e5))^(l))
 	end
-	return math.Round(totalxpreq)
+
+	return infmath.Round(totalxpreq)
 end
 
 -- Called when a gravity gun is attempting to punt something
@@ -227,32 +241,39 @@ function GM:SetDifficulty(val, noncvar)
 	local diffcvarvalue = tonumber(hl2ce_server_force_difficulty:GetString()) or 0
 
 	if noncvar or diffcvarvalue <= 0 then
-		SetGlobalString("hl2c_difficulty", tostring(math.Clamp(val, 0.3, 1e150)))
+		SetGlobalString("hl2c_difficulty", isinfnumber(val) and val:DefaultFormat() or ConvertStringToInfNumber(val):DefaultFormat())
 	end
 end
 
--- Why 1e150 max difficulty? -- It might seem possible to go further.. But damage is only limited to 3.40e38. After that value it overflows to infinity.
+-- Why 1e150 max difficulty? -- It might seem possible to go further.. But damage is only limited to 3.40e38. After that value it overflows to infinity. honestly, fuck it
 
 function GM:GetDifficulty(noncvar, noadditionalmul)
-	local str = GetGlobalString("hl2c_difficulty", 1)
 	local diffcvarvalue = tonumber(hl2ce_server_force_difficulty:GetString()) or 1
-	local value = tonumber(str)
-
+	
 	if not noncvar and diffcvarvalue > 0 then
-		return math.Clamp(diffcvarvalue, 0.3, 1e150)
+		return InfNumber(diffcvarvalue)
 	end
 
+	local value = ConvertStringToInfNumber(GetGlobalString("hl2c_difficulty", 1))
 	if not noadditionalmul and FORCE_DIFFICULTY then
 		value = value * FORCE_DIFFICULTY
 	end
 
 
-	return math.Clamp(value, 0.3, 1e150)
+	return value
 end
 
 
 function FormatNumber(val, roundval)
-	local log10_value = math.floor(math.log10(val))
+	local log10_value = math.floor(isinfnumber(val) and val:log10() or math.log10(val))
+
+	if isinfnumber(val) then
+		if log10_value < 33 then
+			val = infmath.ConvertInfNumberToNormalNumber(val)
+		else
+			return tostring(val)
+		end
+	end
 
 	local txt
 	local negative = val < 0 and "-" or ""
@@ -316,7 +337,7 @@ end
 
 function GlitchedText(text, prob)
 	local str = ""
-	
+
 	return str
 end
 

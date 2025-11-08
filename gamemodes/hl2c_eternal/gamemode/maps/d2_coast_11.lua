@@ -22,6 +22,7 @@ hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 hook.Add("PlayerInitialSpawn", "hl2cPlayerInitialSpawn", function(ply)
 	timer.Simple(5, function()
+		if !ply:IsValid() then return end
 		ply:PrintMessage(3, "Pretty sure you know where this is going..")
 	end)
 end)
@@ -51,6 +52,7 @@ hook.Add("OnEntityCreated", "hl2cOnEntityCreated", hl2cOnEntityCreated)
 local failmap = true
 hook.Add("OnNPCKilled", "AntlionGuardKill", function(ent, attacker, inflictor)
 	if ent:GetName() == "citizen_ambush_guard" and inflictor:GetModel() ~= "models/props_junk/harpoon002a.mdl" then
+		AG_DEADPOS = ent:GetPos()
 		failmap = false
 	end
 end)
@@ -77,10 +79,7 @@ function hl2cMapEdit()
 	ents.FindByName( "global_newgame_template_local_items" )[ 1 ]:Remove()
 
 	failmap = true
-end
-hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
-function hl2cInitPostEntity()
 	if GAMEMODE.EXMode then
 		timer.Create("ActivateAntlionSpawningGlobal", 1, 0, function()
 			local ent = ents.FindByName("antlion_expanse_spawner_1")[1]
@@ -91,7 +90,14 @@ function hl2cInitPostEntity()
 				-- end)
 			end
 		end)
+	else
+		timer.Remove("ActivateAntlionSpawningGlobal")
 	end
+
+end
+hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
+
+function hl2cInitPostEntity()
 end
 hook.Add("InitPostEntity", "hl2cInitPostEntity", hl2cInitPostEntity)
 
@@ -174,6 +180,42 @@ function hl2cAcceptInput( ent, input )
 	
 		COAST_PREVENT_CAMP_DOOR = true
 	
+	end
+
+	if ent:GetName() == "relay_guarddead" and string.lower(input) == "trigger" then
+		ents.FindByName("camp_door_blocker")[1]:Fire("Disable")
+		ents.FindByName("camp_setup")[1]:Fire("Trigger")
+
+		timer.Remove("ActivateAntlionSpawningGlobal")
+		timer.Simple(0, function()
+			local e = ents.FindByName("vortigaunt_bugbait")[1]
+			if e and e:IsValid() then
+				e:SetPos(AG_DEADPOS + Vector(0,0,16))
+			end
+
+			ents.FindByName("ss_bugbait_vort_wait")[1]:Fire("CancelSequence")
+		end)
+	end
+
+	if ent:GetName() == "camp_setup" and string.lower(input) == "trigger" then
+		for _,ply in pairs(player.GetAll()) do
+			ply:Give("weapon_bugbait")
+		end
+	end
+
+	if ent:GetName() == "lcs_getgoing" and string.lower(input) == "start" then
+		ents.FindByName("antlion_cage_door")[1]:Fire("Open")
+		ents.FindByName("gate_linear")[1]:Fire("Open")
+		ents.FindByName("gate_mover_blocker")[1]:Fire("disable")
+
+		local e = ents.FindByName("vortigaunt_bugbait")[1]
+		if e and e:IsValid() then
+			e:SetPos(Vector(868, 11556, 512))
+		end
+	end
+
+	if ent:GetName() == "vortigaunt_bugbait" and string.lower(input) == "startscripting" then
+		return true
 	end
 
 end

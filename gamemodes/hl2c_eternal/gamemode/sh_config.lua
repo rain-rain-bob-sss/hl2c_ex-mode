@@ -325,13 +325,39 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
-	["prestige_improvement_1"] = {
-		Name = "Prestige Improvement I",
-		Description = "On prestige you keep 15% of your XP.",
-		DescriptionEndless = "On prestige you keep 15% of your XP.",
-		Cost = 6,
-		PrestigeReq = 13,
+	["critical_damage_2"] = {
+		Name = "Critical Damage II",
+		Description = "Improves \"Critical Damage I\" perk: chance 12% -> 25%; damage 2.2x -> 2.8x",
+		Cost = 15,
+		PrestigeReq = 20,
+		PrestigeLevel = 1,
+		EndlessOnly = true
+	},
+
+	["break_limits_1"] = {
+		Name = "Break Limits I",
+		Description = "Breaks the limits of prestige by greatly increasing max level and increases max skill levels.\n1.5x XP gained",
+		Cost = 10,
+		PrestigeReq = 42,
 		PrestigeLevel = 1
+	},
+
+	["breaking_point_1"] = {
+		Name = "Breaking Point I",
+		Description = "Perk points gain increased ^0.9 -> ^0.99;\n^1.25 to xp gain multiplier",
+		Cost = 66,
+		PrestigeReq = 45,
+		PrestigeLevel = 1
+	},
+
+	["difficult_decision_2"] = {
+		Name = "Difficult Decision II",
+		Description = "",
+		DescriptionEndless = "x1.65 difficulty gain; x(1+log10(difficulty)x0.3) boost to difficulty gain\nDifficulty damage modification effectiveness ^0.9",
+		Cost = 789,
+		PrestigeReq = 60,
+		PrestigeLevel = 1,
+		EndlessOnly = true
 	},
 
 
@@ -355,7 +381,7 @@ GM.PerksData = {
 		PrestigeLevel = 2
 	},
 
-	["difficult_decision_2"] = {
+	["difficult_decision_3"] = {
 		Name = "A very difficult decision",
 		Description = "Doesn't do anything.",
 		DescriptionEndless = "3.35x difficulty gain per NPC kill, and a +45% XP Gain",
@@ -364,8 +390,8 @@ GM.PerksData = {
 		PrestigeLevel = 2
 	},
 
-	["critical_damage_2"] = {
-		Name = "Critical Damage II",
+	["critical_damage_3"] = {
+		Name = "Critical Damage III",
 		Description = "Doesn't do anything.",
 		DescriptionEndless = "Improves Critical Damage I perk, chance 12% -> 19% and damage 2.2x -> 2.5x.\nAlso grants a 6% chance to inflict super critical hit, granting 4x damage!.",
 		Cost = 1,
