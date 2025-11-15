@@ -1,5 +1,5 @@
-if (SERVER) then
-    AddCSLuaFile()
+if SERVER then
+	AddCSLuaFile()
 	util.AddNetworkString("hl2ce_dmgnum")
 	function GM:SendDMGNum(ply, dmg, pos, ent, ang, type)
 		net.Start("hl2ce_dmgnum")
@@ -8,19 +8,17 @@ if (SERVER) then
 		net.WriteEntity(ent)
 		net.WriteAngle(ang)
 		net.WriteInt(type, 32)
-		net.WriteInt(ent.cdmgtype or 0,8)
+		net.WriteInt(ent.cdmgtype or 0, 8)
 		net.Send(ply)
 	end
 
-	function GM:SendDamageNumber(ply,dmg,pos,ent,ang,type)
-        if ent:GetInternalVariable("m_takedamage") <= 0 then return end 
-        if dmg == 0 then return end
-        --if ent.Alive and not ent:Alive() then return end --? ? ?
+	function GM:SendDamageNumber(ply, dmg, pos, ent, ang, type)
+		if ent:GetInternalVariable("m_takedamage") <= 0 then return end
+		if dmg == 0 then return end
+		--if ent.Alive and not ent:Alive() then return end --? ? ?
 		if ent:GetMaxHealth() <= 0 then return end
-        if pos == vector_origin then 
-            pos = ent:NearestPoint(ply:EyePos()) 
-        end
-	    self:SendDMGNum(ply, dmg, pos, ent, ang or ply:EyeAngles(), type or DMG_GENERIC)
+		if pos == vector_origin then pos = ent:NearestPoint(ply:EyePos()) end
+		self:SendDMGNum(ply, dmg, pos, ent, ang or ply:EyeAngles(), type or DMG_GENERIC)
 	end
 else
 	local e
