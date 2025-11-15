@@ -770,4 +770,54 @@ function GM:OnContextMenuClose()
 	end
 end
 
+local toosmall = 1 / 1e9 / 1e9
 
+local normalize2d = function(vec)
+	            local len = vec:Length2D()
+	            local lennormal = 1 / (toosmall + len)
+	            
+	            vec.x = vec.x * lennormal
+	            vec.y = vec.y * lennormal
+	            vec.z = 0
+	            
+	            return len
+end
+
+local function AirStrafe(bot, forwardSpeed, sideSpeed)
+	sideSpeed = sideSpeed or 0
+	forwardSpeed = forwardSpeed or 0
+	if bot:GetGroundEntity() ~= NULL or bot:GetMoveType() ~= MOVETYPE_WALK or bot:WaterLevel() >= 2 then return forwardSpeed, sideSpeed end
+	local vForward,vRight = bot:EyeAngles():Forward(),bot:EyeAngles():Right()
+    normalize2d(vForward)
+    normalize2d(vRight)
+    
+    local wishVel = Vector(vForward.x * forwardSpeed + vRight.x * sideSpeed,vForward.y * forwardSpeed + vRight.y * sideSpeed,0)
+    local wishDir = wishVel:Angle()
+    local curDir = bot:GetVelocity():Angle()
+    local delta = math.NormalizeAngle(wishDir.y - curDir.y)
+
+	if delta >= 170 then return forwardSpeed, sideSpeed end --stop doing these silly turns
+
+    local rotation = math.rad((delta > 0 and -90 or 90) + delta)
+    local cosrot = math.cos(rotation)
+    local sinrot = math.sin(rotation)
+    
+    return cosrot * forwardSpeed - sinrot * sideSpeed,sinrot * forwardSpeed + cosrot * sideSpeed
+end
+
+local airstrafe = CreateClientConVar("hl2ce_airstrafe","0",true,true,"",0,1)
+
+function GM:CreateMove(cmd)
+	if cmd:KeyDown(IN_JUMP) then
+		if not LocalPlayer():OnGround() and LocalPlayer():GetMoveType() == MOVETYPE_WALK and LocalPlayer():WaterLevel() <= 1 then
+			cmd:RemoveKey(IN_JUMP)
+		end
+	end
+
+	if airstrafe:GetBool() and not LocalPlayer():OnGround() and LocalPlayer():GetMoveType() == MOVETYPE_WALK and LocalPlayer():WaterLevel() <= 1 then
+		local f,s = cmd:GetForwardMove(),cmd:GetSideMove()
+		f,s = AirStrafe(LocalPlayer(),f,s)
+		cmd:SetForwardMove(f)
+		cmd:SetSideMove(s)
+	end
+end

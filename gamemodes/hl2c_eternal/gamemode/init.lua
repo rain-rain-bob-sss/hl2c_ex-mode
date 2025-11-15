@@ -377,9 +377,9 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	if (IsValid(ent) && IsValid(attacker) && attacker:IsPlayer()) then
 		if (IsValid(attacker:GetActiveWeapon()) && ((attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB))) then
 			--damage = GetConVar("sk_plr_dmg_crowbar"):GetFloat()
-			damage = 25
+			damage = damage * 2.5
 		elseif IsValid(attacker:GetActiveWeapon()) && attacker:GetActiveWeapon():GetClass() == "weapon_stunstick" && dmgInfo:GetDamageType() == DMG_CLUB then
-			damage = GetConVar("sk_plr_dmg_stunstick"):GetFloat() * 1.6
+			damage = damage * 1.6
 			dmgInfo:SetDamageType(DMG_CLUB+DMG_SHOCK)
 			if ent:IsNPC() and ((ent:Health()/ent:GetMaxHealth())<=0.75) and not ent:IsFriendlyNPC() then
 				local oldwep=ent:GetActiveWeapon()
