@@ -71,6 +71,7 @@ function hl2cAcceptInput( ent, input )
 		for _, ply in pairs( player.GetAll() ) do
 		
 			ply:SetPos( Vector( -5000, -4840, 513 ) )
+			-- ply:SetPos( Vector( -4956, -4752, 513 ) )
 			ply:SetEyeAngles( Angle( 0, -150, 0 ) )
 		
 		end

@@ -15,7 +15,7 @@ hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", function(ent, dmginfo)
 	local atk = dmginfo:GetAttacker()
-	if (ent:GetClass() == "npc_combine_s" or atk:GetClass() == "npc_rollermine" or atk:GetClass() == "npc_cscanner") and not atk:IsPlayer() then
+	if (ent:GetClass() == "npc_combine_s" or atk:GetClass() == "npc_rollermine" or atk:GetClass() == "npc_cscanner") and not (atk:IsPlayer() or ent:IsPlayer()) then
 		dmginfo:SetDamage(math.huge)
 	end
 end)

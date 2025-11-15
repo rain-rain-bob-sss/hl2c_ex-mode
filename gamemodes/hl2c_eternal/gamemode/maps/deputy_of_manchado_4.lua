@@ -1,3 +1,5 @@
+-- Why is this here?!
+
 NEXT_MAP = "d1_trainstation_01"
 
 OVERRIDE_PLAYER_RESPAWNING = true

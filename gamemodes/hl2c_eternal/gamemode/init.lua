@@ -373,7 +373,8 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		-- end
 	-- end
 
-	-- Crowbar and Stunstick should follow skill level
+	-- Crowbar and Stunstick should follow skill level (Redundant)
+	--[[
 	if (IsValid(ent) && IsValid(attacker) && attacker:IsPlayer()) then
 		if (IsValid(attacker:GetActiveWeapon()) && ((attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB))) then
 			--damage = GetConVar("sk_plr_dmg_crowbar"):GetFloat()
@@ -400,7 +401,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 				damage=damage*StunstickDamageMul[ent:GetClass()]
 			end
 		end
-	end
+	end]]
 
 	if attacker.NextDamageMul and (ent:IsNPC() or ent:IsPlayer()) then
 		damage = damage * attacker.NextDamageMul
@@ -638,7 +639,6 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_updateperks")
 	util.AddNetworkString("hl2ce_buyupgrade")
 	util.AddNetworkString("hl2ce_updateeternityupgrades")
-
 	util.AddNetworkString("hl2ce_finishedmap")
 
 	-- We want regular fall damage and the ai to attack players and stuff
@@ -765,6 +765,12 @@ function GM:PlayerCompletedMap(ply)
 		ply:PrintMessage(3, "You have gained +"..gain.." moneys")
 	end
 
+	if ply.MapStats then -- Map stats display after completing the map (Not yet.)
+		net.Start("hl2ce_finishedmap")
+		net.WriteTable(ply.MapStats)
+		net.Send(ply)
+	end
+
 	self:NetworkString_UpdateStats(ply)
 end
 
@@ -813,6 +819,13 @@ local function MasterPlayerStartExists()
 end
 
 function GM:OnReloaded()
+	local dothat = false
+	if dothat and not game.IsDedicated() and GetConVar("sv_cheats"):GetBool() then
+		for i=1,250 do
+			RunConsoleCommand("ent_create","npc_handgrenade") -- oh my god what have i done
+		end
+	end
+
 	print("Gamemode "..self.Name.." ("..self.Version..") files have been refreshed")
 	timer.Simple(1, function()
 		for _,ply in pairs(player.GetAll()) do
@@ -1247,9 +1260,6 @@ function GM:PlayerInitialSpawn(ply)
 	-- ply.Mastery = 0
 	-- ply.MasteryPoints = 0
 
-	-- New 6th prestige type?
-	ply.MythiLegendaries = 0
-	ply.MythiLegendaryPoints = 0
 
 
 
@@ -1543,9 +1553,9 @@ function GM:PlayerSpawn(ply)
 	ply.UnoReverseTimesActivated = 0
 
 	-- Set stuff from last level
+
 	local maxhp = ply:GetOriginalMaxHealth()
 	local maxap = 100 -- calculate their max armor
-
 	if ply:HasPerkActive("super_armor_1") then
 		maxap = maxap + (self.EndlessMode and 30 or 5)
 	end
@@ -2032,6 +2042,9 @@ function GM:AcceptInput(ent, input, activator, caller, value)
 		elseif value == "100" and ent:IsPlayer() then -- fucking instakill on trigger
 			ent:SetHealth(ent:GetMaxHealth())
 			return true
+		-- else
+		-- 	ent:SetHealth(value)
+		-- 	return true			
 		end
 	end
 

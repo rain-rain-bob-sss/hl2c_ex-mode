@@ -11,14 +11,16 @@ TRIGGER_CHECKPOINT = {
 
 TRAINSTATION_LEAVEBARNEYDOOROPEN = false
 
+
+table.RemoveByValue(GODLIKE_NPCS, "npc_barney")
+table.RemoveByValue(FRIENDLY_NPCS, "npc_citizen")
 if CLIENT then return end
 
 local gman_killed, respawning_crate, respawning_crate_kill
+local barney_killed_themselves
 
 -- Player initial spawn
 function hl2cPlayerInitialSpawn( ply )
-	ply:SendLua("table.RemoveByValue(GODLIKE_NPCS, \"npc_barney\")")
-	ply:SendLua("table.RemoveByValue(FRIENDLY_NPCS, \"npc_citizen\")")
 end
 hook.Add( "PlayerInitialSpawn", "hl2cPlayerInitialSpawn", hl2cPlayerInitialSpawn )
 
@@ -46,6 +48,7 @@ function hl2cMapEdit()
 	gman_killed = nil
 	respawning_crate = nil
 	respawning_crate_kill = nil
+	barney_killed_themselves = nil
 	
 
 	game.SetGlobalState( "gordon_precriminal", GLOBAL_ON )
@@ -58,9 +61,6 @@ function hl2cMapEdit()
 		ents.FindByName( "barney_room_blocker_2" )[ 1 ]:Remove()
 	
 	end
-
-	table.RemoveByValue( GODLIKE_NPCS, "npc_barney" )
-	table.RemoveByValue( FRIENDLY_NPCS, "npc_citizen" )
 
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
@@ -283,7 +283,6 @@ function hl2cAcceptInput( ent, input, activator )
 			barney_killed_themselves = true
 
 			entity:SetHealth(1)
-
 			for i=1,30 do
 				local exp = ents.Create("env_explosion")
 				exp:SetPos(entity:GetPos())

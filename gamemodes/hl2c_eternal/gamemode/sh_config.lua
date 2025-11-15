@@ -545,7 +545,7 @@ GM.UpgradesEternity = {
 		Description = "Increases damage multiplier by %s%%",
 		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
 		EffectValue = function(ply, amt)
-			return 1 + 0.1*(amt or 0)
+			return 1 + 0.1*amt
 		end,
 	},
 

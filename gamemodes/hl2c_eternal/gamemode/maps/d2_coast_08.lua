@@ -1,4 +1,4 @@
-INFO_PLAYER_SPAWN = { Vector( 3328, 1505 + 3450, 1537 ), -90 }
+INFO_PLAYER_SPAWN = { Vector( 3326, 4990, 1536), -90 }
 
 NEXT_MAP = "d2_coast_07"
 
@@ -24,12 +24,13 @@ hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 -- Initialize entities
 function hl2cMapEdit()
 
+	ents.FindByName( "player_spawn_items_maker" )[ 1 ]:Remove()
 	ents.FindByName( "jeep_filter" )[ 1 ]:Fire( "AddOutput", "filterclass prop_vehicle_jeep_old" )
 	ents.FindByName( "player_spawn_items_maker" )[ 1 ]:Remove()
 
 	local propblock = ents.Create( "prop_physics" )
 	propblock:SetName( "prop_block" )
-	propblock:SetPos( Vector( 3328, 1575 + 3450, 1600 ) )
+	propblock:SetPos( Vector( 3328, 5150, 1600 ) )
 	propblock:SetModel( "models/props_wasteland/rockcliff01b.mdl" )
 	propblock:DrawShadow( false )
 	propblock:Spawn()
@@ -48,14 +49,14 @@ function hl2cAcceptInput( ent, input )
 		ents.FindByName( "prop_block" )[ 1 ]:Remove()
 
 		for _, ply in pairs( player.GetAll() ) do
-
-			ply:SetVelocity( Vector( 0, 0, 0 ) )
-			ply:SetPos( Vector( 2991, -6946 + 3450, 1932 ) )
+		
+			ply:SetVelocity( -ply:GetVelocity() )
+			ply:SetPos( Vector( 2991, -3426, 1932 ) )
 			ply:SetEyeAngles( Angle( 0, 0, 0 ) )
 
 		end
-		GAMEMODE:CreateSpawnPoint( Vector( 2991, -6946, 1932 ), 0 )
-
+		GAMEMODE:CreateSpawnPoint( Vector( 2991, -3426, 1932 ), 0 )
+	
 		if ( !file.Exists( "hl2c_eternal/d2_coast_08.txt", "DATA" ) ) then
 
 			file.Write( "hl2c_eternal/d2_coast_08.txt", "We have been to d2_coast_08 and pressed the button." )
