@@ -29,16 +29,7 @@ EX Mode is preferred to be enabled for the best experience.
 [[
 And other things to be implemented:
 
-Celestiality: Stars system (Increases Prestige gain for each star)
-
-Rebirth: ?????
-
-Ascension: ?????
-
-MythiLegendary: ?????
-
-7th Prestige Layer: D I  L    A        T                I                                O                                                                N                                                                                                                                ?
-(Increases Prestiges gain rate)
+a huge amount of prestige layers
 
 ]]
 

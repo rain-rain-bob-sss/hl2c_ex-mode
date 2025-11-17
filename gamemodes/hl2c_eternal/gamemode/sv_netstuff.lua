@@ -11,8 +11,8 @@ function GM:NetworkString_UpdateStats(ply)
     net.WriteInfNumber(ply.PrestigePoints)
     net.WriteInfNumber(ply.Eternity)
     net.WriteInfNumber(ply.EternityPoints)
-    net.WriteInfNumber(ply.Celestiality)
-    net.WriteInfNumber(ply.CelestialityPoints)
+    -- net.WriteInfNumber(ply.Celestiality)
+    -- net.WriteInfNumber(ply.CelestialityPoints)
     net.Send(ply)
 end
 

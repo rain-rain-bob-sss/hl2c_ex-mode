@@ -153,7 +153,34 @@ function GM:HUDPaint()
 	if (ContextMenu and ContextMenu:IsValid()) or not hl2ce_cl_nohuddifficulty:GetBool() then
 		colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (diff_difference < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0)) or Color(255, 220, 0)
 		colordifference.a = 155
-		draw.DrawText(Format("Difficulty: %s%%", FormatNumber(infmath.Round(self:GetDifficulty() * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6, colordifference, TEXT_ALIGN_CENTER )
+
+		local d = self:GetDifficulty() * 100
+		local d_normal = infmath.ConvertInfNumberToNormalNumber(d)
+		local s = Format("Difficulty: %s%%", FormatNumber(infmath.Round(d, 2)))
+		surface.SetFont("TargetIDSmall")
+		local len = surface.GetTextSize(s)
+		local l = 0
+		
+
+		local c = d_normal >= 1e33 and Color(255,0,255) or
+			d_normal >= 1e6 and Color(255,0,0) or
+			colordifference
+
+		c.a = colordifference.a
+		if d >= InfNumber(math.huge) then
+			for i=1,#s do
+				local r = math.Rand(0.5, 1)
+				c = HSVToColor((SysTime()*(60+math.log10(d:log10()*100)*10) + (
+					d:log10() > 1000 and -math.sin(l/5)*10 or l/3
+			))%360, 1, 1)
+
+				draw.DrawText(s[i], "TargetIDSmall", ScrW() / 2 - len/2 + l, ScrH() / 6, c, TEXT_ALIGN_LEFT)
+				l = l + surface.GetTextSize(s[i])
+			end
+		else
+			draw.DrawText(s, "TargetIDSmall", ScrW() / 2 - len/2 + l, ScrH() / 6, c, TEXT_ALIGN_LEFT )
+		end
+
 		if self.DifficultyDifferenceTimeChange + 3 >= CurTime() then
 			colordifference.a = (self.DifficultyDifferenceTimeChange+3-CurTime())*155/3
 			draw.DrawText(Format("%s%s%%", diff_difference < 0 and "-" or "+", infmath.abs(infmath.Round(self.DifficultyDifference * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 15, colordifference, TEXT_ALIGN_CENTER )

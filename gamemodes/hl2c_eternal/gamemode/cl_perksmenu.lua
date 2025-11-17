@@ -19,7 +19,7 @@ function GM:CMenu()
 		local xp,reqxp = pl.XP, self:GetReqXP(pl)
 		draw.DrawText("Moneys: "..FormatNumber(pl.Moneys), "TargetIDSmall", x, y, Color(205,255,205,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("XP: "..FormatNumber(xp).." / "..FormatNumber(reqxp)..(xp >= InfNumber(MAX_NUMBER) and " ("..FormatNumber(infmath.Round(xp/reqxp* 100,2)).."%)" or ""), "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText("XP: "..FormatNumber(xp).." / "..FormatNumber(reqxp)..(xp < InfNumber(MAX_NUMBER) and " ("..FormatNumber(infmath.Round(xp/reqxp* 100,2)).."%)" or ""), "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
 		draw.DrawText("Level: "..tostring(pl.Level), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add

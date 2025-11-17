@@ -51,7 +51,7 @@ function meta:GainLevel()
         local prevxp, xp = self.XP, self.XPUsedThisPrestige
         local gainedsp = 0
 
-        for i=1,1e4 do
+        for i=1,1e3 do
             if not self:CanLevelup() or infmath.ConvertInfNumberToNormalNumber(self.Level) >= self:GetMaxLevel() then break end
             self.XP = self.XP - GAMEMODE:GetReqXP(self)
             self.Level = self.Level + 1
@@ -72,7 +72,7 @@ function meta:GainLevel()
             end
         end
         self.XPUsedThisPrestige = prevxp + xp - self.XP
-        if not self:HasEternityUnlocked() then
+        if not self:HasEternityUnlocked() and not self:CanLevelup() then
             self:PrintMessage(HUD_PRINTTALK, Format("Level increased: %s --> %s", tostring(prevlvl), tostring(self.Level)))
         end
         GAMEMODE:NetworkString_UpdateStats(self)

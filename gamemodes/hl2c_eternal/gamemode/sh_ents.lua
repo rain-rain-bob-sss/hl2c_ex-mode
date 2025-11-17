@@ -14,7 +14,7 @@ end
 -- attempt to rework HP beyond 32 bit limit
 -- Only up to 1e30 because damage at more than 3.4e38 can overflow to infinity
 local max = 2.1e9
-local inf_max = 1e70
+local inf_max = 1e300
 meta.OldHealthEX = meta.OldHealthEX or meta.Health
 function meta:Inf_Health()
 	return math.ceil(tonumber(self:GetDTString(DT_FLOAT_ENT_HEALTH)) or 0)

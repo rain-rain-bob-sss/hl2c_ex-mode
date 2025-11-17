@@ -150,7 +150,7 @@ function hl2cAcceptInput( ent, input, activator )
 	end
 
 	if GAMEMODE.EXMode then
-		if GAMEMODE:GetDifficulty() > 15 and ent:GetName() == "scene2_flash_mode_2" and string.lower(input) == "enablerefire" then
+		if infmath.ConvertInfNumberToNormalNumber(GAMEMODE:GetDifficulty()) > 15 and ent:GetName() == "scene2_flash_mode_2" and string.lower(input) == "enablerefire" then
 			if gman_killed then return true end
 
 			if math.random(10) == 1 then
@@ -212,7 +212,7 @@ function hl2cAcceptInput( ent, input, activator )
 			return true
 		end
 
-		if GAMEMODE:GetDifficulty() > 69.6969696969 and ent:GetName() == "ss_luggagedrop_2" and string.lower(input) == "beginsequence" then
+		if infmath.ConvertInfNumberToNormalNumber(GAMEMODE:GetDifficulty()) > 69.6969696969 and ent:GetName() == "ss_luggagedrop_2" and string.lower(input) == "beginsequence" then
 			local randommodels = {
 				"models/props_junk/watermelon01.mdl",
 				"models/props_junk/GlassBottle01a.mdl",
@@ -276,7 +276,7 @@ function hl2cAcceptInput( ent, input, activator )
 			activator:TakeDamage(1) -- kill it
 		end
 
-		if GAMEMODE:GetDifficulty() > 10 and ent:GetName() == "storage_room_door" then
+		if infmath.ConvertInfNumberToNormalNumber(GAMEMODE:GetDifficulty()) > 10 and ent:GetName() == "storage_room_door" then
 			local entity = ents.FindByClass("npc_barney")[1]
 			if !entity or !entity:IsValid() then return end
 

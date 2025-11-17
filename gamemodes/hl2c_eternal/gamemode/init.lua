@@ -1000,32 +1000,58 @@ function GM:PlayerInitialSpawn(ply)
 	ply.Level = InfNumber(0)
 	ply.StatPoints = InfNumber(0)
 
+
+	-- a HUGE EXTREME LIST OF PRESTIGE LAYERS.
+
 	ply.Prestige = InfNumber(0)
 	ply.PrestigePoints = InfNumber(0)
-	ply.Universe = InfNumber(0)
-	ply.EternityPoints = InfNumber(0)
-	ply.Eternity = InfNumber(0)
+	ply.Eternities = InfNumber(0) -- 4th layer
 	ply.EternityPoints = InfNumber(0)
 
-	-- Endless?
+	ply.Resets = InfNumber(0) -- 2nd layer
+	ply.ResetPoints = InfNumber(0)
+
+	-- Infinite (XP: Past 1.8e308)
+	ply.Infinities = InfNumber(0)
+	ply.InfinityPoints = InfNumber(0)
+	ply.Ascensions = InfNumber(0)
+	ply.AscensionPoints = InfNumber(0)
 	ply.Celestiality = InfNumber(0)
 	ply.CelestialityPoints = InfNumber(0)
-	ply.Rebirths = InfNumber(0)
-	ply.RebirthPoints = InfNumber(0)
-	-- Renamed due to Ascension feeling like a low tier prestige (in Revo Idle it's used to boost color mult gain)
-	ply.Transcension = InfNumber(0)
-	ply.TranscensionPoints = InfNumber(0)
 
-	-- New 6th prestige type?
-	ply.MythiLegendaries = InfNumber(0)
-	ply.MythiLegendaryPoints = InfNumber(0)
+	-- Extreme (XP: Past ~e100,000)
+	ply.Transcendences = InfNumber(0)
+	ply.TranscendencePoints = InfNumber(0)
+	ply.Singularities = InfNumber(0)
+	ply.SingularityPoints = InfNumber(0)
+	ply.Hyperions = InfNumber(0)
+	ply.HyperionPoints = InfNumber(0)
+	ply.Omnipotence = InfNumber(0)
+	ply.OmnipotencePoints = InfNumber(0)
 
-	-- True Endless...????
-	-- ...but... you sure?
+	-- Godlous (XP: Past ~ee20)
+	ply.Absolutes = InfNumber(0)
+	ply.AbsolutePoints = InfNumber(0)
+	ply.Voids = InfNumber(0)
+	ply.VoidPoints = InfNumber(0)
 
-	-- this won't be included since the mastery will be working differently
-	-- ply.Mastery = 0
-	-- ply.MasteryPoints = 0
+	-- Ultimated (Past ~ee308)
+	ply.Brokens = InfNumber(0)
+	ply.BrokenPoints = InfNumber(0)
+	ply.Transfinities = InfNumber(0)
+	ply.TransfinityPoints = InfNumber(0)
+	ply.Continuum = InfNumber(0)
+	ply.ContinuumPoints = InfNumber(0)
+	ply.Oblivion = InfNumber(0)
+	ply.OblivionPoints = InfNumber(0)
+
+	-- Hyper-Broken. (Past ~eee308)
+	ply.Endlessness = InfNumber(0)
+	ply.EndlessnessPoints = InfNumber(0)
+
+	-- The END (Past eeee30)
+	ply.Terminus = InfNumber(0)
+	ply.TerminusPoints = InfNumber(0)
 
 
 
@@ -1636,10 +1662,14 @@ function GM:Think()
 			PrintMessage(HUD_PRINTTALK, "All players have died!")
 
 			local diff = self:GetDifficulty(true, true)
-			self:SetDifficulty(infmath.max(1, diff * (
-				diff >= InfNumber(1000) and 0.85 or diff >= InfNumber(100) and 0.87 or
-				diff >= InfNumber(10) and 0.87 or diff >= InfNumber(4) and 0.89 or 0.91
-			)))
+			if diff > InfNumber(math.huge) then
+				self:SetDifficulty(infmath.max(1, diff ^ 0.9))
+			else
+				self:SetDifficulty(infmath.max(1, diff * (
+					diff >= InfNumber(1000) and 0.85 or diff >= InfNumber(100) and 0.87 or
+					diff >= InfNumber(10) and 0.87 or diff >= InfNumber(4) and 0.89 or 0.91
+				)))
+			end
 
 			hook.Call("RestartMap", GAMEMODE)
 		end
