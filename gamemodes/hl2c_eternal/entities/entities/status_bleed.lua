@@ -5,7 +5,7 @@ ENT.PrintName = "Bleeding"
 ENT.LifeTime = 8
 ENT.RemoveTime = 0
 ENT.NextBleedTick = 0
-ENT.stackable = true 
+ENT.stackable = true
 ENT.maxstacks = 3
 
 function ENT:Initialize()
@@ -13,20 +13,20 @@ function ENT:Initialize()
 end
 
 function ENT:Setup()
-    if SERVER then 
+    if SERVER then
         self.RemoveTime = CurTime() + self.LifeTime
     end
 end
 
 function ENT:Think()
-    if SERVER then 
+    if SERVER then
         local remove = not IsValid(self:GetParent()) or (self:GetParent().Alive and not self:GetParent():Alive())
-        if self.RemoveTime ~= 0 or remove then 
-            if (self.RemoveTime < CurTime()) or remove then SafeRemoveEntity(self) return end 
+        if self.RemoveTime ~= 0 or remove then
+            if (self.RemoveTime < CurTime()) or remove then SafeRemoveEntity(self) return end
         end
         if self.NextBleedTick < CurTime() then
             local victim = self:GetParent()
-            victim.cdmgtype = 1
+            victim.cdmgtype = DMG_TYPE_BLEED
             local dmg = DamageInfo()
             dmg:SetDamage(2)
             dmg:SetDamageType(self.DamageType or DMG_DIRECT)

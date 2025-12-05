@@ -251,7 +251,7 @@ function GM:OnEntityCreated(ent)
 		ent.ent_HealthMul = (ent.ent_HealthMul or 1) * math.min(self:GetDifficulty()^0.3, 100000)
 	end
 
-	if ent:GetClass() == "entityflame" then 
+	if ent:GetClass() == "entityflame" then
 		local victim = ent:GetParent()
 		if IsValid(victim) and IsValid(victim.LastAttacker) then
 			ent.OverrideAttacker = victim.LastAttacker
@@ -297,7 +297,7 @@ function GM:EntityKeyValue(ent, key, value)
 
 	local lkey = string.lower(key)
 
-	if string.StartsWith(lkey,"on") then 
+	if string.StartsWith(lkey,"on") then
 		ent.HL2CEOutputs = ent.HL2CEOutputs or {}
 		ent.HL2CEOutputs[key] = ent.HL2CEOutputs[key] or {}
 		table.insert(ent.HL2CEOutputs[key],value)
@@ -373,11 +373,8 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		-- end
 	-- end
 
-	-- Crowbar and Stunstick should follow skill level (Redundant)
-	--[[
 	if (IsValid(ent) && IsValid(attacker) && attacker:IsPlayer()) then
 		if (IsValid(attacker:GetActiveWeapon()) && ((attacker:GetActiveWeapon():GetClass() == "weapon_crowbar" && dmgInfo:GetDamageType() == DMG_CLUB))) then
-			--damage = GetConVar("sk_plr_dmg_crowbar"):GetFloat()
 			damage = damage * 2.5
 		elseif IsValid(attacker:GetActiveWeapon()) && attacker:GetActiveWeapon():GetClass() == "weapon_stunstick" && dmgInfo:GetDamageType() == DMG_CLUB then
 			damage = damage * 1.6
@@ -401,7 +398,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 				damage=damage*StunstickDamageMul[ent:GetClass()]
 			end
 		end
-	end]]
+	end
 
 	if attacker.NextDamageMul and (ent:IsNPC() or ent:IsPlayer()) then
 		damage = damage * attacker.NextDamageMul
@@ -482,7 +479,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			attacker:SetHealth(math.min(attacker:Health() + heal, attacker:GetMaxHealth()))
 		end
 
-		if attacker:HasPerkActive("bleed_for_8_seconds") and not ent.bleeddamage then 
+		if attacker:HasPerkActive("bleed_for_8_seconds") and not ent.bleeddamage then
 			ent:GiveBleed(attacker,8)
 		end
 	end
@@ -492,8 +489,8 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		damage = damage * math.min(self:GetDifficulty()^0.3, 100000)
 	end
 
-	if ent:IsNPC() then 
-		if ent.hitGroupScale then 
+	if ent:IsNPC() then
+		if ent.hitGroupScale then
 			damage = damage * ent.hitGroupScale
 			ent.hitGroupScale = 1
 		end
@@ -524,6 +521,26 @@ function GM:EntityFireBullets(ent, data)
 		dmginfo:SetDamagePosition(tr.HitPos)
 		return ocallback(attacker,tr,dmginfo,...)
 	end
+
+	if IsValid(ent) and ent:IsPlayer() and IsValid(ent:GetActiveWeapon()) and ent:GetActiveWeapon():GetClass() == "weapon_pistol" then
+		local ply = ent
+		local ent = ent:GetActiveWeapon()
+		if (ent.IsCharging) or (ent.ShitCharge or 0) >= CurTime() then
+			local time = CurTime() - ent.ChargingTime
+			ent.IsCharging = false
+			ent.ShitCharge = 0
+
+			local take = math.Clamp(math.floor(time * 2.75),0,ent:Clip1())
+			data.Num = data.Num + take
+			ent:SetClip1(ent:Clip1() - take)
+
+			if time >= 5 then
+				data.Damage = data.Damage * 2
+			end
+
+			ply:ViewPunch(Angle(-take,0,0))
+		end
+	end
 	return true
 end
 
@@ -538,8 +555,14 @@ function GM:PostEntityTakeDamage(ent, dmginfo, wasdamagetaken)
 
 	if tookdamage then
 		local att = dmginfo:GetAttacker()
-		if att:IsPlayer() then 
+		if att:IsPlayer() then
+			if IsValid(dmginfo:GetInflictor()) and dmginfo:GetInflictor():GetClass() == "weapon_physcannon" then
+				if dmginfo:GetDamage() > 1 and game.GetGlobalState( "super_phys_gun" ) == GLOBAL_ON then
+					OVERRIDE_DMG_TYPE = DMG_TYPE_PHYSCANNON
+				end
+			end
 			self:SendDamageNumber(att,dmginfo:GetDamage(),dmginfo:GetDamagePosition(),ent,nil,dmginfo:GetDamageType())
+			OVERRIDE_DMG_TYPE = nil
 		end
 	end
 
@@ -947,7 +970,7 @@ concommand.Add("hl2ce_admin_respawn", function(ply)
 end)
 concommand.Add("hl2ce_admin_dissolve",function(ply)
 	if IsValid(ply) and not ply:IsAdmin() then return end
-	local this = ply:GetEyeTrace().Entity 
+	local this = ply:GetEyeTrace().Entity
 	if not IsValid(this) then return end
 	this:Dissolve()
 	local dmg = DamageInfo()
@@ -962,7 +985,7 @@ end)
 
 concommand.Add("+hl2ce_admin_dissolve",function(ply)
 	if IsValid(ply) and not ply:IsAdmin() then return end
-	local this = ply:GetEyeTrace().Entity 
+	local this = ply:GetEyeTrace().Entity
 	ply.DissolveSelect = this
 end)
 
@@ -1091,11 +1114,11 @@ function GM:OnNPCKilled(npc, killer, weapon)
 end
 
 hook.Add("EntityRemoved","HL2CE_NPCDeathHack",function(ent)
-	if NPC_NO_KILLEDHOOK[ent:GetClass()] and not ent.HL2CEKilled then 
+	if NPC_NO_KILLEDHOOK[ent:GetClass()] and not ent.HL2CEKilled then
 		ent.HL2CEKilled = true
 		local att = ent:GetLastAttacker()
 		if IsValid(att) then
-			if att:IsPlayer() then 
+			if att:IsPlayer() then
 				--not hook.Run.
 				GAMEMODE:OnNPCKilled(ent,att,att)
 			end
@@ -1119,7 +1142,7 @@ function GM:RespawnEntity(data)
 end
 
 function GM:RespawnThink(data)
-	for k,data in pairs(self.RespawningEntities) do 
+	for k,data in pairs(self.RespawningEntities) do
 		if (data.respawntime or 0) < CurTime() then
 			self:RespawnEntity(data)
 			self.RespawningEntities[k] = nil
@@ -1726,7 +1749,7 @@ function GM:ScaleNPCDamage(npc, hitGroup, dmgInfo)
 	local hitGroupScale = 1
 	if (hitGroup == HITGROUP_HEAD) then
 		hitGroupScale = GetConVarNumber("sk_npc_head")
-		if IsValid(attacker) and attacker:IsPlayer() then 
+		if IsValid(attacker) and attacker:IsPlayer() then
 			hitGroupScale = hitGroupScale * (1 + attacker:GetSkillAmount("HeadShotMul") * (GAMEMODE.EndlessMode and 0.075 or 0.5))
 		end
 	elseif (hitGroup == HITGROUP_CHEST) then
@@ -1921,10 +1944,20 @@ function GM:Think()
 					ply.HyperArmorCharge = ply.HyperArmorCharge - math.floor(ply.HyperArmorCharge)
 				end
 			end
-			if ply:HasPerkActive("overcharged") then 
+			if ply:HasPerkActive("overcharged") then
 				if ply:WaterLevel() < 3 and ply:GetSuitPower() < 100 then
 					ply:SetSuitPower(math.min(100, ply:GetSuitPower() + 5))
 				end
+			end
+		end
+	end
+
+	for _,ply in ipairs(player.GetAll()) do
+		local wep = ply:GetActiveWeapon()
+		if IsValid(wep) and wep:GetClass() == "weapon_pistol" then
+			if wep.IsCharging and not ply:KeyDown(IN_ATTACK2)  and not ply:KeyDown(IN_ATTACK) then
+				wep.IsCharging = false
+				wep.ShitCharge = CurTime() + 0.1
 			end
 		end
 	end
@@ -2044,11 +2077,11 @@ function GM:AcceptInput(ent, input, activator, caller, value)
 			return true
 		-- else
 		-- 	ent:SetHealth(value)
-		-- 	return true			
+		-- 	return true
 		end
 	end
 
-	if input == "AddOutput" then 
+	if input == "AddOutput" then
 		local pos = string.find( value, " ", 1, true )
 		local name, value = value:sub( 1, pos - 1 ), value:sub( pos + 1 )
 		value = value:gsub( ":", "," )
@@ -2070,10 +2103,10 @@ function GM:GravGunPunt( ply, ent )
 	return true
 end
 
-function GM:KeyPress(ply,key) 
+function GM:KeyPress(ply,key)
 	if key == IN_RELOAD and IsFirstTimePredicted() and IsValid(ply) and ply:HasPerkActive("physcannon_dissolve") and IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon():GetClass() == "weapon_physcannon" then
-		local grabbed = ply.GravGunGrab 
-		if IsValid(grabbed) then 
+		local grabbed = ply.GravGunGrab
+		if IsValid(grabbed) then
 			if grabbed:MapCreationID() <= 0 then
 				grabbed:Dissolve()
 			end
@@ -2086,6 +2119,17 @@ function GM:KeyPress(ply,key)
 			grabbed:TakeDamageInfo(dmg)
 			grabbed:ForcePlayerDrop()
 		end
+	elseif key == IN_RELOAD and IsFirstTimePredicted() and IsValid(ply) and IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon():GetClass() == "weapon_shotgun" then
+		local wep = ply:GetActiveWeapon()
+		local time = (CurTime() - wep:LastShootTime())
+		if wep:Clip1() < 6 and math.Clamp(time,0.02,0.2) == time then
+			wep:SendWeaponAnim(ACT_VM_RELOAD)
+			wep:SetNextPrimaryFire(CurTime() + 0)
+		end
+	elseif key == IN_ATTACK2 and IsFirstTimePredicted() and IsValid(ply) and IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon():GetClass() == "weapon_pistol" then
+		ply:GetActiveWeapon().IsCharging = true
+		ply:GetActiveWeapon().ChargingTime = CurTime()
+		ply:GetActiveWeapon():SendWeaponAnim(ACT_VM_SECONDARYATTACK)
 	end
 end
 

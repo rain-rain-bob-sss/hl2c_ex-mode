@@ -178,8 +178,8 @@ PLAYER_MODELS = {
 }
 
 
--- Number of seconds before a player is vulnerable after they spawn (Default: 5)
-VULNERABLE_TIME = 5
+-- Number of seconds before a player is vulnerable after they spawn (Default: 10)
+VULNERABLE_TIME = 10
 
 
 -- Only administrators can hold these weapons (Default: weapon_physgun)
@@ -189,7 +189,7 @@ ADMINISTRATOR_WEAPONS = {
 	"weapon_flechettegun",
 }
 
---Give shared weapons. If weapon is in list, gives everyone else the same gun. 
+--Give shared weapons. If weapon is in list, gives everyone else the same gun.
 WHITELISTED_WEAPONS = {
 	"weapon_crowbar",
 	"weapon_physcannon",

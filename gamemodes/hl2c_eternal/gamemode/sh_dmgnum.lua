@@ -8,7 +8,7 @@ if SERVER then
 		net.WriteEntity(ent)
 		net.WriteAngle(ang)
 		net.WriteInt(type, 32)
-		net.WriteInt(ent.cdmgtype or 0, 8)
+		net.WriteInt(OVERRIDE_DMG_TYPE or ent.cdmgtype or 0, 8)
 		net.Send(ply)
 	end
 

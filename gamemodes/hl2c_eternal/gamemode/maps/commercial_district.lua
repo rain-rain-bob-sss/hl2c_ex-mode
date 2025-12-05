@@ -1,0 +1,1 @@
+MAP_FORCE_NO_FRIENDLIES = true

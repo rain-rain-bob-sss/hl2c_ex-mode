@@ -43,6 +43,18 @@ for i, v in ipairs({"r", "g", "b"}) do
     colcvar_delayeddamage[v] = CreateClientConVar("hl2ce_dmgnum_coldelayeddamage_" .. v, a, true, true, "Damage number's delayed damage color", 0, 255)
 end
 
+local colcvar_physcannon = {}
+for i, v in ipairs({"r", "g", "b"}) do
+    local a = 0
+    if v == "g" then
+        a = 200
+    elseif v == "b" then
+        a = 200
+    end
+
+    colcvar_physcannon[v] = CreateClientConVar("hl2ce_dmgnum_physcannon_" .. v, a, true, true, "Damage number's delayed damage color", 0, 255)
+end
+
 --aifijasufsihtzsy WHAT?
 local enabled = CreateClientConVar("hl2ce_dmgnum_enabled", "1", true, true, "Enable damage number", 0, 1)
 local b = CreateClientConVar("hl2ce_dmgnum_bounce", "0.5", true, true, "Damage number's bounce", 0, 1)
@@ -161,9 +173,11 @@ hook.Add("PostDrawTranslucentRenderables", "DrawDmgNumsHl2CE", function(_, _, sk
             end
 
             drawtext()
-            ang:RotateAroundAxis(ang:Forward(), 180)
-            ang:RotateAroundAxis(ang:Up(), -180)
-            drawtext()
+            if not _2d:GetBool() then
+                ang:RotateAroundAxis(ang:Forward(), 180)
+                ang:RotateAroundAxis(ang:Up(), -180)
+                drawtext()
+            end
             if alpha < 2 then dmgnums[i] = nil c = c - 1 end
             a = false
         end
@@ -212,12 +226,17 @@ function EFFECT:Init(data)
     local cdmgtypecvars = {
         [-1] = colcvar_fire,
         [0] = colcvar,
-        [1] = colcvar_bleed,
-        [2] = colcvar_delayeddamage,
+        [DMG_TYPE_BLEED] = colcvar_bleed,
+        [DMG_TYPE_DELAY] = colcvar_delayeddamage,
+        [DMG_TYPE_PHYSCANNON] = colcvar_physcannon
     }
 
+    if cdmgtype == DMG_TYPE_PHYSCANNON then
+        dmg = "INFINITE"
+    end
+
     local col = {}
-    for i, v in pairs(cdmgtypecvars[cdmgtype]) do
+    for i, v in pairs(cdmgtypecvars[cdmgtype] or {}) do
         col[i] = v:GetFloat()
     end
 

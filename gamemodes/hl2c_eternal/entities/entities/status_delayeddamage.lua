@@ -27,7 +27,7 @@ function ENT:Think()
             local damage = math.ceil(self.Damage * mult)
             self.Damage = self.Damage - math.ceil(self.Damage * mult)
             local victim = self:GetParent()
-            victim.cdmgtype = 2
+            victim.cdmgtype = DMG_TYPE_DELAY
             local dmg = DamageInfo()
             dmg:SetDamage(damage)
             dmg:SetDamageType(self.DamageType or DMG_DIRECT)
