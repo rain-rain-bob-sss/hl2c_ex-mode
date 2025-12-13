@@ -153,7 +153,7 @@ end
 t.FormatText = function(self, roundto)
     local e = self.exponent
     local abs_e = e
-    if e == -math_huge then return 0 end
+    if e == -math_huge then return "0" end
     if e == math_huge then return "inf" end
     local e_negative = e < 0
     if e_negative then

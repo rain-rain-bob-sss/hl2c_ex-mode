@@ -9,6 +9,7 @@ local function OverrideOldVariables(tbl)
 end
 
 function GM:LoadPlayer(ply)
+    if ply:IsBot() then return end
     if not file.IsDir(self.VaultFolder.."/players/"..string.lower(string.gsub(ply:UniqueID(), ":", "_")), "DATA") then
         file.CreateDir(self.VaultFolder.."/players/"..string.lower(string.gsub(ply:UniqueID(), ":", "_")))
     end
@@ -51,6 +52,7 @@ function GM:LoadPlayer(ply)
 end
 
 function GM:SavePlayer(ply)
+    if ply:IsBot() then return end
     if (ply.LastSave or 0) >= CurTime() then return end
     if self.DisableDataSave then return end
     ply.LastSave = CurTime() + 5

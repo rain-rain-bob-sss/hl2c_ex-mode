@@ -19,6 +19,20 @@ end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 
+local function SpawnNPC(class, pos, ang, func)
+	local ent = ents.Create(class)
+	ent:SetPos(pos)
+	ent:SetAngles(ang)
+	if func then
+		func(ent)
+	end
+	ent:Spawn()
+
+	return ent
+end
+
+
+
 -- Initialize entities
 function hl2cMapEdit()
 
@@ -37,11 +51,12 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput( ent, input, activator )
 
-	if ( !game.SinglePlayer() && ( ( ent:GetName() == "airlock_south_door_exit" ) || ( ent:GetName() == "airlock_south_door_exitb" ) ) && ( string.lower( input ) == "close" ) ) then
-	
-		return true
+	if !GAMEMODE.EXMode and !game.SinglePlayer() then
+		if (ent:GetName() == "airlock_south_door_exit") or ent:GetName() == "airlock_south_door_exitb" and string.lower( input ) == "close" then 
+			return true
+		end
 	
 	end
 
@@ -56,20 +71,58 @@ function hl2cAcceptInput( ent, input )
 	end
 
 	if GAMEMODE.EXMode then
-		if ent:GetName() == "logic_disable_airlockB_1" and string.lower(input) == "enablerefire" then
+		local entname = ent:GetName()
+		
+		if entname == "lcs_alyxtour04b" and string.lower(input) == "start" then
+			timer.Simple(3, function() PrintMessage(3, "Chapter 5a") end)
+			timer.Simple(6.5, function() PrintMessage(3, "The impending doom") end)
+		end
+
+		if entname == "lcs_gravgun01" and input:lower() == "start" then
+			GAMEMODE:ReplaceSpawnPoint(Vector(-600, 774, -2684), -90)
+			for _,ply in ipairs(player.GetAll()) do
+				ply:SetPos(Vector(-600, 774, -2684))
+				ply:SetEyeAngles(Angle(0, -90, 0))
+			end
+		end
+
+		if entname == "lcs_attack02" and input:lower() == "start" then
+			GAMEMODE:ReplaceSpawnPoint(Vector(-564, 1024, -2684), 180)
+			for _,ply in ipairs(player.GetAll()) do
+				ply:SetPos(Vector(-564, 1024, -2684))
+				ply:SetEyeAngles(Angle(0, 180, 0))
+			end
+		end
+
+		if entname == "logic_disable_airlockB_1" and string.lower(input) == "enablerefire" then
 			ents.FindByName("alyx")[1]:Ignite(5)
 		end
 
-		if ent:GetName() == "monitor_airlock_south" and string.lower(input) == "disable" then
+		if entname == "monitor_airlock_south" and string.lower(input) == "disable" then
 			local e = EffectData()
 			e:SetOrigin(ent:GetPos())
 			for i=1,10 do
+				PrintMessage(3, "YOU FUCKED UP")
 				util.Effect("Explosion", e)
 			end
 
 			timer.Simple(0, function()
 				ent:Remove()
 			end)
+
+			local function DoIt()
+				for i=1,6 do
+					SpawnNPC("npc_zombie", Vector(-640 + i*22, 1104, -2684), Angle(0, -90, 0))
+				end
+			end
+			DoIt()
+			timer.Simple(3, DoIt)
+			timer.Simple(6, DoIt)
+		end
+
+		local s = "ambient_attack_explode_"
+		if string.sub(entname, 1, #s) == s and input:lower()=="playsound" then
+			PrintMessage(3, "YOU FUCKED UP")
 		end
 	end
 

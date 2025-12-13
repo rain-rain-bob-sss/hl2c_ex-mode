@@ -56,14 +56,14 @@ end
 -- Create console variables to make these config vars easier to access
 local hl2c_admin_physgun = CreateConVar("hl2c_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY)
 local hl2c_admin_noclip = CreateConVar("hl2c_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY)
-local hl2c_server_force_gamerules = CreateConVar("hl2c_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_custom_playermodels = CreateConVar("hl2c_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_checkpoint_respawn = CreateConVar("hl2c_server_checkpoint_respawn", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_dynamic_skill_level = CreateConVar("hl2c_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_lag_compensation = CreateConVar("hl2c_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_player_respawning = CreateConVar("hl2c_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
+local hl2c_server_force_gamerules = CreateConVar("hl2c_server_force_gamerules", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
+local hl2c_server_custom_playermodels = CreateConVar("hl2c_server_custom_playermodels", 0, FCVAR_NOTIFY + FCVAR_ARCHIVE )
+local hl2c_server_checkpoint_respawn = CreateConVar("hl2c_server_checkpoint_respawn", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
+local hl2c_server_dynamic_skill_level = CreateConVar("hl2c_server_dynamic_skill_level", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
+local hl2c_server_lag_compensation = CreateConVar("hl2c_server_lag_compensation", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
+local hl2c_server_player_respawning = CreateConVar("hl2c_server_player_respawning", 0, FCVAR_NOTIFY + FCVAR_ARCHIVE )
+local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger_seat", 0, FCVAR_NOTIFY + FCVAR_ARCHIVE )
+local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
 COldGetConvar=COldGetConvar or GetConvar
 function GetConvar(n)
 	if(string.StartsWith(n,"hl2c_"))then
@@ -104,13 +104,23 @@ end
 
 -- Creates a spawn point
 function GM:CreateSpawnPoint(pos, yaw)
+	local ips = ents.Create("info_player_start")
+	ips:SetPos(pos)
+	ips:SetAngles(Angle(0, yaw, 0))
+	ips:SetKeyValue("spawnflags", "1")
+	ips:Spawn()
+end
+
+function GM:ReplaceSpawnPoint(pos, yaw)
+	for _,ent in pairs(ents.FindByClass("info_player_start")) do
+		ent:Remove()
+	end
 
 	local ips = ents.Create("info_player_start")
 	ips:SetPos(pos)
 	ips:SetAngles(Angle(0, yaw, 0))
 	ips:SetKeyValue("spawnflags", "1")
 	ips:Spawn()
-
 end
 
 
@@ -605,6 +615,12 @@ end
 function GM:OnCampaignCompleted()
 end
 
+function GM:PostOnMapCompleted()
+end
+
+function GM:PostOnCampaignCompleted()
+end
+
 function GM:PlayerCompletedMap(ply)
 	-- XP
 	local txp = 0
@@ -880,7 +896,7 @@ function GM:OnNPCKilled(npc, killer, weapon)
 		
 			if (IsValid(killer) && killer:IsPlayer()) then game.KickID(killer:UserID(), "You killed an important NPC actor!"); end
 			PrintMessage(HUD_PRINTTALK, "Important NPC actor died!")
-			gamemode.Call("RestartMap")
+			gamemode.Call("FailMap", ply)
 		
 		end
 	
@@ -1143,6 +1159,7 @@ function GM:PlayerReady(ply)
 end
 
 function GM:ReachedCheckpoint(ply) -- ply is activator, not working yet
+
 end
 
 
@@ -1491,18 +1508,33 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 		end)
 	end)
 end
-concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then hook.Call("RestartMap", GAMEMODE, 0); end end)
+concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then gamemode.Call("RestartMap", 0); end end)
 
-function GM:FailMap(ply) -- ply argument is the one who caused the map to fail, giving them a quite big penalty
+function GM:OnMapFailed(ply)
+	local diff = self:GetDifficulty(true, true)
+	if diff > InfNumber(math.huge) then
+		self:SetDifficulty(infmath.max(1, diff ^ 0.9))
+	else
+		self:SetDifficulty(infmath.max(1, diff * (
+			diff >= InfNumber(1000) and 0.85 or diff >= InfNumber(100) and 0.87 or
+			diff >= InfNumber(10) and 0.87 or diff >= InfNumber(4) and 0.89 or 0.91
+		)))
+	end
+end
+
+function GM:FailMap(ply) -- ply is the one who caused the map to fail, giving them a quite big penalty
+	if changingLevel then return end
 	self:RestartMap()
 
 	if ply and ply:IsValid() and ply:IsPlayer() then
-		local xploss = ply.MapStats.XPGained * 1.1
+		local xploss = ply.XP*0.1 + ply.MapStats.XPGained*1.1
 		ply.XP = ply.XP - xploss
 
-		ply:PrintMessage(3, "Don't cause the map to fail bruh.")
+		ply:PrintMessage(3, "Don't cause the map to fail.")
 		ply:PrintMessage(3, "Lost "..xploss.." XP.")
 	end
+
+	gamemode.Call("OnMapFailed", ply)
 end
 
 
@@ -1662,17 +1694,7 @@ function GM:Think()
 		if !changingLevel then
 			PrintMessage(HUD_PRINTTALK, "All players have died!")
 
-			local diff = self:GetDifficulty(true, true)
-			if diff > InfNumber(math.huge) then
-				self:SetDifficulty(infmath.max(1, diff ^ 0.9))
-			else
-				self:SetDifficulty(infmath.max(1, diff * (
-					diff >= InfNumber(1000) and 0.85 or diff >= InfNumber(100) and 0.87 or
-					diff >= InfNumber(10) and 0.87 or diff >= InfNumber(4) and 0.89 or 0.91
-				)))
-			end
-
-			hook.Call("RestartMap", GAMEMODE)
+			gamemode.Call("FailMap")
 		end
 	end
 

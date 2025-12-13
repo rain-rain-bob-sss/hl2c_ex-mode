@@ -171,7 +171,7 @@ function GM:HUDPaint()
 			for i=1,#s do
 				local r = math.Rand(0.5, 1)
 				c = HSVToColor((SysTime()*(60+math.log10(d:log10()*100)*10) + (
-					d:log10() > 1000 and -math.sin(l/5)*10 or l/3
+					d:log10() > 1000 and -math.sin(l/5)*10*(math.log10(d:log10())-2) or l/3
 			))%360, 1, 1)
 
 				draw.DrawText(s[i], "TargetIDSmall", ScrW() / 2 - len/2 + l, ScrH() / 6, c, TEXT_ALIGN_LEFT)
@@ -454,6 +454,19 @@ function RestartMap(len)
 	end
 end
 net.Receive("RestartMap", RestartMap)
+
+function GM:OnMapCompleted()
+end
+
+function GM:OnCampaignCompleted()
+end
+
+function GM:PostOnMapCompleted()
+end
+
+function GM:PostOnCampaignCompleted()
+end
+
 
 if file.Exists(GM.VaultFolder.."/gamemode/maps/"..game.GetMap()..".lua", "LUA") then
 	include("maps/"..game.GetMap()..".lua")

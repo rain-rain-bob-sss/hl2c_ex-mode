@@ -2,6 +2,7 @@
 
 
 function GM:NetworkString_UpdateStats(ply)
+    if ply:IsBot() then return end
     net.Start("hl2c_updatestats")
     net.WriteInfNumber(ply.Moneys)
     net.WriteInfNumber(ply.XP)
@@ -9,7 +10,7 @@ function GM:NetworkString_UpdateStats(ply)
     net.WriteInfNumber(ply.StatPoints)
     net.WriteInfNumber(ply.Prestige)
     net.WriteInfNumber(ply.PrestigePoints)
-    net.WriteInfNumber(ply.Eternity)
+    net.WriteInfNumber(ply.Eternities)
     net.WriteInfNumber(ply.EternityPoints)
     -- net.WriteInfNumber(ply.Celestiality)
     -- net.WriteInfNumber(ply.CelestialityPoints)
@@ -17,18 +18,21 @@ function GM:NetworkString_UpdateStats(ply)
 end
 
 function GM:NetworkString_UpdateSkills(ply)
+    if ply:IsBot() then return end
     net.Start("UpdateSkills")
     net.WriteTable(ply.Skills)
     net.Send(ply)
 end
 
 function GM:NetworkString_UpdatePerks(ply)
+    if ply:IsBot() then return end
     net.Start("hl2ce_updateperks")
     net.WriteTable(ply.UnlockedPerks)
     net.Send(ply)
 end
 
 function GM:NetworkString_UpdateEternityUpgrades(ply)
+    if ply:IsBot() then return end
     net.Start("hl2ce_updateeternityupgrades")
     net.WriteTable(ply.EternityUpgradeValues)
     net.Send(ply)

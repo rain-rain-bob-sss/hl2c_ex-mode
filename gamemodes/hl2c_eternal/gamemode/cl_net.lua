@@ -49,6 +49,9 @@ end)
 net.Receive("hl2ce_finishedmap", function(length)
 	local tbl = net.ReadTable()
 
+
+    gamemode.Call("OnMapCompleted")
+    gamemode.Call("PostOnMapCompleted")
     -- chat.AddText("Map completed")
     -- for k,v in pairs(tbl) do
     --     chat.AddText(k, " ", v)

@@ -20,14 +20,14 @@ local hl2c_server_dynamic_skill_level = CreateConVar("hl2c_server_dynamic_skill_
 local hl2c_server_lag_compensation = CreateConVar("hl2c_server_lag_compensation", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 local hl2c_server_player_respawning = CreateConVar("hl2c_server_player_respawning", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger_seat", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
-local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
+local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficulty", 0, FCVAR_REPLICATED + FCVAR_ARCHIVE)
 
 -- General gamemode information
 GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.inf-2" -- what version?
+GM.Version = "0.inf-3" -- what version?
 GM.DateVer = "13-12-2025"
 
 
@@ -188,7 +188,7 @@ function GM:IsSpecialPerson(ply, image)
 --you can add new special person table by yourself but you must keep the original ones and the new ones must be after steamid
 	if ply:SteamID64() == "76561198274314803" then
 		img = "icon16/award_star_gold_3.png"
-		tooltip = "HL2c EX coder"
+		tooltip = "HL2c Eternal coder"
 	elseif ply:SteamID64() == "76561198058929932" then
 		img = "icon16/medal_gold_3.png"
 		tooltip = "Original Creator of Half-Life 2 Campaign"
