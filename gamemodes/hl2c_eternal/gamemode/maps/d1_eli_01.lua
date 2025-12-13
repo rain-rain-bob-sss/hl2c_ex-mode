@@ -267,6 +267,8 @@ function hl2cAcceptInput( ent, input )
 		end
 
 		if entname == "logic_Airlock_spriteSpotlights_On" and string.lower(input) == "trigger" then
+			chaos_begun = true
+
 			local function func()
 				if !ent:IsValid() then return end
 				for i=1,2 do
