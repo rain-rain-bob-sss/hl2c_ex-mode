@@ -50,7 +50,7 @@ else
 			for _, ply in pairs( player.GetAll() ) do
 			
 				ply:SetVelocity( Vector( 0, 0, 0 ) )
-				ply:SetPos( Vector( -2943, 896, -3137 ) )
+				ply:SetPos( Vector( -2943, 896, -3136 ) )
 			
 			end
 			GAMEMODE:CreateSpawnPoint( Vector( -2944, 1071, -3520 ), -90 )

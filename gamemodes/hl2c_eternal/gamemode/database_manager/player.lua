@@ -22,7 +22,6 @@ function GM:LoadPlayer(ply)
             local val = v
 
             local infnumber = isinfnumber(ply[variable])
-            print(infnumber, variable, ply[variable], val)
             ply[variable] = tonumber(val) or val  -- dump all their stats into their player table
             
             if istable(ply[variable]) and ply[variable].isinfnumber then

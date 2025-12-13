@@ -6,7 +6,7 @@ TRIGGER_CHECKPOINT = {
 }
 
 TRAINSTATION_REMOVESUIT = true
-MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = true
+MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = false
 
 if CLIENT then return end
 
@@ -129,6 +129,8 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	if GAMEMODE.EXMode and ent:GetName() == "lab01_lcs" and string.lower(input) == "start" then
 		timer.Simple(1.5, function() PrintMessage(3, "Chapter 2") end)
 		timer.Simple(3.5, function() PrintMessage(3, "The brand new Teleporter Mark VII") end)
+
+		ents.FindByName("lcs_alyxgreet04")[1]:Fire("pause")
 	end
 
 	if GAMEMODE.EXMode and ent:GetName() == "get_suit_math_1" and string.lower(input) == "add" and activator:IsPlayer() then
@@ -151,6 +153,19 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 
 		GODLIKE_NPCS = GL_NPCS
 		ent:Remove()
+	end
+
+	if ent:GetName() == "logic_04_nags_0" and input:lower() == "trigger" then
+		ents.FindByName("soda_machine_entry_door_1")[1]:Fire("open")
+	end
+
+	if ent:GetName() == "button_keypad_1" and input:lower() == "use" then
+		ents.FindByName("hev_door")[1]:Fire("open")
+		
+		ents.FindByName("prop_keypad_1")[1]:Fire("skin", "1")
+		ents.FindByName("prop_keypad_1")[1]:Fire("skin", "0", 2)
+		ents.FindByName("prop_keypad_1")[1]:EmitSound("buttons/button3.wav")
+		return true
 	end
 
 end

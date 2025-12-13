@@ -22,3 +22,18 @@ function hl2cMapEdit()
 
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
+
+-- Accept input
+function hl2cAcceptInput( ent, input )
+	if GAMEMODE.EXMode then
+		if ent:GetName() == "choreo_gman_overwatch_1" and input:lower() == "start" then
+			timer.Simple(1, function()
+				PrintMessage(3, "Chapter 4")
+			end)
+			timer.Simple(4, function()
+				PrintMessage(3, "Hazardous radiation levels")
+			end)
+		end
+	end
+end
+hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )

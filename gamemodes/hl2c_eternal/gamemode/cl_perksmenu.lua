@@ -195,6 +195,9 @@ function GM:CMenu()
 		end
 		perks.DoClick = function()
 			gamemode.Call("PerksMenu")
+
+			chat.AddText(Color(255,0,0), "PERKS DO NOT WORK IN THIS VERSION")
+			chat.AddText(Color(255,128,0), "because i need to recode the perks after renaming them and adding the break infinity code")
 			ContextMenu:Close()
 		end
 	end

@@ -3,6 +3,7 @@ INFO_PLAYER_SPAWN = { Vector( -9961, -3668, 330 ), 90 }
 NEXT_MAP = "d1_canals_01"
 
 if CLIENT then return end
+local disable_delayed_explode = false
 
 -- Initialize entities
 function hl2cMapEdit()
@@ -33,12 +34,18 @@ function hl2cMapEdit()
 	
 	end
 
+	disable_delayed_explode = false
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 function hl2cAcceptInput(ent, input)
 	if GAMEMODE.EXMode then
 		if ent:GetName() == "spawner_crowbar" and string.lower(input) == "forcespawn" then
+			ents.FindByName("spawner_crowbar")[1]:Fire("forcespawn", nil, 0.05)
+
+			if disable_delayed_explode then return end
+			disable_delayed_explode = true
+			
 			local entity = ents.FindByClass("npc_barney")[1]
 			timer.Simple(4, function()
 				if !entity or !entity:IsValid() then return end
@@ -59,6 +66,8 @@ function hl2cAcceptInput(ent, input)
 				end
 	
 				GODLIKE_NPCS = GL_NPCS
+
+				ents.FindByName("spawner_crowbar")[1]:Fire("kill")
 			end)
 		end
 

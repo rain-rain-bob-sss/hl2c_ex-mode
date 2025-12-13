@@ -40,6 +40,8 @@ function meta:HasPerkUnlocked(perk)
 end
 
 function meta:HasPerkActive(perk)
+	do return false end -- temporarily disabled
+
 	local perkdata = GAMEMODE.PerksData[perk]
 
 	if GAMEMODE.NoProgressionAdvantage then return false end

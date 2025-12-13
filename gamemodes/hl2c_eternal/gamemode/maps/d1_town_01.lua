@@ -26,6 +26,19 @@ function hl2cAcceptInput( ent, input )
 		end)
 	end
 
+
+	if ent:GetName() == "start_music" and input:lower() == "playsound" then
+		timer.Simple(2, function() PrintMessage(3, "Chapter 6") end)
+		timer.Simple(5, function()
+			local s = "WELCOMETOHELL"
+			for i=1,#s do
+				timer.Simple(i*0.1, function()
+					PrintMessage(3, s[i])
+				end)
+			end
+		end)
+	end
+
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 

@@ -10,6 +10,9 @@ MAX_LEVEL = 100
 MAX_PRESTIGE = 20
 MAX_ETERNITIES = 15
 
+PRESTIGE_LAYER_PRESTIGE = 1
+PRESTIGE_LAYER_ETERNITY = 2
+
 --[[Hl2c Endless Mode:
 Significantly increases skills power.
 In Non-Endless Mode, perks have limited functionality, Eternity perks and further do not work.

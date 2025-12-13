@@ -642,7 +642,7 @@ function GM:ScoreboardShow()
 end
 
 function GM:OnReloaded()
-	timer.Simple(1, function()
+	timer.Simple(0, function()
 		net.Start("hl2c_updatestats")
 		net.WriteString("reloadstats")
 		net.SendToServer()

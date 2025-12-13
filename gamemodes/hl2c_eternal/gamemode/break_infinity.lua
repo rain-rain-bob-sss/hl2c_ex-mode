@@ -153,7 +153,7 @@ end
 t.FormatText = function(self, roundto)
     local e = self.exponent
     local abs_e = e
-    if e == -math_huge then return "0" end
+    if e == -math_huge then return 0 end
     if e == math_huge then return "inf" end
     local e_negative = e < 0
     if e_negative then
@@ -164,9 +164,9 @@ t.FormatText = function(self, roundto)
         if e > -2 and e < 9 then return math_Round(self.mantissa * 10^e, 7) end -- Normal numbers
         local round = roundto or math_min(3, 8-math_floor(math_log10(abs_e)))
 
-        return (round >= 0 and self.mantissa or "").."e"..(
+        return (round >= 0 and math.Round(self.mantissa, round) or "").."e"..(
         infmath.useexponentnotationtype == 2 and (e_negative and "-" or "")..(abs_e >= 1e9 and "e"..math_Round(math_log10(abs_e), 2) or abs_e) or
-        (e_negative and "-" or "")..(abs_e >= 1e9 and math_Round(abs_e * 10^-math_floor(math_log10(abs_e)), 3).."e"..math_floor(math_log10(abs_e)) or abs_e))    
+        (e_negative and "-" or "")..string.Comma(abs_e >= 1e9 and math_Round(abs_e * 10^-math_floor(math_log10(abs_e)), 3).."e"..math_floor(math_log10(abs_e)) or abs_e))    
     elseif infmath.usenotation == "infinity" then
         return math_Round(self:log10() / 308.25471555992, math_min(4, 10-math_log10(math_max(1, abs_e)))).."∞"
     end
@@ -192,14 +192,15 @@ t.add = function(self, tbl)
     self = ConvertNumberToInfNumber(self)
     tbl = ConvertNumberToInfNumber(tbl)
     if tbl.mantissa == 0 then return self end
+    if tbl.mantissa < 0 then tbl.mantissa = math.abs(tbl.mantissa) return self:sub(tbl) end
 
-
+    if tbl.exponent == -math_huge then return self end
     local a = 10^math_Clamp(self.exponent-tbl.exponent, -300, 300)
-    self.mantissa = self.mantissa == 0 and tbl.mantissa or (self.mantissa + tbl.mantissa/a)
-    FixMantissa(self)
-    if self.exponent == -math_huge then return self end
     self.exponent = math_max(self.exponent, tbl.exponent)
     FixExponent(self)
+
+    self.mantissa = self.mantissa == 0 and tbl.mantissa or (self.mantissa + tbl.mantissa/a)
+    FixMantissa(self)
     return self
 end
 meta.__add = t.add
@@ -210,14 +211,16 @@ t.sub = function(self, tbl)
     if tbl.mantissa == 0 then return self end
 
 
+    if self.mantissa == tbl.mantissa and self.exponent == tbl.exponent then self.mantissa = 0 self.exponent = 0 return self end
+
     local a = 10^math_Clamp(self.exponent-tbl.exponent, -300, 300)
+    self.exponent = math_max(self.exponent, tbl.exponent)
+    FixExponent(self)
+
     self.mantissa = self.mantissa == 0 and -tbl.mantissa or (self.mantissa - tbl.mantissa/a)
     FixMantissa(self)
     if self.exponent == -math_huge then return self end
-    
-    self.exponent = math_max(self.exponent, tbl.exponent)
-    if self.mantissa == tbl.mantissa and self.expontnt == tbl.exponent then self.exponent = 0 end
-    FixExponent(self)
+
     return self
 end
 meta.__sub = t.sub
@@ -333,7 +336,7 @@ function InfNumber(mantissa, exponent)
         exponent = exponent + MAX_NUMBER_exponent
     elseif mantissa == 0 then
         mantissa = 0
-        exponent = 0
+        exponent = -math.huge
     elseif mantissa >= 10 or mantissa < 1 then
         local e = math_floor(math_log10(mantissa))
         mantissa = mantissa / (10^e)

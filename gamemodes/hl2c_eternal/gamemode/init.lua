@@ -1001,13 +1001,16 @@ function GM:PlayerInitialSpawn(ply)
 	ply.StatPoints = InfNumber(0)
 
 
-	-- a HUGE EXTREME LIST OF PRESTIGE LAYERS.
+	-- a HUGE EXTREME LIST OF PRESTIGE LAYERS. (nah we stick to the ones previously for now)
 
 	ply.Prestige = InfNumber(0)
 	ply.PrestigePoints = InfNumber(0)
-	ply.Eternities = InfNumber(0) -- 4th layer
+	ply.Eternities = InfNumber(0)
 	ply.EternityPoints = InfNumber(0)
+	ply.Celestiality = InfNumber(0)
+	ply.CelestialityPoints = InfNumber(0)
 
+	--[[
 	ply.Resets = InfNumber(0) -- 2nd layer
 	ply.ResetPoints = InfNumber(0)
 
@@ -1016,8 +1019,6 @@ function GM:PlayerInitialSpawn(ply)
 	ply.InfinityPoints = InfNumber(0)
 	ply.Ascensions = InfNumber(0)
 	ply.AscensionPoints = InfNumber(0)
-	ply.Celestiality = InfNumber(0)
-	ply.CelestialityPoints = InfNumber(0)
 
 	-- Extreme (XP: Past ~e100,000)
 	ply.Transcendences = InfNumber(0)
@@ -1052,7 +1053,7 @@ function GM:PlayerInitialSpawn(ply)
 	-- The END (Past eeee30)
 	ply.Terminus = InfNumber(0)
 	ply.TerminusPoints = InfNumber(0)
-
+]]
 
 
 
