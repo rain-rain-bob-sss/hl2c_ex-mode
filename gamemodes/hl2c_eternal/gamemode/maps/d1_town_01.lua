@@ -29,7 +29,7 @@ function hl2cAcceptInput( ent, input )
 
 	if ent:GetName() == "start_music" and input:lower() == "playsound" then
 		timer.Simple(2, function() PrintMessage(3, "Chapter 6") end)
-		timer.Simple(5, function()
+		timer.Simple(4, function()
 			local s = "WELCOMETOHELL"
 			for i=1,#s do
 				timer.Simple(i*0.1, function()
@@ -49,3 +49,10 @@ function hl2cMapEdit()
 	
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
+
+hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", function(ent, dmginfo)
+	if !GAMEMODE.EXMode then return end
+	if !ent:IsPlayer() then return end
+	dmginfo:ScaleDamage(5)
+end)
+

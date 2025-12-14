@@ -1490,20 +1490,21 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 				net.Broadcast()
 				self:Initialize() -- why run GAMEMODE:Initialize() again? so that difficulty will also reset if noplayerdatasave is true
 				changingLevel = true
-				game.CleanUpMap(false, {"env_fire", "entityflame", "_firesmoke"})
-				changingLevel = nil
-				local plyrespawn = FORCE_PLAYER_RESPAWNING
-				FORCE_PLAYER_RESPAWNING = true
-				for k,v in pairs(player.GetAll()) do
-					self:PlayerInitialSpawn(v)
-					v:KillSilent()
-					v:SetTeam(TEAM_ALIVE)
-					timer.Simple(0.05, function()
-						v:Spawn()
-					end)
-				end
-				changingLevel = false
-				FORCE_PLAYER_RESPAWNING=plyrespawn
+				game.CleanUpMap(false, {"env_fire", "entityflame", "_firesmoke"}, function()
+					changingLevel = nil
+					local plyrespawn = FORCE_PLAYER_RESPAWNING
+					FORCE_PLAYER_RESPAWNING = true
+					for k,v in pairs(player.GetAll()) do
+						self:PlayerInitialSpawn(v)
+						v:KillSilent()
+						v:SetTeam(TEAM_ALIVE)
+						timer.Simple(0.05, function()
+							v:Spawn()
+						end)
+					end
+					changingLevel = false
+					FORCE_PLAYER_RESPAWNING=plyrespawn
+				end)
 			end
 		end)
 	end)

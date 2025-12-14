@@ -1,5 +1,7 @@
 NEXT_MAP = "d1_eli_02"
 GM.XP_REWARD_ON_MAP_COMPLETION = 0
+GM.XpGainOnNPCKillMul = 0.25
+GM.DifficultyGainOnNPCKillMul = 0.3
 
 TRIGGER_CHECKPOINT = {
 	{ Vector( 364, 1764, -2730 ), Vector( 549, 1787, -2575 ) }
@@ -112,7 +114,7 @@ function hl2cMapEdit()
 		hook.Add("PlayerUse", "hl2c.d1_eli_01.Blah", function(ply, ent)
 			if ent ~= prop then return end
 			if table.HasValue(plys, ply) then
-				if table.Count(plys) >= player.GetCount()*0.55 then
+				if table.Count(plys) >= #player.GetHumans()*0.55 then
 					prop:Remove()
 					hook.Remove("PlayerUse", "hl2c.d1_eli_01.Blah")
 				end
@@ -128,16 +130,43 @@ function hl2cMapEdit()
 
 			table.insert(plys, ply)
 
-			PrintMessage(3, string.format("%s wants to proceed! (%d/%d)", ply:Nick(), table.Count(plys), math.ceil(player.GetCount()*0.55)))
+			PrintMessage(3, string.format("%s wants to proceed! (%d/%d)", ply:Nick(), table.Count(plys), math.ceil(#player.GetHumans()*0.55)))
 
-			if table.Count(plys) >= player.GetCount()*0.55 then
+			if table.Count(plys) >= #player.GetHumans()*0.55 then
 				prop:Remove()
 				hook.Remove("PlayerUse", "hl2c.d1_eli_01.Blah")
 			end
 		end)
 
-		hook.Add("EntityTakeDamage", "hl2c.d1_eli_01.Blah", function(ent)
-			if ent == prop then return true end
+		hook.Add("EntityTakeDamage", "hl2c.d1_eli_01.Blah", function(ent, dmginfo)
+			if ent == prop then
+				local ply = dmginfo:GetAttacker()
+				if !ply:IsPlayer() then return true end
+				if table.HasValue(plys, ply) then
+					if table.Count(plys) >= #player.GetHumans()*0.55 then
+						prop:Remove()
+						hook.Remove("PlayerUse", "hl2c.d1_eli_01.Blah")
+					end
+				
+					return
+				end
+			
+				for _,pl in ipairs(plys) do
+					if IsValid(pl) then continue end
+				
+					table.RemoveByValue(plys, val)
+				end
+			
+				table.insert(plys, ply)
+			
+				PrintMessage(3, string.format("%s wants to proceed! (%d/%d)", ply:Nick(), table.Count(plys), math.ceil(#player.GetHumans()*0.55)))
+			
+				if table.Count(plys) >= #player.GetHumans()*0.55 then
+					prop:Remove()
+					hook.Remove("PlayerUse", "hl2c.d1_eli_01.Blah")
+				end	
+				return true
+			end
 		end)
 
 		hook.Add("EntityRemoved", "hl2c.d1_eli_01.Blah", function(ent)
@@ -187,7 +216,7 @@ hook.Add("OnMapFailed", "hl2cOnMapFailed", function(ply)
 	if diff > InfNumber(math.huge) then
 		GAMEMODE:SetDifficulty(diff^0.95)
 	else
-		GAMEMODE:SetDifficulty(diff*0.8)
+		GAMEMODE:SetDifficulty(diff*0.85)
 
 		PrintMessage(3, "You failed!")
 		PrintMessage(3, "Remember to stock up on ammo before you proceed!")
@@ -207,36 +236,48 @@ local function SpawnNPC(class, pos, ang, func)
 	return ent
 end
 
+local function SpawnItem(class, pos, ang, func)
+	local ent = ents.Create(class)
+	ent:SetPos(pos)
+	ent:SetAngles(ang)
+	if func then
+		func(ent)
+	end
+	ent:Spawn()
+
+	return ent
+end
+
 -- Accept input
-function hl2cAcceptInput( ent, input )
-
-
+function hl2cAcceptInput( ent, input, activator )
 	local entname = ent:GetName()
+	local lowerinput = input:lower()
 
 	if !GAMEMODE.EXMode and !game.SinglePlayer() then
-		if ( ( entname == "doors_Airlock_Outside" ) || ( entname == "inner_door" ) || ( entname == "lab_exit_door_raven" ) || ( entname == "lab_exit_door_raven2" ) || ( entname == "airlock_south_door" ) || ( entname == "airlock_south_doorb" ) ) && ( string.lower( input ) == "close" ) then
+		if ( ( entname == "doors_Airlock_Outside" ) || ( entname == "inner_door" ) || ( entname == "lab_exit_door_raven" ) || ( entname == "lab_exit_door_raven2" ) || ( entname == "airlock_south_door" ) || ( entname == "airlock_south_doorb" ) ) && ( lowerinput == "close" ) then
 			return true
 		end
 		
-		if entname == "airlock_door" and input:lower() == "open" then
+		if entname == "airlock_door" and lowerinput == "open" then
 			local door = ents.FindByName("doors_Airlock_Outside")[1]
 			door:Fire("Unlock")
 			door:Fire("Open")
 		end
 	end
 
-	if ( !game.SinglePlayer() && ( entname == "lcs_mosstour05" ) && ( string.lower( input ) == "start" ) ) then
+	if ( !game.SinglePlayer() && ( entname == "lcs_mosstour05" ) && ( lowerinput == "start" ) ) then
 	
 		for _, ply in pairs( player.GetAll() ) do
-			ply:SetVelocity( Vector( 0, 0, 0 ) )
-			ply:SetPos( Vector( 457, 1656, -1267 ) )
+			if ply == activator then continue end
+			ply:SetVelocity(-ply:GetVelocity())
+			ply:SetPos(Vector(457, 1656, -1267))
 			ply:SetEyeAngles( Angle( 0, 90, 0 ) )
 		end
 
 	end
 
 	if GAMEMODE.EXMode then
-		if entname == "doors_Airlock_Outside" and string.lower(input) == "close" then
+		if entname == "doors_Airlock_Outside" and lowerinput == "close" then
 			PrintMessage(3, ":)")
 
 			GAMEMODE:ReplaceSpawnPoint( Vector(-64, 2732, -1272), -90 )
@@ -246,27 +287,24 @@ function hl2cAcceptInput( ent, input )
 			end
 
 			for i=1,50 do
-				local ent = ents.Create("item_battery")
-				ent:SetPos(Vector(-64, 2732, -1272))
-				ent:SetCollisionGroup(2)
-				ent:Spawn()
-
-				local phys = ent:GetPhysicsObject()
-				if phys:IsValid() then
-					phys:SetVelocity(VectorRand()*1000)
-				end
+				SpawnItem("item_battery", Vector(-64, 2732, -1272), Angle(0,0,0), function(ent)
+					local phys = ent:GetPhysicsObject()
+					if phys:IsValid() then
+						phys:SetVelocity(VectorRand()*1000)
+					end
+				end)
 			end
 		end
 
-		-- if ( ( entname == "doors_Airlock_Outside" ) || ( entname == "inner_door" ) || ( entname == "lab_exit_door_raven" ) || ( entname == "lab_exit_door_raven2" ) || ( entname == "airlock_south_door" ) || ( entname == "airlock_south_doorb" ) ) && ( string.lower( input ) == "close" ) then
+		-- if ( ( entname == "doors_Airlock_Outside" ) || ( entname == "inner_door" ) || ( entname == "lab_exit_door_raven" ) || ( entname == "lab_exit_door_raven2" ) || ( entname == "airlock_south_door" ) || ( entname == "airlock_south_doorb" ) ) && ( lowerinput == "close" ) then
 
-		if entname == "logic_startScene" and string.lower(input) == "trigger" then
+		if entname == "logic_startScene" and lowerinput == "trigger" then
 			timer.Simple(1.5, function()
 				PrintMessage(3, "Chapter 5")
 			end)
 		end
 
-		if entname == "logic_Airlock_spriteSpotlights_On" and string.lower(input) == "trigger" then
+		if entname == "logic_Airlock_spriteSpotlights_On" and lowerinput == "trigger" then
 			chaos_begun = true
 
 			local function func()
@@ -287,7 +325,7 @@ function hl2cAcceptInput( ent, input )
 			end)
 		end
 
-		if entname == "lcs_mosstour01" and string.lower(input) == "start" then
+		if entname == "lcs_mosstour01" and lowerinput == "start" then
 			for i=1,5 do
 				SpawnNPC("npc_zombie", Vector(-28+(i-1)*32, 2350, -1280), Angle(0,90,0))
 				SpawnNPC("npc_fastzombie", Vector(-28+(i-1)*32, 2400, -1280), Angle(0,90,0))
@@ -297,18 +335,16 @@ function hl2cAcceptInput( ent, input )
 			end
 
 			for i=1,30 do
-				local ent = ents.Create("item_healthkit")
-				ent:SetPos(Vector(0, 2164, -1216))
-				ent:Spawn()
-
-				local phys = ent:GetPhysicsObject()
-				if phys:IsValid() then
-					phys:SetVelocity(VectorRand()*1000)
-				end
+				SpawnItem("item_healthkit", Vector(0, 2164, -1216), Angle(0,0,0), function(ent)
+					local phys = ent:GetPhysicsObject()
+					if phys:IsValid() then
+						phys:SetVelocity(VectorRand()*1000)
+					end
+				end)
 			end
 		end
 
-		if entname == "lcs_mosstour03" and string.lower(input) == "start" then
+		if entname == "lcs_mosstour02" and lowerinput == "start" then
 			for i=1,5 do
 				SpawnNPC("npc_zombie", Vector(406+(i-1)*26, 1850, -1280), Angle(0,90,0))
 				SpawnNPC("npc_fastzombie", Vector(406+(i-1)*26, 1800, -1280), Angle(0,90,0))
@@ -319,27 +355,182 @@ function hl2cAcceptInput( ent, input )
 			end
 		end
 
-		if entname == "lcs_mosstour05" and string.lower(input) == "start" then
-			for _,zm in ipairs(ents.FindByClass("npc_*zombie")) do
-				zm:Ignite(1000)
+		if entname == "lcs_mosstour03" and lowerinput == "start" then
+			GAMEMODE:ReplaceSpawnPoint(Vector(294, 2068, -1272), 0)
+			for _,ply in pairs(player.GetAll()) do
+				if ply == activator then continue end
+				ply:SetPos(Vector(294, 2068, -1272))
+				ply:SetEyeAngles(Angle(0, 0, 0))
 			end
 
-			timer.Simple(4, function()
-				local e = ents.FindByName("vort__lounger01")[1]
 
-				timer.Create("blah", 0.04, 300, function()
-					if !IsValid(e) then return end
-
-					local eff = EffectData()
-					eff:SetOrigin(e:GetPos() + e:OBBCenter())
-					util.Effect("Explosion", eff)
+			for i=1,9 do
+				SpawnNPC("npc_poisonzombie", Vector(414+((1+i%3)-1)*40, 1700-(math.floor((i-1)/3))*40, -1956), Angle(0,90,0))
+			end
+			for i=1,3 do
+				SpawnItem("item_ammo_smg1_large", Vector(454, 1740, -1894), Angle(0,0,0), function(ent)
+					local phys = ent:GetPhysicsObject()
+					if phys:IsValid() then
+						phys:SetVelocity(VectorRand()*1000)
+					end
 				end)
+			end
+			for i=1,2 do
+				SpawnItem("item_ammo_smg1_grenade", Vector(454, 1740, -1894), Angle(0,0,0), function(ent)
+					local phys = ent:GetPhysicsObject()
+					if phys:IsValid() then
+						phys:SetVelocity(VectorRand()*1000)
+					end
+				end)
+			end
+			for i=1,3 do
+				SpawnItem("item_ammo_357_large", Vector(454, 1740, -1894), Angle(0,0,0), function(ent)
+					local phys = ent:GetPhysicsObject()
+					if phys:IsValid() then
+						phys:SetVelocity(VectorRand()*1000)
+					end
+				end)
+			end
+			for i=1,8 do
+				SpawnItem("item_battery", Vector(454, 1740, -1894), Angle(0,0,0), function(ent)
+					local phys = ent:GetPhysicsObject()
+					if phys:IsValid() then
+						phys:SetVelocity(VectorRand()*1000)
+					end
+				end)
+			end
+			for i=1,5 do
+				SpawnItem("item_healthkit", Vector(454, 1740, -1894), Angle(0,0,0), function(ent)
+					local phys = ent:GetPhysicsObject()
+					if phys:IsValid() then
+						phys:SetVelocity(VectorRand()*1000)
+					end
+				end)
+			end
+		end
+
+		if entname == "lcs_mosstour05" and lowerinput == "start" then
+			for _,zm in ipairs(ents.FindByClass("npc_*zombie")) do
+				zm:Ignite(300)
+			end
+
+			for _,zm in ipairs(ents.FindByClass("npc_headcrab*")) do
+				zm:Dissolve(2)
+				zm:SetHealth(0)
+				zm:TakeDamage(math.huge, ents.FindByClass("gmod_gamerules")[1], ent)
+				zm:Fire("becomeragdoll")
+			end
+
+			timer.Simple(5, function()
+				local e = ents.FindByName("vort__lounger01")[1]
+				
+				timer.Create("blah", 0.04, 500, function()
+					if !IsValid(e) then return end
+					
+					if timer.RepsLeft("blah")%5 == 0 then
+						local ex = ents.Create("env_explosion")
+						ex:SetPos(e:GetPos())
+						ex:SetKeyValue("iMagnitude", 140)
+						ex:Spawn()
+						ex:Fire("explode")
+					else
+						local eff = EffectData()
+						eff:SetOrigin(e:GetPos() + e:OBBCenter())
+						util.Effect("Explosion", eff)
+					end
+				end)
+			end)
+
+			timer.Simple(10, function()
+				local e1 = ents.FindByName("sheffy_butcher")[1]
+				local e2 = ents.FindByName("sheffy_soup")[1]
+
+
+				e1:Dissolve(2)
+				e1:Input("becomeragdoll")
+				e2:Ignite(10000)
+				for i=1,12 do
+					SpawnNPC("npc_poisonzombie", Vector(840, 1880+(i-1)*30, -1800), Angle(0,180,0), function(ent)
+						timer.Simple(2, function()
+							if !IsValid(ent) then return end
+							ent:Ignite(100)
+						end)
+					end)
+				end
+			end)
+
+			timer.Simple(12, function()
+				for i=1,5 do
+					SpawnNPC("npc_hunter", Vector(456, 2520+(i-1)*60, -2158), Angle(0,-90,0), function(ent)
+						timer.Simple(5, function()
+							if !IsValid(ent) then return end
+
+							ent:Dissolve(2)
+							ent:SetHealth(0)
+							ent:TakeDamage(math.huge, ents.FindByClass("gmod_gamerules")[1], ent)
+							ent:Fire("becomeragdoll")
+						end)
+					end)
+				end
 			end)
 
 		end
 
-		
+		if entname == "lcs_Labtalk01" and lowerinput == "start" then
+			ents.FindByName("elevator_lab")[1]:Remove()
+			for _,ent in pairs(ents.FindByName("prop_elevatordoor_bottom_1")) do
+				ent:Fire("setanimation", "open", 5)
+			end
+			ents.FindByName("ele_door_B_L")[1]:Fire("open", nil, 5)
+			ents.FindByName("ele_door_B_R")[1]:Fire("open", nil, 5)
+
+
+			timer.Simple(10, function()
+				PrintMessage(3, "Don't let the fast zombies take over this lab with 40+ fast zombies... or YOU LOSE!")
+
+				local function func()
+					if !ent:IsValid() then return end
+					local ent = SpawnNPC("npc_fastzombie", Vector(456, 1664, -800) + VectorRand()*60, Angle(0,-90,0), function(ent)
+						timer.Simple(120, function()
+							if !IsValid(ent) then return end
+							ent:Ignite(1000)
+						end)
+					end)
+
+					if #ents.FindByClass("npc_fastzombie") > 40 then
+						PrintMessage(3, "MAP FAILED! TOO MANY FAST ZOMBIES!")
+						gamemode.Call("FailMap")
+
+						for _,ent in pairs(ents.FindByClass("npc_*")) do
+							ent:SetHealth(0)
+							ent:Dissolve(2)
+							ent:TakeDamage(math.huge, ents.FindByClass("gmod_gamerules")[1])
+							ent:Fire("becomeragdoll")
+						end
+					end
+				end
+				timer.Create("d1_eli_01.trap2", 5, 0, func)
+				func()
+			end)
+		end
+
+		if entname == "lcs_Labtalk03" and lowerinput == "start" then
+			for i=1,math.min(30, 3+player.GetCount()*3) do
+				SpawnNPC("npc_combine_s", Vector(484+((i-1)%3)*40, 2600, -2732), Angle(0,-90,0), function(ent)
+					ent:SetModel("models/combine_soldier_prisonguard.mdl")
+					ent:Give("weapon_smg1")
+				end)
+			end
+		end
+
+		if (entname == "button_Xen_1_rot" or entname == "button_Xen_2_rot") and lowerinput == "setposition" then
+			local eff = EffectData()
+			eff:SetOrigin(ent:GetPos())
+			util.Effect("Explosion", eff)
+		end
 	end
+
+
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 

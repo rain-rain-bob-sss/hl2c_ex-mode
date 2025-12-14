@@ -95,8 +95,10 @@ function GM:Think()
 
 	if difficulty ~= self.PreviousDifficulty then
 		self.DifficultyDifference = difficulty - self.PreviousDifficulty
-		self.DifficultyDifferenceTotal = self.DifficultyDifferenceTotal + self.DifficultyDifference
-		self.DifficultyDifferenceTimeChange = CurTime()
+		if infmath.ConvertInfNumberToNormalNumber(self.DifficultyDifference) ~= 0 then
+			self.DifficultyDifferenceTotal = self.DifficultyDifferenceTotal + self.DifficultyDifference
+			self.DifficultyDifferenceTimeChange = CurTime()
+		end
 		self.PreviousDifficulty = difficulty
 	end
 
@@ -181,11 +183,11 @@ function GM:HUDPaint()
 			draw.DrawText(s, "TargetIDSmall", ScrW() / 2 - len/2 + l, ScrH() / 6, c, TEXT_ALIGN_LEFT )
 		end
 
-		if self.DifficultyDifferenceTimeChange + 3 >= CurTime() then
+		if self.DifficultyDifferenceTimeChange + 3 >= CurTime() and self.DifficultyDifference ~= 0 then
 			colordifference.a = (self.DifficultyDifferenceTimeChange+3-CurTime())*155/3
 			draw.DrawText(Format("%s%s%%", diff_difference < 0 and "-" or "+", infmath.abs(infmath.Round(self.DifficultyDifference * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 15, colordifference, TEXT_ALIGN_CENTER )
 
-			if self.DifficultyDifference ~= self.DifficultyDifferenceTotal then
+			if self.DifficultyDifference ~= self.DifficultyDifferenceTotal and infmath.ConvertInfNumberToNormalNumber(self.DifficultyDifferenceTotal) ~= 0 then
 				colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (diff_difference_total < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0, colordifference.a) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0, colordifference.a)) or Color(255, 220, 0, colordifference.a)
 				draw.DrawText(Format("%s%s%% total", diff_difference_total < 0 and "-" or "+", infmath.abs(infmath.Round(self.DifficultyDifferenceTotal * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 30, colordifference, TEXT_ALIGN_CENTER )
 			end
@@ -326,7 +328,7 @@ function GM:PlayerReady()
 	ply.StatPoints = InfNumber(0)
 	ply.Prestige = InfNumber(0)
 	ply.PrestigePoints = InfNumber(0, 0)
-	ply.Eternity = InfNumber(0)
+	ply.Eternities = InfNumber(0)
 	ply.EternityPoints = InfNumber(0, 0)
 
 	-- Endless

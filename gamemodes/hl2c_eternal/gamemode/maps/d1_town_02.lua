@@ -1,4 +1,15 @@
 
+local function SpawnNPC(class, pos, ang, func)
+	local ent = ents.Create(class)
+	ent:SetPos(pos)
+	ent:SetAngles(ang)
+	if func then
+		func(ent)
+	end
+	ent:Spawn()
+
+	return ent
+end
 
 if ( file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
 
@@ -22,6 +33,52 @@ if ( file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
 	end
 	hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
+
+	function hl2cAcceptInput( ent, input )
+		local entname = ent:GetName()
+		local inputlower = input:lower()
+
+		if entname == "rooftop_save" and inputlower == "save" then
+			PrintMessage(3, "you fucked...")
+			local e1 = ents.FindByName("cavezombies_1_case")[1]
+			local e2 = ents.FindByName("cavezombies_2_case")[1]
+
+			for i=1,10 do
+				e1:Fire("pickrandom", nil, i*10)
+				e2:Fire("pickrandom", nil, i*10+5)
+			end
+		end
+
+		if entname == "cavezombies_away_timer" and inputlower == "kill" then
+			local e1 = ents.FindByName("cavezombies_1_case")[1]
+			local e2 = ents.FindByName("cavezombies_2_case")[1]
+
+			e1:Fire("kill")
+			e2:Fire("kill")
+
+			for _,ent in ipairs(ents.FindByClass("npc_fastzombie")) do
+				ent:Ignite(1000)
+			end
+		end
+
+		local function func(ent)
+			local pl = table.Random(player.GetAll())
+			ent:SetEnemy(pl)
+			ent:UpdateEnemyMemory(pl, pl:GetPos())
+		end
+		if entname == "cavezombies_1_case" and inputlower == "pickrandom" then
+			for i=1,3 do
+				func(SpawnNPC("npc_fastzombie", Vector(-4520+(i-1)*40, -690, -3126), Angle(0,90,0)))
+			end
+		end
+		if entname == "cavezombies_2_case" and inputlower == "pickrandom" then
+			for i=1,3 do
+				func(SpawnNPC("npc_fastzombie", Vector(-4520+(i-1)*40, -650, -3126), Angle(0,90,0)))
+			end
+		end
+	end
+	hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+
 else
 
 	NEXT_MAP = "d1_town_03"
@@ -44,7 +101,10 @@ else
 	
 	-- Accept input
 	function hl2cAcceptInput( ent, input )
-	
+		local entname = ent:GetName()
+		local inputlower = input:lower()
+
+
 		if ( !game.SinglePlayer() && ( ent:GetName() == "freightlift_lift" ) && ( string.lower( input ) == "startforward" ) ) then
 		
 			for _, ply in pairs( player.GetAll() ) do
@@ -54,9 +114,8 @@ else
 			
 			end
 			GAMEMODE:CreateSpawnPoint( Vector( -2944, 1071, -3520 ), -90 )
-		
+
 		end
-	
 	end
 	hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 

@@ -2,10 +2,20 @@ NEXT_MAP = "d1_town_04"
 
 if CLIENT then return end
 
-if ( file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
+local function SpawnNPC(class, pos, ang, func)
+	local ent = ents.Create(class)
+	ent:SetPos(pos)
+	ent:SetAngles(ang)
+	if func then
+		func(ent)
+	end
+	ent:Spawn()
 
+	return ent
+end
+
+if file.Exists("hl2c_eternal/d1_town_03.txt", "DATA") then
 	file.Delete( "hl2c_eternal/d1_town_03.txt" )
-
 end
 
 
@@ -50,12 +60,47 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 -- Accept input
 function hl2cAcceptInput( ent, input )
+	local entname = ent:GetName()
+	local inputlower = input:lower()
 
 	if ( !game.SinglePlayer() && ( ent:GetName() == "graveyard_exit_door" ) && ( string.lower( input ) == "setposition" ) ) then
 	
 		ent:Fire( "Open" )
 		return true
 	
+	end
+
+	if GAMEMODE.EXMode then
+		if entname == "graveyard_fz_1_seq" and inputlower == "beginsequence" then
+			for i=1,20 do
+				SpawnNPC("npc_fastzombie", Vector(-7250-(i-1)*30, 2000-(i-1)*30, -2800), Angle(0,-45,0), function(ent)
+					local enemy = ents.FindByName("monk")[1]
+					ent:SetEnemy(enemy)
+					ent:UpdateEnemyMemory(enemy, enemy:GetPos())
+
+					timer.Simple(10, function()
+						if !IsValid(ent) then return end
+
+						local enemy = ents.FindByName("monk")[1]
+						ent:SetEnemy(enemy)
+						ent:UpdateEnemyMemory(enemy, enemy:GetPos())
+					end)
+				end)
+			end
+
+			PrintMessage(3, "Guard Father Grigori... OR YOU FAIL!")
+		end
+
+		if entname == "graveyard_zombies_sched" and inputlower == "startschedule" then
+		end
+
+		if entname == "graveyard_monk_scene_b4" and inputlower == "start" then
+			for i=1,10 do
+				SpawnNPC("npc_poisonzombie", Vector(-7960+(i-1)*40, 1024, -3400), Angle(0, -90, 0), function(ent)
+					ent:SetHealth(2^128)
+				end)
+			end
+		end
 	end
 
 end

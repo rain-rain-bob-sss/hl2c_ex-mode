@@ -71,7 +71,7 @@ function meta:CanEternity() -- higher prestige ignores CanPrestige requireent
 end
 
 function meta:CanCelestiality()
-	return self.Eternity > MAX_ETERNITIES or self:CanPrestige() and self:CanEternity() and self.Eternity >= MAX_ETERNITIES
+	return self.Eternities > MAX_ETERNITIES or self:CanPrestige() and self:CanEternity() and self.Eternities >= MAX_ETERNITIES
 end
 
 function meta:HasPrestigeUnlocked()
@@ -79,7 +79,7 @@ function meta:HasPrestigeUnlocked()
 end
 
 function meta:HasEternityUnlocked()
-	return infmath.ConvertInfNumberToNormalNumber(self.Eternity) > 0 or self:HasCelestialityUnlocked()
+	return infmath.ConvertInfNumberToNormalNumber(self.Eternities) > 0 or self:HasCelestialityUnlocked()
 end
 
 function meta:HasCelestialityUnlocked()
@@ -136,8 +136,8 @@ function meta:GetProgressionScore()
 		score = score + 100*self.Prestige
 	end
 
-	if self.Eternity > 0 then
-		score = score + 2000*self.Eternity
+	if self.Eternities > 0 then
+		score = score + 2000*self.Eternities
 	end
 
 	if self.Celestiality > 0 then

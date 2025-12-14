@@ -34,7 +34,7 @@ function GM:CMenu()
 		end
 
 		if pl:HasEternityUnlocked() then
-			draw.DrawText("Eternities: "..FormatNumber(pl.Eternity), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText("Eternities: "..FormatNumber(pl.Eternities), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 			draw.DrawText("Eternity Points: "..FormatNumber(pl.EternityPoints), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
@@ -252,7 +252,7 @@ end
 local perksvgui
 local perks_names = {
 	{"Prestige", "prestige", function(ply) return ply.Prestige or 0 end, function(ply) return ply.PrestigePoints or 0 end},
-	{"Eternity", "eternity", function(ply) return ply.Eternity or 0 end, function(ply) return ply.EternityPoints or 0 end},
+	{"Eternity", "eternity", function(ply) return ply.Eternities or 0 end, function(ply) return ply.EternityPoints or 0 end},
 	{"Celestiality", "celestiality", function(ply) return ply.Celestiality or 0 end, function(ply) return ply.CelestialityPoints or 0 end},
 }
 

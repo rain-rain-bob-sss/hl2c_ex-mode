@@ -209,16 +209,15 @@ t.sub = function(self, tbl)
     self = ConvertNumberToInfNumber(self)
     tbl = ConvertNumberToInfNumber(tbl)
     if tbl.mantissa == 0 then return self end
+    if tbl.mantissa < 0 then tbl.mantissa = math.abs(tbl.mantissa) return self:add(tbl) end
 
 
     if self.mantissa == tbl.mantissa and self.exponent == tbl.exponent then self.mantissa = 0 self.exponent = 0 return self end
 
     local a = 10^math_Clamp(self.exponent-tbl.exponent, -300, 300)
-    self.exponent = math_max(self.exponent, tbl.exponent)
-    FixExponent(self)
-
     self.mantissa = self.mantissa == 0 and -tbl.mantissa or (self.mantissa - tbl.mantissa/a)
     FixMantissa(self)
+    FixExponent(self)
     if self.exponent == -math_huge then return self end
 
     return self

@@ -15,7 +15,7 @@ function meta:GiveXP(xp, nomul)
     end
 
     local prestigexpmul = 1
-    prestigexpmul = prestigexpmul + infmath.min(self.Prestige*0.2, 100) + infmath.min(self.Eternity*1.2, 100) + infmath.min(self.Celestiality*5, 100)
+    prestigexpmul = prestigexpmul + infmath.min(self.Prestige*0.2, 100) + infmath.min(self.Eternities*1.2, 100) + infmath.min(self.Celestiality*5, 100)
 
     xpmul = xpmul * prestigexpmul
 
@@ -119,7 +119,7 @@ end
 
 function meta:GainEternity()
     if self:CanEternity() then
-        local prevlvl = self.Eternity
+        local prevlvl = self.Eternities
         local preveternityunlocked = self:HasEternityUnlocked()
         self.XP = 0
         self.XPUsedThisPrestige = 0
@@ -127,7 +127,7 @@ function meta:GainEternity()
         self.StatPoints = 0
         self.Prestige = 0
         self.PrestigePoints = self:HasPerkActive("perk_points_2") and 12 or 0
-        self.Eternity = self.Eternity + 1
+        self.Eternities = self.Eternities + 1
         self.EternityPoints = self.EternityPoints + 1
 
         for id,_ in pairs(self.UnlockedPerks) do
@@ -147,7 +147,7 @@ function meta:GainEternity()
         end
 
         -- if self:HasEternityUnlocked() then
-            self:PrintMessage(HUD_PRINTTALK, Format("Eternity increased! (%s --> %s)", tostring(prevlvl), tostring(self.Eternity)))
+            self:PrintMessage(HUD_PRINTTALK, Format("Eternity increased! (%s --> %s)", tostring(prevlvl), tostring(self.Eternities)))
         -- end
 
         
