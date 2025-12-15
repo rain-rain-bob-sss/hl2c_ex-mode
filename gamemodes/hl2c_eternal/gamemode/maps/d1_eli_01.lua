@@ -484,13 +484,19 @@ function hl2cAcceptInput( ent, input, activator )
 			ents.FindByName("ele_door_B_L")[1]:Fire("open", nil, 5)
 			ents.FindByName("ele_door_B_R")[1]:Fire("open", nil, 5)
 
+			timer.Simple(5, function()
+				ents.FindByName("mossman")[1]:SetPos(Vector(450, 1680, -800))
+			end)
+
 
 			timer.Simple(10, function()
 				PrintMessage(3, "Don't let the fast zombies take over this lab with 40+ fast zombies... or YOU LOSE!")
 
 				local function func()
 					if !ent:IsValid() then return end
-					local ent = SpawnNPC("npc_fastzombie", Vector(456, 1664, -800) + VectorRand()*60, Angle(0,-90,0), function(ent)
+					local ent = SpawnNPC("npc_fastzombie", Vector(456, 1664, -800) + VectorRand()*60, Angle(0,90,0), function(ent)
+
+
 						timer.Simple(120, function()
 							if !IsValid(ent) then return end
 							ent:Ignite(1000)
@@ -528,8 +534,14 @@ function hl2cAcceptInput( ent, input, activator )
 			eff:SetOrigin(ent:GetPos())
 			util.Effect("Explosion", eff)
 		end
+		
+		if entname == "lcs_alyxtour01" and lowerinput == "start" then
+			for _,ply in ipairs(player.GetAll()) do
+				ply:SetPos(Vector(174, 2128, -2734))
+				ply:SetViewAngles(Angle(0,180,0))
+			end
+		end
 	end
-
 
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )

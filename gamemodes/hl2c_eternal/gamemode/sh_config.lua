@@ -483,7 +483,7 @@ GM.PerksData = {
 
 	},
 
-	["3_medkit_enhancer_3"] = {
+	["3_medkit_enhancer"] = {
 		Name = "Medkit Enhancer",
 		Description = "Does nothing.",
 		DescriptionEndless = "Medkits you pick up refill additional +100hp and 20% of your health",
@@ -493,7 +493,7 @@ GM.PerksData = {
 
 	},
 
-	["uno_reverse_3"] = {
+	["3_uno_reverse"] = {
 		Name = "Uno Reverse",
 		Description = "Does nothing.",
 		DescriptionEndless = "10% chance to deflect all the damage taken to the attacker and quadruples it\n(<75% health needed for this to work, the lower hp the better chance).\nAlso recovers 25% health upon activation. Chance divides by 1.1 each time this ability is activated",

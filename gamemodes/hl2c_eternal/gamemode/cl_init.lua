@@ -14,6 +14,7 @@ include("cl_upgradesmenu.lua")
 
 local hl2ce_cl_noearringing = CreateClientConVar("hl2ce_cl_noearringing", 0, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 local hl2ce_cl_nohuddifficulty = CreateClientConVar("hl2ce_cl_nohuddifficulty", 0, true, true, "Disables Difficulty text from HUD if not having CMenu Open", 0, 1)
+local hl2ce_cl_nodifficultytext = CreateClientConVar("hl2ce_cl_nodifficultytext", 0, true, true, "Displays only the % on difficulty", 0, 1)
 local hl2ce_cl_nocustomhud = CreateClientConVar("hl2ce_cl_nocustomhud", 0, true, true, "Disables the HL2 Health and Armor Bars", 0, 1)
 
 timeleft = timeleft or 0
@@ -104,6 +105,7 @@ function GM:Think()
 
 end
 
+local bosshp = 0
 -- Called every frame to draw the hud
 function GM:HUDPaint()
 	if !GetConVar("cl_drawhud"):GetBool() || (self.ShowScoreboard && IsValid(LocalPlayer()) && (LocalPlayer():Team() != TEAM_DEAD)) then return end
@@ -158,7 +160,7 @@ function GM:HUDPaint()
 
 		local d = self:GetDifficulty() * 100
 		local d_normal = infmath.ConvertInfNumberToNormalNumber(d)
-		local s = Format("Difficulty: %s%%", FormatNumber(infmath.Round(d, 2)))
+		local s = Format(hl2ce_cl_nodifficultytext:GetBool() and "%s%%" or "Difficulty: %s%%", FormatNumber(infmath.Round(d, 2)))
 		surface.SetFont("TargetIDSmall")
 		local len = surface.GetTextSize(s)
 		local l = 0
@@ -209,6 +211,27 @@ function GM:HUDPaint()
 		surface.DrawOutlinedRect(15, ScrH() - 40, 200, 10)
 		surface.SetDrawColor(25, 25, 205, 255)
 		surface.DrawRect(16, ScrH() - 39, 198*math.Clamp(ap/map,0,1), 10)
+	end
+
+
+	local boss = GAMEMODE.EnemyBoss
+	if boss and IsValid(boss) then
+		local hp,mhp = boss:Health(),boss:GetMaxHealth()
+
+		surface.SetDrawColor(255, 0, 0, 155)
+		surface.DrawRect(ScrW()/2 - ScrW()/3.5, ScrH()*0.1, ScrW()/3.5*2 * math.min(1, bosshp/mhp), ScrH()*0.05)
+		surface.SetDrawColor(0, 0, 0)
+		surface.DrawOutlinedRect(ScrW()/2 - ScrW()/3.5, ScrH()*0.1, ScrW()/3.5*2, ScrH()*0.05)
+
+		draw.SimpleText(language.GetPhrase(boss:GetClass()), "TargetID", ScrW()/2, ScrH()*0.115, Color(255,255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		if hp > 0 then
+			draw.SimpleText(string.format("%s/%s", math.ceil(hp), math.ceil(mhp)), "TargetID", ScrW()/2, ScrH()*0.135, Color(255,255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		else
+			draw.SimpleText("DEAD!", "TargetID", ScrW()/2, ScrH()*0.14, Color(255,255,0,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		end
+
+		print(bosshp)
+		bosshp = math.Approach(bosshp, hp, (hp-bosshp)*math.Round(FrameTime()*2, 3))
 	end
 
 	

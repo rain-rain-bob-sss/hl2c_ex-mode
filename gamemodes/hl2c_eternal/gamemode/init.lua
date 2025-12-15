@@ -14,6 +14,7 @@ AddCSLuaFile("cl_prestige.lua")
 AddCSLuaFile("cl_config.lua")
 AddCSLuaFile("cl_upgradesmenu.lua")
 
+AddCSLuaFile("sh_cvars.lua")
 AddCSLuaFile("sh_config.lua")
 AddCSLuaFile("sh_globals.lua")
 AddCSLuaFile("sh_init.lua")
@@ -54,16 +55,6 @@ end
 
 
 -- Create console variables to make these config vars easier to access
-local hl2c_admin_physgun = CreateConVar("hl2c_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY)
-local hl2c_admin_noclip = CreateConVar("hl2c_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY)
-local hl2c_server_force_gamerules = CreateConVar("hl2c_server_force_gamerules", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
-local hl2c_server_custom_playermodels = CreateConVar("hl2c_server_custom_playermodels", 0, FCVAR_NOTIFY + FCVAR_ARCHIVE )
-local hl2c_server_checkpoint_respawn = CreateConVar("hl2c_server_checkpoint_respawn", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
-local hl2c_server_dynamic_skill_level = CreateConVar("hl2c_server_dynamic_skill_level", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
-local hl2c_server_lag_compensation = CreateConVar("hl2c_server_lag_compensation", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
-local hl2c_server_player_respawning = CreateConVar("hl2c_server_player_respawning", 0, FCVAR_NOTIFY + FCVAR_ARCHIVE )
-local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger_seat", 0, FCVAR_NOTIFY + FCVAR_ARCHIVE )
-local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 1, FCVAR_NOTIFY + FCVAR_ARCHIVE )
 COldGetConvar=COldGetConvar or GetConvar
 function GetConvar(n)
 	if(string.StartsWith(n,"hl2c_"))then
@@ -74,9 +65,7 @@ end
 
 -- Precache all the player models ahead of time
 for _, playerModel in pairs(PLAYER_MODELS) do
-
 	util.PrecacheModel(playerModel)
-
 end
 
 
@@ -142,7 +131,7 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 	ply.deathPos = ply:EyePos()
 
 	-- Add to deadPlayers table to prevent respawning on re-connect
-	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && !table.HasValue(deadPlayers, ply:SteamID())) then
+	if (((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && !table.HasValue(deadPlayers, ply:SteamID())) then
 		table.insert(deadPlayers, ply:SteamID())
 	end
 	
@@ -189,7 +178,7 @@ function GM:PlayerDeathThink(ply)
 
 	if ((ply:GetObserverMode() != OBS_MODE_ROAMING) && (ply:IsBot() || ply:KeyPressed(IN_ATTACK) || ply:KeyPressed(IN_ATTACK2) || ply:KeyPressed(IN_JUMP))) then
 	
-		if ((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) then
+		if ((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) then
 		
 			ply:Spectate(OBS_MODE_ROAMING)
 			ply:SetPos(ply.deathPos)
@@ -211,15 +200,12 @@ end
 function GM:OnEntityCreated(ent)
 
 	-- NPC Lag Compensation
-	if (hl2c_server_lag_compensation:GetBool() && ent:IsNPC() && !table.HasValue(NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass())) then
-	
+	if (self.LagCompensation && ent:IsNPC() && !table.HasValue(NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass())) then
 		ent:SetLagCompensated(true)
-	
 	end
 
 	-- Vehicle Passenger Seating
-	if (hl2c_server_jeep_passenger_seat:GetBool() && !GetConVar("hl2_episodic"):GetBool() && ent:IsVehicle() && string.find(ent:GetClass(), "prop_vehicle_jeep")) then
-	
+	if (self.JeepPassengerSeat && !GetConVar("hl2_episodic"):GetBool() && ent:IsVehicle() && string.find(ent:GetClass(), "prop_vehicle_jeep")) then
 		ent.passengerSeat = ents.Create("prop_vehicle_prisoner_pod")
 		ent.passengerSeat:SetPos(ent:LocalToWorld(Vector(21, -32, 18)))
 		ent.passengerSeat:SetAngles(ent:LocalToWorldAngles(Angle(0, -3.5, 0)))
@@ -229,15 +215,16 @@ function GM:OnEntityCreated(ent)
 		ent.passengerSeat:Spawn()
 		ent.passengerSeat:Activate()
 		ent.passengerSeat.allowWeapons = true
-	
 	end
 
 	if ent:IsNPC() and not ent:IsFriendlyNPC() and not table.HasValue(GODLIKE_NPCS, ent:GetClass()) then
 		local diff = self:GetDifficulty()^0.1
-		local diff2 = infmath.max(1, diff/1e10)^0.1
+		local diff2 = infmath.min(1e200, infmath.max(1, diff/1e10)^0.1)
 
 		ent.ent_MaxHealthMul = (ent.ent_MaxHealthMul or 1) * infmath.min(diff, 1e5) * diff2
 		ent.ent_HealthMul = (ent.ent_HealthMul or 1) * infmath.min(diff, 1e5) * diff2
+
+		-- ent:EnableCustomCollisions(true)
 	end
 
 	timer.Simple(0, function()
@@ -387,7 +374,10 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 
 	if ent ~= attacker and ent:IsNPC() and attacker:IsNPC() and (not attacker:IsFriendlyNPC() and not ent:IsFriendlyNPC()) then
-		damage = damage * infmath.min(self:GetDifficulty()^0.3, 1e30)
+		local diff = self:GetDifficulty()^0.1
+		local diff2 = infmath.min(1e200, infmath.max(1, diff/1e10)^0.1)
+
+		damage = damage * infmath.min(diff, 1e5) * 1e200
 	end
 
 	infmath.ConvertInfNumberToNormalNumber(damage)
@@ -433,6 +423,46 @@ function GM:ClearPlayerDataFolder()
 	end
 end
 
+function GM:WriteCampaignSaveData(ply, save)
+	if !ply or !ply:IsValid() then return end
+	local plyID = ply:SteamID64() || ply:UniqueID()
+	if ply.hl2cSavedData and save then
+		file.Write(self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON(ply.hl2cSavedData))
+		return
+	end
+
+
+	local plyInfo = {}
+	local plyWeapons = ply:GetWeapons()
+
+	plyInfo.predicted_map = NEXT_MAP
+	plyInfo.health = ply:Health()
+	plyInfo.armor = ply:Armor()
+	plyInfo.score = ply:Frags()
+	plyInfo.deaths = ply:Deaths()
+	plyInfo.model = ply.modelName
+	plyInfo.SessionStats = ply.SessionStats
+	if (IsValid(ply:GetActiveWeapon())) then plyInfo.weapon = ply:GetActiveWeapon():GetClass(); end
+	if (plyWeapons && #plyWeapons > 0) then
+		plyInfo.loadout = {}
+		for _, wep in pairs(plyWeapons) do
+			plyInfo.loadout[wep:GetClass()] = {
+				wep:Clip1(),
+				wep:Clip2(),
+				ply:GetAmmoCount(wep:GetPrimaryAmmoType()),
+				ply:GetAmmoCount(wep:GetSecondaryAmmoType())
+			}
+		end
+	end
+	plyInfo.EternityUpgradeValues = ply.EternityUpgradeValues
+
+	ply.hl2cSavedData = plyInfo
+
+	if save then
+		file.Write(self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON(plyInfo))
+	end
+end
+
 
 -- Called by GoToNextLevel
 function GM:GrabAndSwitch()
@@ -442,33 +472,8 @@ function GM:GrabAndSwitch()
 	hook.Call("ClearPlayerDataFolder", GAMEMODE)
 
 	-- Store player information
-	for _, ply in pairs(player.GetAll()) do
-		local plyInfo = {}
-		local plyWeapons = ply:GetWeapons()
-	
-		plyInfo.predicted_map = NEXT_MAP
-		plyInfo.health = ply:Health()
-		plyInfo.armor = ply:Armor()
-		plyInfo.score = ply:Frags()
-		plyInfo.deaths = ply:Deaths()
-		plyInfo.model = ply.modelName
-		plyInfo.SessionStats = ply.SessionStats
-		if (IsValid(ply:GetActiveWeapon())) then plyInfo.weapon = ply:GetActiveWeapon():GetClass(); end
-		if (plyWeapons && #plyWeapons > 0) then
-			plyInfo.loadout = {}
-			for _, wep in pairs(plyWeapons) do
-				plyInfo.loadout[ wep:GetClass() ] = {
-					wep:Clip1(),
-					wep:Clip2(),
-					ply:GetAmmoCount(wep:GetPrimaryAmmoType()),
-					ply:GetAmmoCount(wep:GetSecondaryAmmoType())
-				}
-			end
-		end
-		plyInfo.EternityUpgradeValues = ply.EternityUpgradeValues
-	
-		local plyID = ply:SteamID64() || ply:UniqueID()
-		file.Write(self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON(plyInfo))
+	for _, ply in ipairs(player.GetAll()) do
+		self:WriteCampaignSaveData(ply, true)
 		self:SavePlayer(ply)
 	end
 
@@ -493,7 +498,7 @@ function GM:Initialize()
 
 	self.XP_REWARD_ON_MAP_COMPLETION = self.XP_REWARD_ON_MAP_COMPLETION or 1 -- because it would call true if it was false, we use other values
 	self:SetDifficulty(1)
-	self.EXMode = GetConVar("hl2ce_server_ex_mode_enabled"):GetBool()
+	self.EXMode = self.EnableEXMode
 	
 	-- Network strings
 	util.AddNetworkString("SetCheckpointPosition")
@@ -518,6 +523,7 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_buyupgrade")
 	util.AddNetworkString("hl2ce_updateeternityupgrades")
 	util.AddNetworkString("hl2ce_finishedmap")
+	util.AddNetworkString("hl2ce_boss")
 
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
@@ -542,7 +548,7 @@ function GM:Initialize()
 	end
 	
 	-- Force game rules such as aux power and max ammo
-	if hl2c_server_force_gamerules:GetBool() then
+	if self.ForceGamerules then
 		if !AUXPOW then game.ConsoleCommand("gmod_suit 1\n"); end
 		game.ConsoleCommand("gmod_maxammo 0\n")	
 	end
@@ -1123,7 +1129,7 @@ function GM:PlayerInitialSpawn(ply)
 
 	-- Send initial player spawn to client
 	net.Start("PlayerInitialSpawn")
-	net.WriteBool(hl2c_server_custom_playermodels:GetBool())
+	net.WriteBool(self.CustomPMs)
 	net.Send(ply)
 
 	-- Send current checkpoint position
@@ -1213,10 +1219,12 @@ function GM:PlayerLoadout(ply)
 	-- end
 
 	-- Lastly give physgun to admins
-	if (hl2c_admin_physgun:GetBool() && ply:IsAdmin()) then
-	
+	if self.AdminPhysgun and ply:IsAdmin() then
 		ply:Give("weapon_physgun")
-	
+	end
+
+	if self.PlayerMedkitOnSpawn then
+		ply:Give("weapon_hl2ce_medkit")
 	end
 
 	hook.Call("PostPlayerLoadout", GAMEMODE, ply)
@@ -1231,7 +1239,7 @@ function GM:PlayerNoClip(ply)
 		return false
 	end
 
-	return ply:IsAdmin() && hl2c_admin_noclip:GetBool()
+	return ply:IsAdmin() && self.AdminNoclip
 end
 
 
@@ -1261,7 +1269,7 @@ hook.Add("PlayerSelectSpawn", "hl2cPlayerSelectSpawn", hl2cPlayerSelectSpawn)
 function GM:PlayerSetModel(ply)
 
 	-- Stores the model as a variable part of the player
-	if (!hl2c_server_custom_playermodels:GetBool() && ply.info && ply.info.model) then
+	if (!self.CustomPMs && ply.info && ply.info.model) then
 	
 		ply.modelName = ply.info.model
 	
@@ -1269,7 +1277,7 @@ function GM:PlayerSetModel(ply)
 	
 		local modelName = player_manager.TranslatePlayerModel(ply:GetInfo("cl_playermodel"))
 	
-		if (hl2c_server_custom_playermodels:GetBool() || (modelName && table.HasValue(PLAYER_MODELS, string.lower(modelName)))) then
+		if (self.CustomPMs || (modelName && table.HasValue(PLAYER_MODELS, string.lower(modelName)))) then
 		
 			ply.modelName = modelName
 		
@@ -1281,7 +1289,7 @@ function GM:PlayerSetModel(ply)
 	
 	end
 
-	if (!hl2c_server_custom_playermodels:GetBool()) then
+	if (!self.CustomPMs) then
 	
 		if (ply:IsSuitEquipped()) then
 		
@@ -1301,7 +1309,7 @@ function GM:PlayerSetModel(ply)
 	ply:SetupHands()
 
 	-- Skin, modelgroups and player color are primarily a custom playermodel thing
-	if (hl2c_server_custom_playermodels:GetBool()) then
+	if (self.CustomPMs) then
 	
 		ply:SetSkin(ply:GetInfoNum("cl_playerskin", 0))
 	
@@ -1328,7 +1336,7 @@ end
 function GM:PlayerSpawn(ply)
 	player_manager.SetPlayerClass(ply, "player_default")
 
-	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (ply:Team() == TEAM_DEAD)) then
+	if (((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (ply:Team() == TEAM_DEAD)) then
 	
 		ply:Spectate(OBS_MODE_ROAMING)
 		ply:SetPos(ply.deathPos)
@@ -1348,7 +1356,7 @@ function GM:PlayerSpawn(ply)
 
 	-- Player statistics
 	ply:UnSpectate()
-	ply:ShouldDropWeapon((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING)
+	ply:ShouldDropWeapon((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING)
 	ply:AllowFlashlight(GetConVar("mp_flashlight"):GetBool())
 	ply:SetCrouchedWalkSpeed(0.3)
 	gamemode.Call("SetPlayerSpeed", ply, 190, 320)
@@ -1691,7 +1699,7 @@ local delayedDMGTick = 0
 function GM:Think()
 
 	-- Restart the map if all players are dead
-	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (player.GetCount() > 0) && ((team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)) <= 0)) then
+	if (((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (player.GetCount() > 0) && ((team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)) <= 0)) then
 		if !changingLevel then
 			PrintMessage(HUD_PRINTTALK, "All players have died!")
 
@@ -1704,7 +1712,7 @@ function GM:Think()
 		if self.EndlessMode then
 			game.SetSkillLevel(2)
 			-- game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
-		elseif hl2c_server_dynamic_skill_level:GetBool() then
+		elseif self.DynamicSkillLevel then
 			self:SetDifficulty(math.Clamp((0.55 + (player.GetCount() / 4.7)), DIFFICULTY_RANGE[1], DIFFICULTY_RANGE[2]))
 			game.SetSkillLevel(2)
 			-- game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
@@ -1809,7 +1817,7 @@ local function DynamicSkillToggleCallback(name, old, new)
 	if GAMEMODE.EndlessMode then
 		game.SetSkillLevel(2)
 		-- game.SetSkillLevel(math.Clamp(math.floor(GAMEMODE:GetDifficulty()), 1, 3))
-	elseif (!hl2c_server_dynamic_skill_level:GetBool()) then
+	elseif !self.DynamicSkillLevel then
 		GAMEMODE:SetDifficulty(DIFFICULTY_RANGE[1])
 		game.SetSkillLevel(2)
 		-- game.SetSkillLevel(math.Clamp(math.floor(GAMEMODE:GetDifficulty()), 1, 3))

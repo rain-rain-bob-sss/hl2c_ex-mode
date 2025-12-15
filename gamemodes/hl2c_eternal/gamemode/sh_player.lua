@@ -120,6 +120,8 @@ function meta:GetMaxCelestiality()
 end
 
 function meta:GetMaxSkillLevel(perk)
+	if GAMEMODE.SkillsDisabled then return 0 end
+
 	return self:HasEternityUnlocked() and (self:HasPerkActive("skills_improver_2") and 80 or 60) or self:HasPrestigeUnlocked() and 35 or 20
 end
 

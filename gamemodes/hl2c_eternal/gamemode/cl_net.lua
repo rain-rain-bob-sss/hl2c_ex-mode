@@ -57,3 +57,7 @@ net.Receive("hl2ce_finishedmap", function(length)
     --     chat.AddText(k, " ", v)
     -- end
 end)
+
+net.Receive("hl2ce_boss", function(len)
+    GAMEMODE.EnemyBoss = net.ReadEntity()
+end)

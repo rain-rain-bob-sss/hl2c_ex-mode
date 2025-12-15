@@ -4,6 +4,7 @@ DeriveGamemode("sandbox")
 include("break_infinity.lua")
 
 include("sh_config.lua")
+include("sh_cvars.lua")
 include("sh_globals.lua")
 include("sh_player.lua")
 include("sh_ents.lua")
@@ -11,24 +12,14 @@ include("sh_pets.lua")
 
 
 -- Create console variables to make these config vars easier to access
-local hl2c_admin_physgun = CreateConVar("hl2c_admin_physgun", ADMIN_NOCLIP, FCVAR_REPLICATED + FCVAR_NOTIFY)
-local hl2c_admin_noclip = CreateConVar("hl2c_admin_noclip", ADMIN_PHYSGUN, FCVAR_REPLICATED + FCVAR_NOTIFY)
-local hl2c_server_force_gamerules = CreateConVar("hl2c_server_force_gamerules", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
-local hl2c_server_custom_playermodels = CreateConVar("hl2c_server_custom_playermodels", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
-local hl2c_server_checkpoint_respawn = CreateConVar("hl2c_server_checkpoint_respawn", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
-local hl2c_server_dynamic_skill_level = CreateConVar("hl2c_server_dynamic_skill_level", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
-local hl2c_server_lag_compensation = CreateConVar("hl2c_server_lag_compensation", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
-local hl2c_server_player_respawning = CreateConVar("hl2c_server_player_respawning", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
-local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger_seat", 0, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
-local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 1, FCVAR_REPLICATED + FCVAR_NOTIFY + FCVAR_ARCHIVE)
 local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficulty", 0, FCVAR_REPLICATED + FCVAR_ARCHIVE)
 
 -- General gamemode information
-GM.Name = "Half-Life 2 Campaign: Eternal" -- Prev: EX mode
+GM.Name = "Half-Life 2 Campaign: Eternal" -- alt name: Half-Life 2 Campaign: China Edition
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.inf-4" -- what version?
-GM.DateVer = "14-12-2025"
+GM.Version = "0.inf-5" -- what version?
+GM.DateVer = "15-12-2025"
 
 
 -- Constants
@@ -55,7 +46,7 @@ GODLIKE_NPCS = {
 }
 
 hook.Add("Initialize", "ClientsideHookHL2c_EX", function()
-	GAMEMODE.EXMode = GetConVar("hl2ce_server_ex_mode_enabled"):GetBool()
+	GAMEMODE.EXMode = GAMEMODE.EnableEXMode
 end)
 -- Create the teams that we are going to use throughout the game
 function GM:CreateTeams()
@@ -132,6 +123,15 @@ end
 
 hook.Add("CanProperty", "Hl2ce_CanProperty", function(ply, property, ent)
 	if not ply:IsAdmin() then return false end
+end)
+
+hook.Add("EntityEmitSound", "EXModeChanges", function(snd)
+	-- PrintTable(snd)
+	-- print(snd.SoundName)
+	if snd.SoundName == "npc/attack_helicopter/aheli_weapon_fire_loop3.wav" then
+		snd.Pitch = snd.Pitch * 0.65
+		return true
+	end
 end)
 
 

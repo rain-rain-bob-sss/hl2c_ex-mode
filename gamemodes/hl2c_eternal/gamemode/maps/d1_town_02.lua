@@ -11,6 +11,20 @@ local function SpawnNPC(class, pos, ang, func)
 	return ent
 end
 
+if CLIENT then
+	net.Receive("d1_town_02.playmusic", function()
+		local bool = net.ReadBool()
+		local sound = "#*hl2c_eternal/music/zombie_survival.mp3"
+		local ply = LocalPlayer()
+
+		if bool then
+			ply:EmitSound(sound, 0, 100, 1, CHAN_STATIC, SND_DELAY, 0)
+		else
+			ply:EmitSound(sound, 0, 100, 1, CHAN_STATIC, SND_DELAY + SND_STOP, 0)
+		end
+	end)
+end
+
 if ( file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
 
 	INFO_PLAYER_SPAWN = { Vector( -3755, -28, -3366 ), 45 }

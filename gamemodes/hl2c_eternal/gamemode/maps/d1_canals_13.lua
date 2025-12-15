@@ -58,22 +58,32 @@ hook.Add("PlayerReady", "d1_canals_13.playmusic", function(pl)
 end)
 
 hook.Add("AcceptInput", "hl2cAcceptInput", function(ent, input)
-	if !GAMEMODE.EXMode then return end
 	if ent:GetName() == "canals_npc_reservoircopter01" and string.lower(input) == "activate" then
-		PrintMessage(3, ">>> OH SHIT HELICOPTER HAS BEEN ACTIVATED SHOOT IT DOWN <<<")
-
-		local hpmul = 0.6 + #player.GetAll()*0.4
-		if hpmul == 1 then
-			ent:SetHealth(ent:Health() * hpmul)
-			ent:SetMaxHealth(ent:Health() * hpmul)
-		end
-
-		bossfight = true
-		net.Start("d1_canals_13.playmusic")
-		net.WriteBool(true)
+		net.Start("hl2ce_boss")
+		net.WriteEntity(ent)
 		net.Broadcast()
+
+		if GAMEMODE.EXMode then
+			PrintMessage(3, ">>> OH SHIT HELICOPTER HAS BEEN ACTIVATED SHOOT IT DOWN <<<")
+
+			local hpmul = 1 + (#player.GetAll()-1)*0.4
+			if hpmul ~= 1 then
+				ent:SetHealth(ent:Health() * hpmul)
+				ent:SetMaxHealth(ent:Health() * hpmul)
+			end
+
+			bossfight = true
+			net.Start("d1_canals_13.playmusic")
+			net.WriteBool(true)
+			net.Broadcast()
+
+			net.Start("hl2ce_boss")
+			net.WriteEntity(ent)
+			net.Broadcast()
+		end
 	end
 
+	if !GAMEMODE.EXMode then return end
 	if ent:GetName() == "relay_achievement_heli_1" and string.lower(input) == "trigger" then
 		net.Start("d1_canals_13.playmusic")
 		net.WriteBool(false)

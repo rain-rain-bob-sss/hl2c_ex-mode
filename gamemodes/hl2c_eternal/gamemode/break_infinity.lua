@@ -109,25 +109,30 @@ local ConvertInfNumberToNormalNumber = infmath.ConvertInfNumberToNormalNumber
 local function FixMantissa(self) -- Just in case.
     if not isinfnumber(self) then return end
 
-    local negative = self.mantissa < 0
+    local n_num = self.mantissa < 0 and -1 or 1
     local m = math_abs(self.mantissa)
+
+    if m == 0 then
+        self.mantissa = 0*n_num
+        self.exponent = -math.huge return self end
+
     if m == math_huge then
         m = MAX_NUMBER_mantissa
         self.exponent = self.exponent + MAX_NUMBER_exponent
-    elseif m == 0 then
-        self.exponent = 0
     elseif m >= 10 or m < 1 then
         local e = math_floor(math_log10(m))
         m = m / (10^e)
         self.exponent = self.exponent + e
     end
-    self.mantissa = m*(negative and -1 or 1)
+    self.mantissa = m*n_num
 
     return self
 end
 
 local function FixExponent(self) -- Just in case.
     if not isinfnumber(self) then return end
+
+    if self.mantissa == 0 then self.exponent = -math.huge return self end
 
     if self.exponent ~= math_floor(self.exponent) then
         self.mantissa = self.mantissa * 10^(self.exponent - math_floor(self.exponent))
@@ -191,6 +196,7 @@ meta.DefaultFormat = t.DefaultFormat
 t.add = function(self, tbl)
     self = ConvertNumberToInfNumber(self)
     tbl = ConvertNumberToInfNumber(tbl)
+    if self.mantissa == 0 then return tbl end
     if tbl.mantissa == 0 then return self end
     if tbl.mantissa < 0 then tbl.mantissa = math.abs(tbl.mantissa) return self:sub(tbl) end
 
@@ -199,6 +205,7 @@ t.add = function(self, tbl)
     self.exponent = math_max(self.exponent, tbl.exponent)
     FixExponent(self)
 
+    print(tbl)
     self.mantissa = self.mantissa == 0 and tbl.mantissa or (self.mantissa + tbl.mantissa/a)
     FixMantissa(self)
     return self
@@ -208,6 +215,7 @@ meta.__add = t.add
 t.sub = function(self, tbl)
     self = ConvertNumberToInfNumber(self)
     tbl = ConvertNumberToInfNumber(tbl)
+    if self.mantissa == 0 then tbl.mantissa = -tbl.mantissa return tbl end
     if tbl.mantissa == 0 then return self end
     if tbl.mantissa < 0 then tbl.mantissa = math.abs(tbl.mantissa) return self:add(tbl) end
 

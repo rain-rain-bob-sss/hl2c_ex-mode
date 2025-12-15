@@ -79,7 +79,7 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 function hl2cEntityTakeDamage(ent, dmginfo)
 	if !GAMEMODE.EXMode then return end

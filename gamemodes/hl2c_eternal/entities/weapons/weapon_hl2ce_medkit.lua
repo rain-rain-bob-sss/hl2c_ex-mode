@@ -27,7 +27,7 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
 
-SWEP.HealAmount = 10
+SWEP.HealAmount = 3
 SWEP.MaxAmmo = 100 -- Max ammo
 
 local HealSound = Sound( "HealthKit.Touch" )
@@ -54,11 +54,11 @@ function SWEP:PrimaryAttack()
 		self.Owner:LagCompensation(true)
 	end
 
-	local tr = util.TraceLine( {
+	local tr = util.TraceLine({
 		start = self.Owner:GetShootPos(),
 		endpos = self.Owner:GetShootPos() + self.Owner:GetAimVector() * 64,
 		filter = self.Owner
-	} )
+	})
 
 	if ( self.Owner:IsPlayer() ) then
 		self.Owner:LagCompensation( false )
@@ -67,10 +67,11 @@ function SWEP:PrimaryAttack()
 	local ent = tr.Entity
 
 	local need = self.HealAmount + (self.HealAmount * ((GAMEMODE.EndlessMode and 0.05 or 0.02) * self.Owner:GetSkillAmount("Medical")))
-	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), need ) end
+	if IsValid(ent) then
+		need = math.min(ent:GetMaxHealth() - ent:Health(), need)
+	end
 
-	if ( IsValid( ent ) && self:Clip1() >= need && ( ent:IsPlayer() or ent:IsNPC() ) && ent:Health() < ent:GetMaxHealth() ) then
-
+	if IsValid(ent) and self:Clip1() >= need and (ent:IsPlayer() or ent:IsNPC()) and ent:Health() < ent:GetMaxHealth() then
 		self:TakePrimaryAmmo(need)
 		ent:SetHealth(math.min(ent:GetMaxHealth(), ent:Health() + need))
 		if ent:IsPlayer() then
@@ -81,81 +82,39 @@ function SWEP:PrimaryAttack()
 			self.Owner:GiveXP(need * 0.28)
 		end
 
-		ent:EmitSound( HealSound )
-		self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
+		ent:EmitSound(HealSound)
+		self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 
-		self:SetNextPrimaryFire( CurTime() + self:SequenceDuration() + 0.5 )
-		self:SetNextSecondaryFire( CurTime() + self:SequenceDuration() + 0.5 )
-		self.Owner:SetAnimation( PLAYER_ATTACK1 )
+		self:SetNextPrimaryFire(CurTime() + 0.15)
+		self:SetNextSecondaryFire(CurTime() + 0.15)
+		self.Owner:SetAnimation(PLAYER_ATTACK1)
 
 		-- Even though the viewmodel has looping IDLE anim at all times, we need this to make fire animation work in multiplayer
-		timer.Create( "weapon_idle" .. self:EntIndex(), self:SequenceDuration(), 1, function() if ( IsValid( self ) ) then self:SendWeaponAnim( ACT_VM_IDLE ) end end )
-
+		timer.Create("weapon_idle"..self:EntIndex(), 1.5, 1, function() if IsValid(self) then self:SendWeaponAnim(ACT_VM_IDLE) end end)
 	else
-
 		self.Owner:EmitSound( DenySound )
 		self:SetNextPrimaryFire( CurTime() + 1 )
 		self:SetNextSecondaryFire( CurTime() + 1 )
-
 	end
-
 end
 
 function SWEP:SecondaryAttack()
-
-	if ( CLIENT ) then return end
-
-	local ent = self.Owner
-
-	local need = self.HealAmount + (self.HealAmount * ((GAMEMODE.EndlessMode and 0.05 or 0.02) * self.Owner:GetSkillAmount("Medical")))
-	if ( IsValid( ent ) ) then need = math.min( ent:GetMaxHealth() - ent:Health(), need ) end
-
-	if ( IsValid( ent ) && self:Clip1() >= need && ent:Health() < ent:GetMaxHealth() ) then
-
-		self:TakePrimaryAmmo( need )
-
-		ent:SetHealth( math.min( ent:GetMaxHealth(), ent:Health() + need ) )
-		ent:EmitSound( HealSound )
-
-		self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
-
-		self:SetNextPrimaryFire( CurTime() + self:SequenceDuration() + 0.5 )
-		self:SetNextSecondaryFire( CurTime() + self:SequenceDuration() + 0.5 )
-		self.Owner:SetAnimation( PLAYER_ATTACK1 )
-
-		timer.Create( "weapon_idle" .. self:EntIndex(), self:SequenceDuration(), 1, function() if ( IsValid( self ) ) then self:SendWeaponAnim( ACT_VM_IDLE ) end end )
-
-	else
-
-		ent:EmitSound( DenySound )
-		self:SetNextPrimaryFire( CurTime() + 1 )
-		self:SetNextSecondaryFire( CurTime() + 1 )
-
-	end
-
 end
 
 function SWEP:OnRemove()
-
 	timer.Stop( "medkit_ammo" .. self:EntIndex() )
 	timer.Stop( "weapon_idle" .. self:EntIndex() )
-
 end
 
 function SWEP:Holster()
-
 	timer.Stop( "weapon_idle" .. self:EntIndex() )
-
 	return true
-
 end
 
 function SWEP:CustomAmmoDisplay()
-
 	self.AmmoDisplay = self.AmmoDisplay or {}
 	self.AmmoDisplay.Draw = true
 	self.AmmoDisplay.PrimaryClip = self:Clip1()
 
 	return self.AmmoDisplay
-
 end

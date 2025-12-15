@@ -16,17 +16,6 @@ end
 hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
 
 function hl2cAcceptInput( ent, input )
-
-	if GAMEMODE.EXMode then
-		timer.Create("Hl2c_EX_input1", 0.325, 0, function()
-			if (IsValid(ents.FindByName("grigori_pyre_script_door_1")[1])) then ents.FindByName("grigori_pyre_script_door_1")[1]:Fire("Toggle") end
-		end)
-		timer.Create("Hl2c_EX_input2", 5, 0, function()
-			if (IsValid(ents.FindByName("crushtrap_02_switch_01")[1])) then ents.FindByName("crushtrap_02_switch_01")[1]:Use(game.GetWorld()) end
-		end)
-	end
-
-
 	if ent:GetName() == "start_music" and input:lower() == "playsound" then
 		timer.Simple(2, function() PrintMessage(3, "Chapter 6") end)
 		timer.Simple(4, function()
@@ -46,6 +35,21 @@ hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 function hl2cMapEdit()
 
 	ents.FindByName( "player_spawn_template" )[ 1 ]:Remove()
+
+	if GAMEMODE.EXMode then
+		timer.Create("Hl2c_EX_input1", 0.325, 0, function()
+			if !GAMEMODE.EXMode then timer.Remove("Hl2c_EX_input1") return end
+			local e = ents.FindByName("grigori_pyre_script_door_1")[1]
+			if !IsValid(e) then return end
+			e:Fire("Toggle")
+		end)
+		timer.Create("Hl2c_EX_input2", 5, 0, function()
+			if !GAMEMODE.EXMode then timer.Remove("Hl2c_EX_input2") return end
+			local e = ents.FindByName("crushtrap_02_switch_01")[1]
+			if !IsValid(e) then return end
+			e:Use(game.GetWorld())
+		end)
+	end
 	
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )

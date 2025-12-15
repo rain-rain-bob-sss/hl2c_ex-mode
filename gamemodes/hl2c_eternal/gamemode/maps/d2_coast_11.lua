@@ -171,15 +171,29 @@ function hl2cAcceptInput( ent, input )
 	end
 
 	if ( !game.SinglePlayer() && ( ent:GetName() == "music_antlionguard_1" ) && ( string.lower( input ) == "playsound" ) ) then
-	
 		GAMEMODE:CreateSpawnPoint( Vector( 4393, 6603, 590 ), 65 )
-	
 	end
 
 	if ( !game.SinglePlayer() && !COAST_PREVENT_CAMP_DOOR && ( ent:GetName() == "vortigaunt_bugbait" ) && ( string.lower( input ) == "extractbugbait" ) ) then
 	
 		COAST_PREVENT_CAMP_DOOR = true
 	
+	end
+
+	if ent:GetName() == "citizen_ambush_guard" and input:lower() == "unburrow" then
+		if GAMEMODE.EXMode then
+			timer.Simple(0, function() PrintMessage(3, "You") end)
+			timer.Simple(0.3, function() PrintMessage(3, "absolutely") end)
+			timer.Simple(0.6, function() PrintMessage(3, "FUCKED") end)
+			timer.Simple(0.9, function() PrintMessage(3, "UP") end)
+		end
+
+		timer.Simple(1, function()
+			net.Start("hl2ce_boss")
+			net.WriteEntity(ent)
+			net.Broadcast()
+		end)
+
 	end
 
 	if ent:GetName() == "relay_guarddead" and string.lower(input) == "trigger" then
@@ -219,4 +233,4 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

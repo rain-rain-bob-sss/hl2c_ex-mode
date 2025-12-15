@@ -26,24 +26,23 @@ end
 -- Called when an entity touches me :D
 function ENT:StartTouch( ent )
 
-	if ( IsValid( ent ) && ent:IsPlayer() && ( ent:Team() == TEAM_ALIVE ) && (ent:GetMoveType() != MOVETYPE_NOCLIP || ent:InVehicle())) then
+	if IsValid(ent) and ent:IsPlayer() and ent:Team() == TEAM_ALIVE and (ent:GetMoveType() != MOVETYPE_NOCLIP or ent:InVehicle()) then
 	
-		ent:SetTeam( TEAM_COMPLETED_MAP )
+		ent:SetTeam(TEAM_COMPLETED_MAP)
+		GAMEMODE:WriteCampaignSaveData(ent)
 	
 		-- Remove their vehicle
-		if ( IsValid( ent:GetVehicle() ) ) then
-		
+		if IsValid(ent:GetVehicle()) then
 			ent:ExitVehicle()
 			ent:RemoveVehicle()
-		
 		end
-	
+
 		-- Freeze them and make sure they don't push people away (and also so they don't get targeted by NPC's)
-		ent:Lock()
-		ent:SetMoveType(MOVETYPE_NONE)
+		ent:Spectate(OBS_MODE_ROAMING)
+		ent:StripWeapons()
 		ent:SetAvoidPlayers(false)
 		ent:SetNoTarget(true)
-	
+
 		-- Start the nextmap countdown
 		if !changingLevel then
 			gamemode.Call("OnMapCompleted")
@@ -51,7 +50,7 @@ function ENT:StartTouch( ent )
 		end
 
 		-- Let everyone know that someone entered the loading section
-		PrintMessage( HUD_PRINTTALK, Format( "%s completed the map (%s) [%i of %i]", ent:Name(), string.ToMinutesSeconds( CurTime() - ent.startTime ), team.NumPlayers( TEAM_COMPLETED_MAP ), self.playersAlive))
+		PrintMessage(HUD_PRINTTALK, Format( "%s completed the map (%s) [%i of %i]", ent:Name(), string.ToMinutesSeconds( CurTime() - ent.startTime ), team.NumPlayers( TEAM_COMPLETED_MAP ), self.playersAlive))
 
 		gamemode.Call("PlayerCompletedMap", ent)
 	end
