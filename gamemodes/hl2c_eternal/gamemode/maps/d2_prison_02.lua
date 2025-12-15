@@ -48,6 +48,8 @@ end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 function hl2cAcceptInput(ent, input, activator)
+	if !GAMEMODE.EXMode then return end
+
 	if ent:GetName() == "overwatch_freeman_spotted" and input:lower() == "playsound" then
 		times = times + 1
 
