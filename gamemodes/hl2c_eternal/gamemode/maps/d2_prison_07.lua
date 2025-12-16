@@ -3,7 +3,7 @@ NEXT_MAP = "d2_prison_08"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -18,7 +18,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -28,24 +28,24 @@ function hl2cMapEdit()
 	ents.FindByName( "global_newgame_template_base_items" )[ 1 ]:Remove()
 	ents.FindByName( "global_newgame_template_local_items" )[ 1 ]:Remove()
 
-	timer.Create( "hl2cTurretRelationship", 1, 0, function() if ( IsValid( ents.FindByName( "relationship_turret_vs_player_like" )[ 1 ] ) ) then ents.FindByName( "relationship_turret_vs_player_like" )[ 1 ]:Fire( "ApplyRelationship" ); end; end )
+	timer.Create( "hl2cTurretRelationship", 1, 0, function() if ( IsValid( ents.FindByName( "relationship_turret_vs_player_like" )[ 1 ] ) ) then ents.FindByName( "relationship_turret_vs_player_like" )[ 1 ]:Fire( "ApplyRelationship" ); end; end)
 
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "door_croom2_gate" ) && ( string.lower( input ) == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "door_croom2_gate" ) && ( string.lower(input) == "close" ) ) then
 	
 		return true
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "logic_room5_entry" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "logic_room5_entry" ) && ( string.lower(input) == "trigger" ) ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( 4161, -3966, -519 ) )
@@ -57,4 +57,4 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

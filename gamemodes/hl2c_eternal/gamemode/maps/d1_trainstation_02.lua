@@ -8,7 +8,7 @@ if CLIENT then return end
 local activated
 
 -- Player spawns
-hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
+hook.Add("PlayerReady", "hl2cPlayerReady", function(ply)
 	if !GAMEMODE.EXMode then return end
 	timer.Simple(1, function()
 		-- ply:SendLua([[chat.AddText("Combine in this map are hostile and will always oneshot on hit.") chat.AddText("Run for your life.")]])
@@ -18,13 +18,13 @@ hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
 end)
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:RemoveSuit()
-	timer.Simple( 0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end )
+	timer.Simple(0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end)
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities

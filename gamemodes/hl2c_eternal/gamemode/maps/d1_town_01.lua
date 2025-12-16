@@ -3,7 +3,7 @@ NEXT_MAP = "d1_town_01a"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -13,9 +13,9 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_physcannon" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 	if ent:GetName() == "start_music" and input:lower() == "playsound" then
 		timer.Simple(2, function() PrintMessage(3, "Chapter 6") end)
 		timer.Simple(4, function()
@@ -29,7 +29,7 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 -- Initialize entities
 function hl2cMapEdit()

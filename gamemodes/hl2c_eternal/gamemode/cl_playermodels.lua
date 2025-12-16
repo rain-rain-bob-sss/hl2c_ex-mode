@@ -37,7 +37,7 @@ function GM:OpenPlayerModelMenu()
 	end
 
 	-- Model panel
-	local mdl = window:Add( "DModelPanel" )
+	local mdl = window:Add("DModelPanel")
 	mdl:Dock( FILL )
 	mdl:SetFOV( 36 )
 	mdl:SetCamPos( Vector( 0, 0, 0 ) )
@@ -49,7 +49,7 @@ function GM:OpenPlayerModelMenu()
 	mdl:SetLookAt( Vector( -100, 0, -22 ) )
 
 	-- Property sheet
-	local sheet = window:Add( "DPropertySheet" )
+	local sheet = window:Add("DPropertySheet")
 	sheet:Dock( RIGHT )
 	sheet:SetSize( 430, 0 )
 
@@ -57,7 +57,7 @@ function GM:OpenPlayerModelMenu()
 	local PanelSelect = sheet:Add( "DPanelSelect" )
 
 	-- Fill the panel select
-	for name, model in SortedPairs( player_manager.AllValidModels() ) do
+	for name, model in SortedPairs(player_manager.AllValidModels()) do
 	
 		local icon = vgui.Create( "SpawnIcon" )
 		icon:SetModel( model )
@@ -263,7 +263,7 @@ function GM:OpenPlayerModelMenu()
 		
 		end
 	
-		timer.Simple( 0.1, function() UpdateFromConvars(); end )
+		timer.Simple( 0.1, function() UpdateFromConvars(); end)
 	
 	end
 

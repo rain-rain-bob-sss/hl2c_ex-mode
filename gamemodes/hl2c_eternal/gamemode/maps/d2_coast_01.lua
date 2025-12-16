@@ -3,7 +3,7 @@ NEXT_MAP = "d2_coast_03"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -15,7 +15,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_ar2" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -35,20 +35,20 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "logic_startcraneseq" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "logic_startcraneseq" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		ALLOWED_VEHICLE = "Jeep"
 		PrintMessage( HUD_PRINTTALK, "You're now allowed to spawn the Jeep (F3)." )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "push_car_superjump_01" ) && ( string.lower( input ) == "disable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "push_car_superjump_01" ) && string.lower(input) == "disable" ) then
 	
 		return true
 	
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

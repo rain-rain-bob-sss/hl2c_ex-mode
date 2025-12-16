@@ -26,15 +26,15 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( ( ent:GetName() == "logic_weapon_strip_dissolve" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( ( ent:GetName() == "logic_weapon_strip_dissolve" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		if ( IsValid( ents.FindByName( "logic_weapon_strip_physcannon_start" )[ 1 ] ) ) then ents.FindByName( "logic_weapon_strip_physcannon_start" )[ 1 ]:Fire( "Trigger", "", 3 ); end
 	
 	end
 
-	if ( ( ent:GetName() == "strip_stop" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( ( ent:GetName() == "strip_stop" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		game.SetGlobalState("super_phys_gun", GLOBAL_ON)
 
@@ -51,7 +51,7 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 
 -- Every frame or tick

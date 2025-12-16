@@ -9,10 +9,10 @@ TRIGGER_CHECKPOINT = {
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 	ply:Give("weapon_physcannon")
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", function(ent, dmginfo)
@@ -35,7 +35,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 local hastriggered
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 	if ent:GetName() == "trigger_alyx_close_airlock" and string.lower(input) == "enable" and not hastriggered then
 		local alyx = ents.FindByName("alyx")[1]
 		alyx:SetPos(Vector( 3388, 12646, 3604 ))
@@ -44,4 +44,4 @@ function hl2cAcceptInput( ent, input )
 		hastriggered = true
 	end
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

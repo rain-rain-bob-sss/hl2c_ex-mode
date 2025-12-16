@@ -5,7 +5,7 @@ NEXT_MAP = "d3_c17_10b"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -20,7 +20,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -43,16 +43,16 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "first_turret_relay" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "first_turret_relay" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		ents.FindByName( "barney" )[ 1 ]:SetLastPosition( Vector( -3305.125488, 7036.965332, 128.03125 ) )
 		ents.FindByName( "barney" )[ 1 ]:SetSchedule( SCHED_FORCED_GO_RUN )
 	
 	end
 
-	if ent:GetName() == "barney_nexusahead_lcs_relay" && string.lower( input ) == "trigger" then
+	if ent:GetName() == "barney_nexusahead_lcs_relay" && string.lower(input) == "trigger" then
 	
 		ents.FindByName( "barney" )[ 1 ]:SetPos( Vector( -2930, 6463, 257 ) )
 		ents.FindByName( "barney" )[ 1 ]:SetLastPosition( Vector( -2579.804443, 6482.348633, 512.03125 ) )
@@ -60,7 +60,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "detected_relay" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "detected_relay" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		ents.FindByName( "barney" )[ 1 ]:SetLastPosition( Vector( -2842.493408, 8015.20752, 128.03125 ) )
 		ents.FindByName( "barney" )[ 1 ]:SetSchedule( SCHED_FORCED_GO_RUN )
@@ -68,4 +68,4 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

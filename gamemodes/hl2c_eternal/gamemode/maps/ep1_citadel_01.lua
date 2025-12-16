@@ -7,10 +7,10 @@ TRIGGER_CHECKPOINT = {
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 	ply:Give("weapon_physcannon")
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", function(ent, dmginfo)
@@ -51,5 +51,5 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 

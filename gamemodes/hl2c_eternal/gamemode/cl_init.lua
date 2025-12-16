@@ -304,6 +304,8 @@ function GM:Initialize()
 	-- surface.CreateFont( "Roboto16", { size = 16, weight = 400, antialias = true, additive = false, font = "Roboto" } )
 	surface.CreateFont( "Roboto16", { size = 16, weight = 700, antialias = true, additive = false, font = "Roboto-Bold" } )
 	surface.CreateFont( "roboto32BlackItalic", { size = 32, weight = 900, antialias = true, additive = false, font = "Roboto Black Italic" } )
+	surface.CreateFont( "hl2ce_font", { size = 32, weight = 700, font = "Roboto Black" } )
+	surface.CreateFont( "hl2ce_font_big", { size = 48, weight = 900, font = "Roboto Black" } )
 
 	-- Language
 	language.Add( "worldspawn", "World" )

@@ -11,19 +11,19 @@ MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = false
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	if ( TRAINSTATION_REMOVESUIT ) then
 	
 		ply:RemoveSuit()
-		timer.Simple( 0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end )
+		timer.Simple(0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end)
 	
 	end
 
-	if ( !game.SinglePlayer() && IsValid( PLAYER_VIEWCONTROL ) && ( PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) ) then
+	if ( !game.SinglePlayer() && IsValid(PLAYER_VIEWCONTROL) && PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) then
 	
-		ply:SetViewEntity( PLAYER_VIEWCONTROL )
-		ply:Freeze( true )
+		ply:SetViewEntity(PLAYER_VIEWCONTROL)
+		ply:Freeze(true)
 	
 	end
 
@@ -32,7 +32,7 @@ function hl2cPlayerSpawn( ply )
 	end)
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Entity removed
@@ -41,7 +41,7 @@ function hl2cEntityRemoved( ent )
 	if ( ent:GetClass() == "item_suit" ) then
 	
 		TRAINSTATION_REMOVESUIT = false
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:EquipSuit()
 			if ( !GAMEMODE.CustomPMs ) then ply:SetModel( string.gsub( ply:GetModel(), "group01", "group03" ) ); end
@@ -59,27 +59,27 @@ hook.Add( "EntityRemoved", "hl2cEntityRemoved", hl2cEntityRemoved )
 -- Accept input
 function hl2cAcceptInput( ent, input, activator, caller, value )
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "point_viewcontrol" ) ) then
+	if ( !game.SinglePlayer() && ent:GetClass() == "point_viewcontrol" ) then
 	
-		if ( string.lower( input ) == "enable" ) then
+		if string.lower(input) == "enable" then
 		
 			PLAYER_VIEWCONTROL = ent
 		
 			for _, ply in ipairs( player.GetAll() ) do
 			
 				ply:SetViewEntity( ent )
-				ply:Freeze( true )
+				ply:Freeze(true)
 			
 			end
 		
-			if ( !ent.doubleEnabled ) then
+			if !ent.doubleEnabled then
 			
 				ent.doubleEnabled = true
 				ent:Fire( "Enable" )
 			
 			end
 		
-		elseif ( string.lower( input ) == "disable" ) then
+		elseif string.lower(input) == "disable" then
 		
 			PLAYER_VIEWCONTROL = nil
 		
@@ -96,15 +96,15 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ( ent:GetName() == "lab_door" ) || ( ent:GetName() == "lab_door_clip" ) ) && ( string.lower( input ) == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ( ent:GetName() == "lab_door" ) || ( ent:GetName() == "lab_door_clip" ) ) && ( string.lower(input) == "close" ) ) then
 	
 		return true
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "kleiner_teleport_player_starter_1" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "kleiner_teleport_player_starter_1" ) && ( string.lower(input) == "trigger" ) ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( -7186.700195, -1176.699951, 28 ) )
@@ -113,9 +113,9 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "player_speedmod" ) && ( string.lower( input ) == "modifyspeed" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetClass() == "player_speedmod" ) && ( string.lower(input) == "modifyspeed" ) ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetLaggedMovementValue( tonumber( value ) )
 		
@@ -134,7 +134,7 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 
 	if GAMEMODE.EXMode and ent:GetName() == "get_suit_math_1" and string.lower(input) == "add" and activator:IsPlayer() then
 		PrintMessage(3, activator:Nick().." took the HEV suit")
-		for _, ply in pairs(player.GetAll()) do
+		for _, ply in ipairs(player.GetAll()) do
 			ply:SetPos(Vector( -10366, -4719, 330 ) )
 		end
 	end
@@ -168,4 +168,4 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

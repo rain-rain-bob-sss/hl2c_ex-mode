@@ -10,7 +10,7 @@ CITADEL_VEHICLE_ENTITY = nil
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
 	ply:Give( "weapon_smg1" )
@@ -23,9 +23,9 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_crossbow" )
 	ply:Give( "weapon_bugbait" )
 
-	if ( !game.SinglePlayer() && IsValid( PLAYER_VIEWCONTROL ) && ( PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) ) then
-		ply:SetViewEntity( PLAYER_VIEWCONTROL )
-		ply:SetNoDraw( true )
+	if ( !game.SinglePlayer() && IsValid(PLAYER_VIEWCONTROL) && PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) then
+		ply:SetViewEntity(PLAYER_VIEWCONTROL)
+		ply:SetNoDraw(true)
 		ply:DrawWorldModel( false )
 		ply:Lock()
 	
@@ -80,18 +80,18 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "point_viewcontrol" ) ) then
+	if ( !game.SinglePlayer() && ent:GetClass() == "point_viewcontrol" ) then
 	
-		if ( string.lower( input ) == "enable" ) then
+		if string.lower(input) == "enable" then
 		
 			PLAYER_VIEWCONTROL = ent
 		
 			for _, ply in ipairs( player.GetAll() ) do
 			
 				ply:SetViewEntity( ent )
-				ply:SetNoDraw( true )
+				ply:SetNoDraw(true)
 				ply:DrawWorldModel( false )
 				ply:Lock()
 			
@@ -100,14 +100,14 @@ function hl2cAcceptInput( ent, input )
 			
 			end
 		
-			if ( !ent.doubleEnabled ) then
+			if !ent.doubleEnabled then
 			
 				ent.doubleEnabled = true
 				ent:Fire( "Enable" )
 			
 			end
 		
-		elseif ( string.lower( input ) == "disable" ) then
+		elseif string.lower(input) == "disable" then
 		
 			PLAYER_VIEWCONTROL = nil
 		
@@ -115,7 +115,7 @@ function hl2cAcceptInput( ent, input )
 			
 				ply:SetViewEntity( ply )
 				ply:SetNoDraw( false )
-				ply:DrawWorldModel( true )
+				ply:DrawWorldModel(true)
 				ply:UnLock()
 			
 				ply:SetCollisionGroup( COLLISION_GROUP_PLAYER )
@@ -129,7 +129,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "zapper_fade" ) && ( string.lower( input ) == "fade" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "zapper_fade" ) && ( string.lower(input) == "fade" ) ) then
 	
 		hook.Call( "RestartMap", GAMEMODE )
 		-- PrintMessage(3, "You failed the map. (You took wrong the wrong pod.)")
@@ -138,7 +138,7 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 
 if ( !game.SinglePlayer() ) then

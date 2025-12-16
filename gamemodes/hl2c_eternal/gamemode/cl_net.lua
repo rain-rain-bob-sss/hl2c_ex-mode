@@ -61,3 +61,51 @@ end)
 net.Receive("hl2ce_boss", function(len)
     GAMEMODE.EnemyBoss = net.ReadEntity()
 end)
+
+net.Receive("hl2ce_fail", function(len)
+    local s = "You lost!"
+    local font = "hl2ce_font_big"
+    local createtime = CurTime()
+
+    local failtext = vgui.Create("DLabel")
+    surface.SetFont(font)
+    local x,y = surface.GetTextSize(s)
+    failtext:SetFont("hl2ce_font_big")
+    failtext:SetTextColor(Color(255,0,0))
+    failtext:SetSize(x, y)
+    failtext:Center()
+    failtext.Think = function(self)
+        local str = string.sub(s, 1, math.min(#s, math.ceil((#s*(CurTime()-createtime)/1.5))))
+        if str == self:GetText() then return end
+        self:SetText(str)
+        surface.PlaySound("buttons/lightswitch2.wav")
+    end
+
+    failtext:AlphaTo(0, 1, 10, function(_, self)
+        self:Remove()
+    end)
+
+    local s = net.ReadString()
+    local font = "hl2ce_font"
+    local createtime = CurTime()
+
+    local failtext = vgui.Create("DLabel")
+    surface.SetFont(font)
+    local x,y = surface.GetTextSize(s)
+    failtext:SetFont("hl2ce_font")
+    failtext:SetTextColor(Color(220,100,100))
+    failtext:SetSize(x, y)
+    failtext:Center()
+    failtext:CenterVertical(0.65)
+
+    failtext.Think = function(self)
+        local str = string.sub(s, 1, math.min(#s, math.ceil((#s*(CurTime()-createtime)/math.min(#s/10, 3)))))
+        if str == self:GetText() then return end
+        self:SetText(str)
+        surface.PlaySound("buttons/lightswitch2.wav")
+    end
+
+    failtext:AlphaTo(0, 1, 10, function(_, self)
+        self:Remove()
+    end)
+end)

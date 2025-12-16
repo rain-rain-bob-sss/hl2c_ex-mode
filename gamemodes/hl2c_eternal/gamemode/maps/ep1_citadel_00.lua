@@ -15,10 +15,10 @@ if CLIENT then return end
 local shouldnotfreeze
 local allowunlock
 
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 	ply:Freeze(not shouldnotfreeze)
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 function hl2cPlayerPostThink( ply )
     if shouldnotfreeze then return end
@@ -39,7 +39,7 @@ function hl2cAcceptInput(ent, input)
     end
 
     if ent:GetName() == "relay_givegravgun_1" and string.lower(input) == "trigger" then
-        for _,ply in pairs(player.GetAll()) do
+        for _,ply in ipairs(player.GetAll()) do
             ply:Give("weapon_physcannon")
         end
     end
@@ -47,14 +47,14 @@ function hl2cAcceptInput(ent, input)
     if ent:GetName() == "maker_template_gravgun" and string.lower(input) == "setparent" and not shouldnotfreeze then
         shouldnotfreeze = true
 
-        for _,ply in pairs(player.GetAll()) do
+        for _,ply in ipairs(player.GetAll()) do
             ply:Freeze(false)
             ply:SetHealth(ply:GetMaxHealth())
         end
     end
 
     if !game.SinglePlayer() and ent:GetName() == "lcs_al_vanride_end01" and string.lower(input) == "start" then
-        for _,ply in pairs(player.GetAll()) do
+        for _,ply in ipairs(player.GetAll()) do
             -- ply:ExitVehicle()
             if not ply:InVehicle() then
                 ply:SetPos(Vector(4624, 4116, -6342))
@@ -74,7 +74,7 @@ function hl2cAcceptInput(ent, input)
     end
 
     if !game.SinglePlayer() and string.lower(ent:GetName()) == "van" and string.lower(input) == "unlock" and allowunlock then
-        for _,ply in pairs(player.GetAll()) do
+        for _,ply in ipairs(player.GetAll()) do
             if ply:InVehicle() then
                 ply:ExitVehicle()
             end

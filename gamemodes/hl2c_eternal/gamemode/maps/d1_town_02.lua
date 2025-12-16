@@ -35,7 +35,7 @@ if ( file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
 	if CLIENT then return end
 
 	-- Player spawns
-	function hl2cPlayerSpawn( ply )
+	function hl2cPlayerSpawn(ply)
 	
 		ply:Give( "weapon_crowbar" )
 		ply:Give( "weapon_pistol" )
@@ -46,7 +46,7 @@ if ( file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
 		ply:Give( "weapon_shotgun" )
 	
 	end
-	hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+	hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 	function hl2cAcceptInput(ent, input, activator)
@@ -110,7 +110,7 @@ if ( file.Exists( "hl2c_eternal/d1_town_03.txt", "DATA" ) ) then
 			end
 		end
 	end
-	hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+	hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 else
 
@@ -119,7 +119,7 @@ else
 	if CLIENT then return end
 
 	-- Player spawns
-	function hl2cPlayerSpawn( ply )
+	function hl2cPlayerSpawn(ply)
 	
 		ply:Give( "weapon_crowbar" )
 		ply:Give( "weapon_pistol" )
@@ -129,7 +129,7 @@ else
 		ply:Give( "weapon_physcannon" )
 	
 	end
-	hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+	hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 	
 	
 	-- Accept input
@@ -138,7 +138,7 @@ else
 		local inputlower = input:lower()
 
 
-		if ( !game.SinglePlayer() && ( ent:GetName() == "freightlift_lift" ) && ( string.lower( input ) == "startforward" ) ) then
+		if ( !game.SinglePlayer() && ( ent:GetName() == "freightlift_lift" ) && ( string.lower(input) == "startforward" ) ) then
 		
 			for _, ply in pairs( player.GetLiving() ) do
 				if ply == activator then continue end
@@ -150,7 +150,7 @@ else
 
 		end
 	end
-	hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+	hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 end
 

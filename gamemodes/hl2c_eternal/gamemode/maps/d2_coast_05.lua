@@ -7,7 +7,7 @@ NEXT_MAP = "d2_coast_07"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -20,7 +20,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_rpg" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -36,14 +36,14 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-    if ( !game.SinglePlayer() && ( ent:GetName() == "gas_station_patrol_spawner" ) && ( string.lower( input ) == "forcespawn" ) ) then
+    if ( !game.SinglePlayer() && ( ent:GetName() == "gas_station_patrol_spawner" ) && ( string.lower(input) == "forcespawn" ) ) then
 	
 		ALLOWED_VEHICLE = nil
         PrintMessage( HUD_PRINTTALK, "Vehicle spawning has been disabled." )
     
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			if ( !IsValid( ply.vehicle ) && !ply:InVehicle() ) then
 			
@@ -58,7 +58,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-    if ( !game.SinglePlayer() && ( ent:GetName() == "logic_gate_shutdown" ) && ( string.lower( input ) == "trigger" ) ) then
+    if ( !game.SinglePlayer() && ( ent:GetName() == "logic_gate_shutdown" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		ALLOWED_VEHICLE = "Jeep"
 		PrintMessage( HUD_PRINTTALK, "You're now allowed to spawn the Jeep (F3)." )
@@ -66,4 +66,4 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

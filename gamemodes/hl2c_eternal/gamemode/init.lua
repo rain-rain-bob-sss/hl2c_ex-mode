@@ -481,7 +481,7 @@ function GM:GrabAndSwitch()
 end
 
 function GM:ShutDown()
-	for _,ply in pairs(player.GetAll()) do
+	for _,ply in ipairs(player.GetAll()) do
 		self:SavePlayer(ply)
 	end
 	self:SaveServerData()
@@ -525,6 +525,7 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_finishedmap")
 	util.AddNetworkString("hl2ce_boss")
 	util.AddNetworkString("hl2ce_music")
+	util.AddNetworkString("hl2ce_fail")
 
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
@@ -714,7 +715,7 @@ function GM:OnReloaded()
 
 	print("Gamemode "..self.Name.." ("..self.Version..") files have been refreshed")
 	timer.Simple(1, function()
-		for _,ply in pairs(player.GetAll()) do
+		for _,ply in ipairs(player.GetAll()) do
 			self:NetworkString_UpdateStats(ply)
 			self:NetworkString_UpdateSkills(ply)
 			self:NetworkString_UpdatePerks(ply)
@@ -897,16 +898,15 @@ function GM:OnNPCKilled(npc, killer, weapon)
 	end
 
 	-- If the NPC is godlike and they die
-	if (IsValid(npc)) then
-	
+	if IsValid(npc) then
 		if npc:IsGodlikeNPC() then
-		
-			if (IsValid(killer) && killer:IsPlayer()) then game.KickID(killer:UserID(), "You killed an important NPC actor!"); end
+			if IsValid(killer) and killer:IsPlayer() then
+				game.KickID(killer:UserID(), "You killed an important NPC actor!")
+			end
+
 			PrintMessage(HUD_PRINTTALK, "Important NPC actor died!")
-			gamemode.Call("FailMap", ply)
-		
+			gamemode.Call("FailMap", ply, "Important NPC died!")
 		end
-	
 	end
 
 	-- Convert the inflictor to the weapon that they're holding if we can
@@ -1503,7 +1503,7 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 					changingLevel = nil
 					local plyrespawn = FORCE_PLAYER_RESPAWNING
 					FORCE_PLAYER_RESPAWNING = true
-					for k,v in pairs(player.GetAll()) do
+					for k,v in ipairs(player.GetAll()) do
 						self:PlayerInitialSpawn(v)
 						v:KillSilent()
 						v:SetTeam(TEAM_ALIVE)
@@ -1532,8 +1532,12 @@ function GM:OnMapFailed(ply)
 	end
 end
 
-function GM:FailMap(ply) -- ply is the one who caused the map to fail, giving them a quite big penalty
+function GM:FailMap(ply, reason) -- ply is the one who caused the map to fail, giving them a quite big penalty
 	if changingLevel then return end
+	net.Start("hl2ce_fail")
+	net.WriteString(reason or "Map failed!")
+	net.Broadcast()
+
 	self:RestartMap()
 
 	if ply and ply:IsValid() and ply:IsPlayer() then
@@ -1702,9 +1706,7 @@ function GM:Think()
 	-- Restart the map if all players are dead
 	if ((!self.PlayerRespawning and !FORCE_PLAYER_RESPAWNING) or OVERRIDE_PLAYER_RESPAWNING) and player.GetCount() > 0 and ((team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)) <= 0) then
 		if !changingLevel then
-			PrintMessage(HUD_PRINTTALK, "All players have died!")
-
-			gamemode.Call("FailMap")
+			gamemode.Call("FailMap", nil, "All players have died!")
 
 			for _,ply in ipairs(player.GetAll()) do
 				if ply:Team() ~= TEAM_ALIVE and ply:Team() ~= TEAM_COMPLETED_MAP and ply:Team() ~= TEAM_DEAD then

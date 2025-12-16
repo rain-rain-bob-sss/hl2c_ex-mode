@@ -5,7 +5,7 @@ NEXT_MAP = "d2_coast_04"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -17,7 +17,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_ar2" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -39,9 +39,9 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_ingreeterrange" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_ingreeterrange" ) && string.lower(input) == "enable" ) then
 	
 		if ( IsValid( ents.FindByName( "lcs_odessaGreeting" )[ 1 ] ) ) then ents.FindByName( "lcs_odessaGreeting" )[ 1 ]:Fire( "Kill" ) end
 		if ( IsValid( ents.FindByName( "aisc_ingreeterrange" )[ 1 ] ) ) then ents.FindByName( "aisc_ingreeterrange" )[ 1 ]:Fire( "Kill" ) end
@@ -50,7 +50,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_pre_ingreeterrange" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_pre_ingreeterrange" ) && string.lower(input) == "enable" ) then
 	
 		if ( IsValid( ents.FindByName( "ss_gordongreet" )[ 1 ] ) ) then ents.FindByName( "ss_gordongreet" )[ 1 ]:Fire( "Kill" ) end
 		if ( IsValid( ents.FindByName( "aisc_pre_ingreeterrange" )[ 1 ] ) ) then ents.FindByName( "aisc_pre_ingreeterrange" )[ 1 ]:Fire( "Kill" ) end
@@ -59,7 +59,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_gordontakesrpg" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_gordontakesrpg" ) && string.lower(input) == "enable" ) then
 	
 		for _, ent in pairs( ents.FindByName( "citizen_a_precmbt_*" ) ) do
 		
@@ -74,7 +74,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_odessapostgunship" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_odessapostgunship" ) && string.lower(input) == "enable" ) then
 	
 		if ( IsValid( ents.FindByName( "aisc_odessapostgunshipignored" )[ 1 ] ) ) then ents.FindByName( "aisc_odessapostgunshipignored" )[ 1 ]:Fire( "Enable" ) end
 		if ( IsValid( ents.FindByName( "tm_gatekeeper" )[ 1 ] ) ) then ents.FindByName( "tm_gatekeeper" )[ 1 ]:Fire( "ForceSpawn" ) end
@@ -86,7 +86,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_odessapostgunshipignored" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_odessapostgunshipignored" ) && string.lower(input) == "enable" ) then
 	
 		if ( IsValid( ents.FindByName( "lr_odessa_goodbye" )[ 1 ] ) ) then ents.FindByName( "lr_odessa_goodbye" )[ 1 ]:Fire( "Trigger", "", 1 ) end
 		if ( IsValid( ents.FindByName( "odessa_goodbye" )[ 1 ] ) ) then ents.FindByName( "odessa_goodbye" )[ 1 ]:Fire( "Cancel" ) end
@@ -98,12 +98,12 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "basement_gordon_first_entered" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "basement_gordon_first_entered" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		ALLOWED_VEHICLE = nil
 		PrintMessage( HUD_PRINTTALK, "Vehicle spawning has been disabled." )
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			if ( !IsValid( ply.vehicle ) && !ply:InVehicle() ) then
 			
@@ -118,9 +118,9 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "spawner_rpg" ) && ( string.lower( input ) == "forcespawn" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "spawner_rpg" ) && ( string.lower(input) == "forcespawn" ) ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:Give( "weapon_rpg" )
 		
@@ -128,7 +128,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "lr_odessa_goodbye" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "lr_odessa_goodbye" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		ALLOWED_VEHICLE = "Jeep"
 		PrintMessage( HUD_PRINTTALK, "You're now allowed to spawn the Jeep (F3)." )
@@ -136,4 +136,4 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

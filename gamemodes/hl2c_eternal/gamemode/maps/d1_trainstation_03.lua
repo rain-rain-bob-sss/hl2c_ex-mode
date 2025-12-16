@@ -11,7 +11,7 @@ MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = true
 if CLIENT then return end
 
 
-hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
+hook.Add("PlayerReady", "hl2cPlayerReady", function(ply)
 	if !GAMEMODE.EXMode then return end
 	timer.Simple(1, function()
 		ply:PrintMessage(3, "Fuck this map.")
@@ -19,13 +19,13 @@ hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
 end)
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:RemoveSuit()
-	timer.Simple( 0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end )
+	timer.Simple(0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end)
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -53,7 +53,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 	local entname = ent:GetName()
 	local inputlower = input:lower()
 	if !game.SinglePlayer() and entname == "lcs_RaidRunner_1" and inputlower == "start" then

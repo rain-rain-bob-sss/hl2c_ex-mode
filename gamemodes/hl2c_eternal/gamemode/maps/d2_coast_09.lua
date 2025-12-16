@@ -14,7 +14,7 @@ COAST_SET_ALLOWED_VEHICLE = true
 
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -28,7 +28,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_crossbow" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -46,14 +46,14 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "spawn_dropship" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "spawn_dropship" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		ALLOWED_VEHICLE = nil
 		PrintMessage( HUD_PRINTTALK, "Vehicle spawning has been disabled." )
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			if ( !IsValid( ply.vehicle ) ) then
 			
@@ -68,7 +68,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && COAST_SET_ALLOWED_VEHICLE && ( ent:GetName() == "gate_door" ) && ( string.lower( input ) == "open" ) ) then
+	if ( !game.SinglePlayer() && COAST_SET_ALLOWED_VEHICLE && ( ent:GetName() == "gate_door" ) && ( string.lower(input) == "open" ) ) then
 	
 		COAST_SET_ALLOWED_VEHICLE = false
 		ALLOWED_VEHICLE = "Jeep"
@@ -77,4 +77,4 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

@@ -21,7 +21,7 @@ end
 local chaos_begun = false
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -30,7 +30,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_frag" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 hook.Add("InitPostEntity", "hl2cInitPostEntity", function()
@@ -504,14 +504,21 @@ function hl2cAcceptInput( ent, input, activator )
 					end)
 
 					if #ents.FindByClass("npc_fastzombie") > 40 then
-						PrintMessage(3, "MAP FAILED! TOO MANY FAST ZOMBIES!")
-						gamemode.Call("FailMap")
+						gamemode.Call("FailMap", nil, "Could not hold off the fast zombies!")
 
 						for _,ent in pairs(ents.FindByClass("npc_*")) do
 							ent:SetHealth(0)
 							ent:Dissolve(2)
 							ent:TakeDamage(math.huge, ents.FindByClass("gmod_gamerules")[1])
 							ent:Fire("becomeragdoll")
+						end
+
+						for _,ply in ipairs(player.GetLiving()) do
+							ply:Kill()
+							local rag = ply:GetRagdollEntity()
+							if rag and rag:IsValid() then
+								rag:Remove()
+							end
 						end
 					end
 				end
@@ -550,7 +557,7 @@ function hl2cAcceptInput( ent, input, activator )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 hook.Add("EntityTakeDamage", "hl2cEntTakeDamage", function(ent, dmginfo)
 	if string.lower(ent:GetName()) == "chester" then
