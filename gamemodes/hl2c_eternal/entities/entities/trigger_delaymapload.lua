@@ -27,7 +27,7 @@ end
 function ENT:StartTouch( ent )
 
 	if IsValid(ent) and ent:IsPlayer() and ent:Team() == TEAM_ALIVE and (ent:GetMoveType() != MOVETYPE_NOCLIP or ent:InVehicle()) then
-	
+		local completed = team.NumPlayers(TEAM_COMPLETED_MAP)
 		ent:SetTeam(TEAM_COMPLETED_MAP)
 		GAMEMODE:WriteCampaignSaveData(ent)
 	
@@ -43,9 +43,13 @@ function ENT:StartTouch( ent )
 		ent:SetAvoidPlayers(false)
 		ent:SetNoTarget(true)
 
-		-- Start the nextmap countdown
-		if !changingLevel then
+		if completed == 0 then
 			gamemode.Call("OnMapCompleted")
+			gamemode.Call("PostOnMapCompleted")
+		end
+		
+		-- Start the nextmap countdown
+		if !changingLevel and team.NumPlayers(TEAM_COMPLETED_MAP) >= (self.playersAlive * NEXT_MAP_PERCENT / 100) then
 			GAMEMODE:NextMap()
 		end
 
@@ -59,13 +63,13 @@ end
 
 -- Checks to see if we should go to the next map
 function ENT:Think()
+	self.playersAlive = team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)
 
-	self.playersAlive = team.NumPlayers( TEAM_ALIVE ) + team.NumPlayers( TEAM_COMPLETED_MAP )
-
-	if ( ( self.playersAlive > 0 ) && ( team.NumPlayers( TEAM_COMPLETED_MAP ) >= ( self.playersAlive * ( NEXT_MAP_PERCENT / 100 ) ) ) ) then
-	
-		GAMEMODE:GrabAndSwitch()
-	
+	if !changingLevel and self.playersAlive > 0 and team.NumPlayers(TEAM_COMPLETED_MAP) >= (self.playersAlive * NEXT_MAP_PERCENT / 100) then
+		GAMEMODE:NextMap()
 	end
 
+	if self.playersAlive > 0 and team.NumPlayers(TEAM_COMPLETED_MAP) >= (self.playersAlive * NEXT_MAP_INSTANT_PERCENT / 100) then
+		GAMEMODE:GrabAndSwitch()
+	end
 end

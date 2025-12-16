@@ -17,23 +17,24 @@ function meta:GiveXP(xp, nomul)
     local prestigexpmul = 1
     prestigexpmul = prestigexpmul + infmath.min(self.Prestige*0.2, 100) + infmath.min(self.Eternities*1.2, 100) + infmath.min(self.Celestiality*5, 100)
 
-    xpmul = xpmul * prestigexpmul
-
     if nomul then
         xpmul = 1
         prestigexpmul = 1
     end
 
-    self.XP = self.XP + xp*xpmul
+    xpmul = xpmul * prestigexpmul
+
+    local xpgain = xp*xpmul
+    self.XP = self.XP + xpgain
     if self.MapStats then
-        self.MapStats.GainedXP = (self.MapStats.GainedXP or 0) + xp*xpmul
+        self.MapStats.GainedXP = (self.MapStats.GainedXP or 0) + xpgain
     end
     if self.XP >= GAMEMODE:GetReqXP(self) and infmath.ConvertInfNumberToNormalNumber(self.Level) < self:GetMaxLevel() then
         self:GainLevel()
     end
 
     net.Start("XPGain")
-    net.WriteInfNumber(xp*xpmul)
+    net.WriteInfNumber(xpgain)
     net.Send(self)
     GAMEMODE:NetworkString_UpdateStats(self)
 end

@@ -524,6 +524,7 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_updateeternityupgrades")
 	util.AddNetworkString("hl2ce_finishedmap")
 	util.AddNetworkString("hl2ce_boss")
+	util.AddNetworkString("hl2ce_music")
 
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")

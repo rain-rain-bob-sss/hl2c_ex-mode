@@ -32,28 +32,24 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input, activator, caller )
+function hl2cAcceptInput(ent, input, activator, caller)
 
 	if ( !game.SinglePlayer() && ( ent:GetName() == "lcs_guncave_briefing1" ) && ( string.lower( input ) == "start" ) ) then
 	
 		ALLOWED_VEHICLE = nil
 	
-		for _, ply in pairs( player.GetAll() ) do
-		
-			if ( IsValid( ply.vehicle ) ) then
-			
-				if ( ply:InVehicle() ) then ply:ExitVehicle() end
+		for _, ply in pairs(player.GetLiving()) do
+			if IsValid(ply.vehicle) then
+				if ply:InVehicle() then ply:ExitVehicle() end
 				ply:RemoveVehicle()
-			
 			end
-		
-			ply:SetVelocity( Vector( 0, 0, 0 ) )
-			ply:SetPos( Vector( 6367, 5408, -895 ) )
-			ply:SetEyeAngles( Angle( 0, -45, 0 ) )
-		
+
+			ply:SetVelocity(Vector(0,0,0))
+			ply:SetPos(Vector(6367, 5408, -895))
+			ply:SetEyeAngles(Angle(0, -45, 0))
 		end
-		GAMEMODE:CreateSpawnPoint( Vector( 6367, 5408, -895 ), -45 )
-	
+		GAMEMODE:CreateSpawnPoint(Vector(6367, 5408, -895), -45)
+
 	end
 
 	if ( !game.SinglePlayer() && ( ent:GetName() == "relay_guncave_startgunmount" ) && ( string.lower( input ) == "enablerefire" ) ) then

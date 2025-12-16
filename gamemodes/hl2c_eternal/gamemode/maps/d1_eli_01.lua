@@ -114,7 +114,7 @@ function hl2cMapEdit()
 		hook.Add("PlayerUse", "hl2c.d1_eli_01.Blah", function(ply, ent)
 			if ent ~= prop then return end
 			if table.HasValue(plys, ply) then
-				if table.Count(plys) >= #player.GetHumans()*0.55 then
+				if table.Count(plys) >= #player.GetLivingHumans()*0.55 then
 					prop:Remove()
 					hook.Remove("PlayerUse", "hl2c.d1_eli_01.Blah")
 				end
@@ -130,9 +130,9 @@ function hl2cMapEdit()
 
 			table.insert(plys, ply)
 
-			PrintMessage(3, string.format("%s wants to proceed! (%d/%d)", ply:Nick(), table.Count(plys), math.ceil(#player.GetHumans()*0.55)))
+			PrintMessage(3, string.format("%s wants to proceed! (%d/%d)", ply:Nick(), table.Count(plys), math.ceil(#player.GetLivingHumans()*0.55)))
 
-			if table.Count(plys) >= #player.GetHumans()*0.55 then
+			if table.Count(plys) >= #player.GetLivingHumans()*0.55 then
 				prop:Remove()
 				hook.Remove("PlayerUse", "hl2c.d1_eli_01.Blah")
 			end
@@ -143,7 +143,7 @@ function hl2cMapEdit()
 				local ply = dmginfo:GetAttacker()
 				if !ply:IsPlayer() then return true end
 				if table.HasValue(plys, ply) then
-					if table.Count(plys) >= #player.GetHumans()*0.55 then
+					if table.Count(plys) >= #player.GetLivingHumans()*0.55 then
 						prop:Remove()
 						hook.Remove("PlayerUse", "hl2c.d1_eli_01.Blah")
 					end
@@ -159,9 +159,9 @@ function hl2cMapEdit()
 			
 				table.insert(plys, ply)
 			
-				PrintMessage(3, string.format("%s wants to proceed! (%d/%d)", ply:Nick(), table.Count(plys), math.ceil(#player.GetHumans()*0.55)))
+				PrintMessage(3, string.format("%s wants to proceed! (%d/%d)", ply:Nick(), table.Count(plys), math.ceil(#player.GetLivingHumans()*0.55)))
 			
-				if table.Count(plys) >= #player.GetHumans()*0.55 then
+				if table.Count(plys) >= #player.GetLivingHumans()*0.55 then
 					prop:Remove()
 					hook.Remove("PlayerUse", "hl2c.d1_eli_01.Blah")
 				end	
@@ -195,7 +195,7 @@ function hl2cMapEdit()
 
 		local plys = {}
 		timer.Create("hl2c.d1_eli_01.reminder", 1, 0, function()
-			for _,ply in ipairs(player.GetAll()) do
+			for _,ply in ipairs(player.GetLiving()) do
 				if table.HasValue(plys, ply) then continue end
 				if prop:GetPos():DistToSqr(ply:GetPos()) > 90000 then continue end
 
@@ -267,7 +267,7 @@ function hl2cAcceptInput( ent, input, activator )
 
 	if ( !game.SinglePlayer() && ( entname == "lcs_mosstour05" ) && ( lowerinput == "start" ) ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in pairs( player.GetLiving() ) do
 			if ply == activator then continue end
 			ply:SetVelocity(-ply:GetVelocity())
 			ply:SetPos(Vector(457, 1656, -1267))
@@ -281,7 +281,7 @@ function hl2cAcceptInput( ent, input, activator )
 			PrintMessage(3, ":)")
 
 			GAMEMODE:ReplaceSpawnPoint( Vector(-64, 2732, -1272), -90 )
-			for _,ply in pairs(player.GetAll()) do
+			for _,ply in pairs(player.GetLiving()) do
 				ply:SetPos(Vector(-64, 2732, -1272))
 				ply:SetEyeAngles(Angle(0, -90, 0))
 			end
@@ -321,7 +321,7 @@ function hl2cAcceptInput( ent, input, activator )
 
 			timer.Simple(0.65, function()
 				-- alt name: The Extreme Trial For The Worthy
-				PrintMessage(3, "YOU FUCKED UP")
+				PrintMessage(3, "UR FUCKED")
 			end)
 		end
 
@@ -357,7 +357,7 @@ function hl2cAcceptInput( ent, input, activator )
 
 		if entname == "lcs_mosstour03" and lowerinput == "start" then
 			GAMEMODE:ReplaceSpawnPoint(Vector(294, 2068, -1272), 0)
-			for _,ply in pairs(player.GetAll()) do
+			for _,ply in pairs(player.GetLiving()) do
 				if ply == activator then continue end
 				ply:SetPos(Vector(294, 2068, -1272))
 				ply:SetEyeAngles(Angle(0, 0, 0))
@@ -536,7 +536,7 @@ function hl2cAcceptInput( ent, input, activator )
 		end
 		
 		if entname == "lcs_alyxtour01" and lowerinput == "start" then
-			for _,ply in ipairs(player.GetAll()) do
+			for _,ply in ipairs(player.GetLiving()) do
 				ply:SetPos(Vector(174, 2128, -2734))
 				ply:SetEyeAngles(Angle(0,180,0))
 			end

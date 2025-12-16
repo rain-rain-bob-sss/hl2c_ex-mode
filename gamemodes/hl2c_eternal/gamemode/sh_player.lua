@@ -1,33 +1,53 @@
+local player_GetAll = player.GetAll	
+
+function player.GetLiving()
+	local i = 0
+	local t = {}
+	for _,ply in pairs(player_GetAll()) do
+		if ply:Alive() and ply:Team() == TEAM_ALIVE then
+			i = i + 1
+			t[i] = ply
+		end
+	end
+
+	return t
+end
+
+function player.GetLivingHumans()
+	local i = 0
+	local t = {}
+	for _,ply in pairs(player_GetAll()) do
+		if ply:Alive() and ply:Team() == TEAM_ALIVE and !ply:IsBot() then
+			i = i + 1
+			t[i] = ply
+		end
+	end
+
+	return t
+end
+
 -- Finds the player meta table or terminates
-local meta = FindMetaTable( "Player" )
+local meta = FindMetaTable("Player")
 if !meta then return end
 
 
 -- Remove the vehicle
 function meta:RemoveVehicle()
-
-	if ( CLIENT || !self:IsValid() ) then
-	
+	if CLIENT or !self:IsValid() then
 		return
-	
 	end
 
-	if ( IsValid( self.vehicle ) ) then
-	
-		if ( IsValid( self.vehicle:GetDriver() ) && self.vehicle:GetDriver():IsPlayer() ) then
-		
+	if IsValid(self.vehicle) then
+		if IsValid(self.vehicle:GetDriver()) and self.vehicle:GetDriver():IsPlayer() then
 			self.vehicle:GetDriver():ExitVehicle()
-		
 		end
 		self.vehicle:Remove()
-	
 	end
-
 end
 
 function meta:GetMaxDifficultyXPGainMul()
-	return math.huge
-	-- return self:HasEternityUnlocked() and 250 or self:HasPrestigeUnlocked() and 75 or 15
+	-- return math.huge
+	return self:HasEternityUnlocked() and 250 or self:HasPrestigeUnlocked() and 75 or 15
 end
 
 function meta:GetSkillAmount(stat)

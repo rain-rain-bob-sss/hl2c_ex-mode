@@ -62,25 +62,24 @@ local function SpawnNPC(class, pos, ang, func)
 end
 
 -- Accept input
-function hl2cAcceptInput( ent, input, activator )
+function hl2cAcceptInput(ent, input, activator)
+	local entname = ent:GetName()
+	local inputlower = input:lower()
 
 	if !GAMEMODE.EXMode and !game.SinglePlayer() then
-		if (ent:GetName() == "airlock_south_door_exit") or ent:GetName() == "airlock_south_door_exitb" and string.lower( input ) == "close" then 
+		if (entname == "airlock_south_door_exit") or entname == "airlock_south_door_exitb" and inputlower == "close" then 
 			return true
 		end
 	
 	end
 
-	if !game.SinglePlayer() && ( ent:GetName() == "command_physcannon" ) && ( string.lower( input ) == "command" ) then
-		for _, ply in pairs( player.GetAll() ) do
+	if !game.SinglePlayer() and entname == "command_physcannon" and inputlower == "command" then
+		for _, ply in pairs(player.GetLiving()) do
 			ply:Give("weapon_physcannon")
 		end
 	end
 
 	if GAMEMODE.EXMode then
-		local entname = ent:GetName()
-		local inputlower = input:lower()
-		
 		if entname == "lcs_alyxtour04b" and inputlower == "start" then
 			timer.Simple(3, function() PrintMessage(3, "Chapter 5a") end)
 			timer.Simple(5.5, function() PrintMessage(3, "The impending doom") end)
@@ -88,7 +87,7 @@ function hl2cAcceptInput( ent, input, activator )
 
 		if entname == "lcs_gravgun01" and inputlower == "start" then
 			GAMEMODE:ReplaceSpawnPoint(Vector(-600, 774, -2684), -90)
-			for _,ply in ipairs(player.GetAll()) do
+			for _,ply in ipairs(player.GetLiving()) do
 				if ply == activator then continue end
 				ply:SetPos(Vector(-600, 774, -2684))
 				ply:SetEyeAngles(Angle(0, -90, 0))
@@ -133,7 +132,8 @@ function hl2cAcceptInput( ent, input, activator )
 
 		if entname == "lcs_attack02" and inputlower == "start" then
 			GAMEMODE:ReplaceSpawnPoint(Vector(-564, 1024, -2684), 180)
-			for _,ply in ipairs(player.GetAll()) do
+			for _,ply in ipairs(player.GetLiving()) do
+				if ply == attacker then continue end
 				ply:SetPos(Vector(-564, 1024, -2684))
 				ply:SetEyeAngles(Angle(0, 180, 0))
 			end

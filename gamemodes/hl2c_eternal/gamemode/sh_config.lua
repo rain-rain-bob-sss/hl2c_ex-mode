@@ -1,4 +1,4 @@
--- Allow admins to noclip [0 = No, 1 = Yes] (Default: 0)
+-- Allow admins to noclip [0 = No, 1 = Yes] (Default: 1)
 ADMIN_NOCLIP = 1
 
 
@@ -10,8 +10,12 @@ ADMIN_PHYSGUN = 0
 DIFFICULTY_RANGE = {1, 3}
 
 
--- Percent of players that need to be in the loading section for the next map to load (Default: 60)
-NEXT_MAP_PERCENT = 60
+-- Percent of players that need to have completed the map in order to continue. Does not include dead players. (Default: 40)
+NEXT_MAP_PERCENT = 40
+
+
+-- Percent of players that need to be in the loading section for the next map to load (Default: 90)
+NEXT_MAP_INSTANT_PERCENT = 90
 
 
 -- Seconds before the next map loads (Default: 60)
@@ -132,8 +136,8 @@ PLAY_EPISODE_1 = false
 PLAY_EPISODE_2 = false
 
 
--- Seconds before the map is restarted (Default: 13)
-RESTART_MAP_TIME = 13
+-- Seconds before the map is restarted (Default: 12)
+RESTART_MAP_TIME = 12
 
 
 -- Models the player can be
@@ -223,7 +227,14 @@ GM.SkillsInfo = {
 	["Vitality"] = {
 		Name = "Vitality",
 		Description = "+1 health",
-		DescriptionEndless = "+5 health"
+		DescriptionEndless = "+5 health",
+		OnApply = function(ply, oldamt, newamt)
+			local oldmhp = ply:GetMaxHealth()
+			local newmhp = ply:GetOriginalMaxHealth()
+
+			ply:SetHealth(ply:Health() * (newmhp / oldmhp))
+			ply:SetMaxHealth(newmhp)
+		end
 	},
 
 	["Knowledge"] = {

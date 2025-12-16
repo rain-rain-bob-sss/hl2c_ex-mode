@@ -51,6 +51,7 @@ net.Receive("UpgradePerk", function(length, ply)
 	local perk = net.ReadString()
     local count = net.ReadUInt(32)
     local sks = ply.Skills
+    local skill = GAMEMODE.SkillsInfo[perk]
 
     local curpoints = ply.StatPoints
     local limit = ply:GetMaxSkillLevel(perk)
@@ -67,9 +68,15 @@ net.Receive("UpgradePerk", function(length, ply)
 		return false
 	end
 
-	ply[perk] = sks[perk] + count
+    local old = sks[perk]
+	sks[perk] = old + count
 	ply.StatPoints = ply.StatPoints - count
-    ply:PrintMessage(HUD_PRINTTALK, "Increased "..perk.." by "..count.." point!")
+    ply:PrintMessage(HUD_PRINTTALK, Format("Increased %s by %d point(s)!", perk, count))
+
+    if skill.OnApply then
+        skill.OnApply(ply, old, sks[perk])
+    end
+
     GAMEMODE:NetworkString_UpdateStats(ply)
     GAMEMODE:NetworkString_UpdateSkills(ply)
 end)

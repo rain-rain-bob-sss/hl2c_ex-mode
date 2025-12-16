@@ -39,9 +39,3 @@ function hl2cAcceptInput( ent, input )
     end
 end
 hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
-
-hook.Add("OnMapCompleted", "hl2ceOnMapCompleted", function()
-	PrintMessage(3, "Fuck this map")
-end)
-
-

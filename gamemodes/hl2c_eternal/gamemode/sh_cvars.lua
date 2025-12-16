@@ -64,3 +64,46 @@ cvars.AddChangeCallback("hl2ce_server_player_medkit", function(cvar, old, new)
 	GAMEMODE.PlayerMedkitOnSpawn = tobool(new)
 end, "hl2ce_server_player_medkit")
 
+local function callback()
+	local jumped = {}
+	local function bhop(enable)
+		if enable then
+			hook.Add("StartCommand", "hl2ce_bhop", function(ply, ucmd)
+			    if ply:GetMoveType() ~= MOVETYPE_WALK or ply:WaterLevel() > 1 then return end
+			    local buttons = ucmd:GetButtons()
+			    local jumping = bit.band(buttons, IN_JUMP) ~= 0
+
+			    if jumping and !jumped[ply] and ply:OnGround() then
+			        if ply:Crouching() and bit.band(buttons, IN_DUCK) == 0 then
+			            buttons = buttons + IN_DUCK
+			        end
+			        -- buttons = buttons + IN_JUMP
+			        jumped[ply] = true
+			    else
+			        if jumping and !ply:OnGround() then
+			            buttons = buttons - IN_JUMP
+			        end
+			        jumped[ply] = nil
+			    end
+			
+			    ucmd:SetButtons(buttons)
+			end)
+		else
+			hook.Remove("StartCommand", "hl2ce_bhop")
+		end
+	end
+
+	local GM = GAMEMODE or GM
+	bhop(tobool(GM.BHopEnabled))
+end
+GM.BHopEnabled = CreateConVar("hl2ce_server_bhop_enable", 0, FCVAR_REPLICATED + FCVAR_ARCHIVE, "Enable bhop... for fun!"):GetBool()
+cvars.AddChangeCallback("hl2ce_server_bhop_enable", function(cvar, old, new)
+	GAMEMODE.BHopEnabled = tobool(new)
+
+	callback()
+end, "hl2ce_server_bhop_enable")
+
+if GM.BHopEnabled then
+	callback()
+end
+

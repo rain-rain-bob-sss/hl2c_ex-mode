@@ -68,85 +68,62 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 -- Accept input
 function hl2cAcceptInput( ent, input, activator )
+	local entname = ent:GetName()
+	local inputlower = input:lower()
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "point_viewcontrol" ) ) then
-	
-		if ( string.lower( input ) == "enable" ) then
-		
+	if !game.SinglePlayer() and ent:GetClass() == "point_viewcontrol" then
+		if inputlower == "enable" then
 			PLAYER_VIEWCONTROL = ent
-		
-			for _, ply in ipairs( player.GetAll() ) do
-			
-				ply:SetViewEntity( ent )
-				ply:Freeze( true )
-			
+
+			for _, ply in ipairs(player.GetAll()) do
+				ply:SetViewEntity(ent)
+				ply:Freeze(true)
 			end
 		
-			if ( !ent.doubleEnabled ) then
-			
+			if !ent.doubleEnabled then
 				ent.doubleEnabled = true
-				ent:Fire( "Enable" )
-			
+				ent:Fire("Enable")
 			end
-		
-		elseif ( string.lower( input ) == "disable" ) then
-		
+
+		elseif inputlower == "disable" then
 			PLAYER_VIEWCONTROL = nil
 		
-			for _, ply in ipairs( player.GetAll() ) do
-			
-				ply:SetViewEntity( ply )
-				ply:Freeze( false )
-			
+			for _, ply in ipairs(player.GetAll()) do
+				ply:SetViewEntity(ply)
+				ply:Freeze(false)
 			end
-		
+
 			return true
-		
 		end
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "env_zoom" ) && ( string.lower( input ) == "zoom" ) ) then
-	
+	if !game.SinglePlayer() and ent:GetClass() == "env_zoom" and inputlower == "zoom"  then
 		for _, ply in ipairs( player.GetAll() ) do
-		
 			local keyValues = ent:GetKeyValues()
-			ply:SetFOV( tonumber( keyValues[ "FOV" ] ), tonumber( keyValues[ "Rate" ] ) )
-		
+			ply:SetFOV(tonumber(keyValues.FOV), tonumber(keyValues.Rate))
 		end
-	
+
 		return true
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "point_teleport_destination" ) && ( string.lower( input ) == "teleport" ) ) then
-	
-		for _, ply in ipairs( player.GetAll() ) do
-		
-			ply:SetVelocity( Vector( 0, 0, 0 ) )
-			ply:SetPos( ent:GetPos() )
-			ply:SetFOV( 0, 0 )
-		
+	if !game.SinglePlayer() and ent:GetName() == "point_teleport_destination" and inputlower == "teleport" then
+		for _, ply in ipairs(player.GetAll()) do
+			ply:SetVelocity(Vector(0, 0, 0))
+			ply:SetPos(ent:GetPos())
+			ply:SetFOV(0, 0)
 		end
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "storage_room_door" ) && ( string.lower( input ) == "close" ) ) then
-	
+	if !game.SinglePlayer() and ent:GetName() == "storage_room_door" and inputlower == "close" then
 		return true
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "razor_train_gate_2" ) && ( string.lower( input ) == "close" ) ) then
-	
+	if !game.SinglePlayer() and ent:GetName() == "razor_train_gate_2" and inputlower == "close" then
 		TRAINSTATION_LEAVEBARNEYDOOROPEN = true
-	
 	end
 
-	if ( !game.SinglePlayer() && TRAINSTATION_LEAVEBARNEYDOOROPEN && ( ent:GetName() == "barney_door_1" ) && ( string.lower( input ) == "close" ) ) then
-	
+	if !game.SinglePlayer() and TRAINSTATION_LEAVEBARNEYDOOROPEN and ent:GetName() == "barney_door_1" and inputlower == "close" then
 		return true
-	
 	end
 
 	if GAMEMODE.EXMode then
@@ -319,7 +296,6 @@ hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
 
 -- Accept input
 function hl2cOnNPCKilled( ent, attacker )
-
 	if GAMEMODE.EXMode then
 		if ent:GetName() == "barney" then
 			if barney_killed_themselves or ent == attacker then
@@ -343,6 +319,5 @@ function hl2cOnNPCKilled( ent, attacker )
 			gman_killed = true
 		end
 	end
-
 end
 hook.Add( "OnNPCKilled", "hl2cOnNPCKilled", hl2cOnNPCKilled )

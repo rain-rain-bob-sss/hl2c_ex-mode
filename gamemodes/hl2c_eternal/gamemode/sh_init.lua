@@ -18,8 +18,8 @@ local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficult
 GM.Name = "Half-Life 2 Campaign: Eternal" -- alt name: Half-Life 2 Campaign: China Edition
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.inf-5" -- what version?
-GM.DateVer = "15-12-2025"
+GM.Version = "0.inf-6" -- what version?
+GM.DateVer = "16-12-2025"
 
 
 -- Constants
@@ -235,6 +235,7 @@ end
 
 -- why i'm using GlobalString instead of Float value:
 -- Allows to be broadcasted to client with numbers like 2^128 (3.40e38) and above until 2^1024 (1.79e308) values
+-- break infinity update: NOW UP TO 10^(1.79e308)!!!!!
 
 function GM:SetDifficulty(val, noncvar)
 	local diffcvarvalue = tonumber(hl2ce_server_force_difficulty:GetString()) or 0

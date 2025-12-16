@@ -54,22 +54,18 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 -- Accept input
 function hl2cAcceptInput( ent, input )
-
-	if ( !game.SinglePlayer() && ( ent:GetName() == "lcs_RaidRunner_1" ) && ( string.lower( input ) == "start" ) ) then
-	
-		for _, ply in pairs( player.GetAll() ) do
-		
-			ply:SetPos( Vector( -3900, -4507, 385 ) )
-			ply:SetEyeAngles( Angle( 0, -260, 0 ) )
-		
+	local entname = ent:GetName()
+	local inputlower = input:lower()
+	if !game.SinglePlayer() and entname == "lcs_RaidRunner_1" and inputlower == "start" then
+		for _, ply in ipairs(player.GetLiving()) do
+			if ply == activator then continue end
+			ply:SetPos(Vector(-3900, -4507, 385))
+			ply:SetEyeAngles(Angle(0, 100, 0))
 		end
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "lcs_cit_blocker_holdem" ) && ( string.lower( input ) == "start" ) ) then
-	
-		for _, ply in pairs( player.GetAll() ) do
-		
+	if !game.SinglePlayer() and entname == "lcs_cit_blocker_holdem" and inputlower == "start" then
+		for _, ply in ipairs(player.GetLiving()) do
 			ply:SetPos( Vector( -5000, -4840, 513 ) )
 			-- ply:SetPos( Vector( -4956, -4752, 513 ) )
 			ply:SetEyeAngles( Angle( 0, -150, 0 ) )

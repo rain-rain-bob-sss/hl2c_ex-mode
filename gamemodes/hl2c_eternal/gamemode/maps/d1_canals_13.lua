@@ -90,9 +90,9 @@ hook.Add("AcceptInput", "hl2cAcceptInput", function(ent, input)
 		net.Broadcast()
 		bossfight = false
 
-		for _,ply in pairs(player.GetAll()) do
-			ply:GiveXP(369)
-		end
+		-- for _,ply in pairs(player.GetAll()) do
+			-- ply:GiveXP(369)
+		-- end
 
 		print("heli died yipee")
 	end

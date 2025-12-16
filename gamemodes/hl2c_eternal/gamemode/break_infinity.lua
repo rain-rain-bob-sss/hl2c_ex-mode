@@ -202,11 +202,11 @@ t.add = function(self, tbl)
 
     if tbl.exponent == -math_huge then return self end
     local a = 10^math_Clamp(self.exponent-tbl.exponent, -300, 300)
+    self.mantissa = self.mantissa + tbl.mantissa/a
+    FixMantissa(self)
+
     self.exponent = math_max(self.exponent, tbl.exponent)
     FixExponent(self)
-
-    self.mantissa = self.mantissa == 0 and tbl.mantissa or (self.mantissa + tbl.mantissa/a)
-    FixMantissa(self)
     return self
 end
 meta.__add = t.add
@@ -217,12 +217,14 @@ t.sub = function(self, tbl)
     if self.mantissa == 0 then tbl.mantissa = -tbl.mantissa return tbl end
     if tbl.mantissa == 0 then return self end
     if tbl.mantissa < 0 then tbl.mantissa = math.abs(tbl.mantissa) return self:add(tbl) end
-
-
     if self.mantissa == tbl.mantissa and self.exponent == tbl.exponent then self.mantissa = 0 self.exponent = 0 return self end
+    if (self.exponent + 50) < tbl.exponent then
+        tbl.mantissa = -tbl.mantissa
+        return tbl
+    end
 
     local a = 10^math_Clamp(self.exponent-tbl.exponent, -300, 300)
-    self.mantissa = self.mantissa == 0 and -tbl.mantissa or (self.mantissa - tbl.mantissa/a)
+    self.mantissa = self.mantissa - tbl.mantissa/a
     FixMantissa(self)
     FixExponent(self)
     if self.exponent == -math_huge then return self end

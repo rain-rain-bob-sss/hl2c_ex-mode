@@ -66,7 +66,7 @@ hook.Add("AcceptInput", "hl2cAcceptInput", function(ent, input, activator)
 	local names = {"lcs_CupCop_Pass", "lcs_CupCop_Fail"}
 	if GAMEMODE.EXMode and table.HasValue(names, ent:GetName()) and string.lower(input) == "start" and not activated then
 		local ang = Angle(0,0,0)
-		local pl = player.GetAll()[1]
+		local pl = table.Random(player.GetLiving())
 		CreateMetropolice(Vector(-4388, -720, 64), ang, pl)
 		CreateMetropolice(Vector(-4388, -800, 64), ang, pl)
 		CreateMetropolice(Vector(-4388, -880, 64), ang, pl)
