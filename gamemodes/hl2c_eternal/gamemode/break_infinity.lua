@@ -166,7 +166,7 @@ t.FormatText = function(self, roundto)
     end
 
     if infmath.usenotation == "scientific" then
-        if e > -2 and e < 9 then return math_Round(self.mantissa * 10^e, 7) end -- Normal numbers
+        if e > -3 and e < 9 then return math_Round(self.mantissa * 10^e, 7) end -- Normal numbers
         local round = roundto or math_min(3, 8-math_floor(math_log10(abs_e)))
 
         return (round >= 0 and math.Round(self.mantissa, round) or "").."e"..(
@@ -205,7 +205,6 @@ t.add = function(self, tbl)
     self.exponent = math_max(self.exponent, tbl.exponent)
     FixExponent(self)
 
-    print(tbl)
     self.mantissa = self.mantissa == 0 and tbl.mantissa or (self.mantissa + tbl.mantissa/a)
     FixMantissa(self)
     return self

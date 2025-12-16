@@ -55,10 +55,12 @@ function hl2cAcceptInput(ent, input, activator)
 
 		if times == 6 then
 			timer.Simple(math.Rand(1, 1.7), function()
-				for _,ent in ipairs(ents.FindByName("double_doors")) do
+				if !IsValid(ent) then return end
+
+				for _,door in ipairs(ents.FindByName("double_doors")) do
 					for i=1,5 do
 						local explo = ents.Create("env_explosion")
-						explo:SetPos(ent:GetPos())
+						explo:SetPos(door:GetPos())
 						explo:SetKeyValue("iMagnitude", 5000)
 						explo:SetKeyValue("iRadiusOverride", 300)
 						explo:Spawn()

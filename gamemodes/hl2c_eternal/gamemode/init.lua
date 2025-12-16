@@ -101,7 +101,7 @@ function GM:CreateSpawnPoint(pos, yaw)
 end
 
 function GM:ReplaceSpawnPoint(pos, yaw)
-	for _,ent in pairs(ents.FindByClass("info_player_start")) do
+	for _,ent in ipairs(ents.FindByClass("info_player_start")) do
 		ent:Remove()
 	end
 
@@ -445,7 +445,7 @@ function GM:WriteCampaignSaveData(ply, save)
 	if (IsValid(ply:GetActiveWeapon())) then plyInfo.weapon = ply:GetActiveWeapon():GetClass(); end
 	if (plyWeapons && #plyWeapons > 0) then
 		plyInfo.loadout = {}
-		for _, wep in pairs(plyWeapons) do
+		for _, wep in ipairs(plyWeapons) do
 			plyInfo.loadout[wep:GetClass()] = {
 				wep:Clip1(),
 				wep:Clip2(),
@@ -1188,7 +1188,7 @@ function GM:PlayerLoadout(ply)
 	
 		ply:RemoveAllAmmo()
 	
-		for _, wep in pairs(ply:GetWeapons()) do
+		for _, wep in ipairs(ply:GetWeapons()) do
 		
 			local wepClass = wep:GetClass()
 		
@@ -1481,7 +1481,7 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 
 	timer.Create("hl2c_restart_map", overridetime, 1, function()
 		if not noplayerdatasave then
-			for k,v in pairs(player.GetAll()) do
+			for k,v in ipairs(player.GetAll()) do
 				self:SavePlayer(v)
 			end
 
@@ -1621,7 +1621,7 @@ function GM:ShowSpare1(ply)
 		return
 	end
 
-	for _, ent in pairs(ents.FindInSphere(ply:GetPos(), 256)) do
+	for _, ent in ipairs(ents.FindInSphere(ply:GetPos(), 256)) do
 		if IsValid(ent) and ent:IsPlayer() and ent:Alive() and ent != ply then
 			ply:PrintMessage(HUD_PRINTTALK, "There are players around you! Find an open space to spawn your vehicle.")
 			return
@@ -1699,11 +1699,22 @@ local delayedDMGTick = 0
 function GM:Think()
 
 	-- Restart the map if all players are dead
-	if (((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (player.GetCount() > 0) && ((team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)) <= 0)) then
+	if ((!self.PlayerRespawning and !FORCE_PLAYER_RESPAWNING) or OVERRIDE_PLAYER_RESPAWNING) and player.GetCount() > 0 and ((team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)) <= 0) then
 		if !changingLevel then
 			PrintMessage(HUD_PRINTTALK, "All players have died!")
 
 			gamemode.Call("FailMap")
+
+			for _,ply in ipairs(player.GetAll()) do
+				if ply:Team() ~= TEAM_ALIVE and ply:Team() ~= TEAM_COMPLETED_MAP and ply:Team() ~= TEAM_DEAD then
+					PrintMessage(3, "One of the players are on the invalid team!")
+					if ULib and ULib.isSandbox and ULib.isSandbox() then
+						PrintMessage(3, "It's likely it's due to a team being applied to one of the player's groups!")
+					end
+
+					break
+				end
+			end
 		end
 	end
 
@@ -1722,7 +1733,7 @@ function GM:Think()
 	if SecondTick < CurTime() then
 		SecondTick = CurTime() + 1
 
-		for _,ply in pairs(player.GetAll()) do
+		for _,ply in ipairs(player.GetAll()) do
 			if ply:HasPerkActive("hyper_armor_2") then
 				if ply:WaterLevel() < 3 and ply:GetSuitPower() < 100 then
 					ply:SetSuitPower(math.min(100, ply:GetSuitPower() + 1))
@@ -1738,7 +1749,7 @@ function GM:Think()
 
 	-- Open area portals
 	if nextAreaOpenTime <= CurTime() then
-		for _, fap in pairs(ents.FindByClass("func_areaportal")) do
+		for _, fap in ipairs(ents.FindByClass("func_areaportal")) do
 			fap:Fire("Open")
 		end
 		nextAreaOpenTime = CurTime() + 1
@@ -1766,7 +1777,7 @@ function GM:Think()
 */
 
 	if delayedDMGTick + 0.5 < CurTime() then
-		for _,ent in pairs(ents.GetAll()) do
+		for _,ent in ipairs(ents.GetAll()) do
 			if ent.DelayedDamage and ent.DelayedDamage >= 1 then
 				local mult = (1 - (0.8 / math.max(1, math.log10(ent.DelayedDamage) - 2)))
 				ent.DelayedDamage = ent.DelayedDamage - math.ceil(ent.DelayedDamage*mult)

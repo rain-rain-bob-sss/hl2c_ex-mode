@@ -230,7 +230,6 @@ function GM:HUDPaint()
 			draw.SimpleText("DEAD!", "TargetID", ScrW()/2, ScrH()*0.14, Color(255,255,0,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 		end
 
-		print(bosshp)
 		bosshp = math.Approach(bosshp, hp, (hp-bosshp)*math.Round(FrameTime()*2, 3))
 	end
 

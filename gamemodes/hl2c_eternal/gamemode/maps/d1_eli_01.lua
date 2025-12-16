@@ -538,7 +538,13 @@ function hl2cAcceptInput( ent, input, activator )
 		if entname == "lcs_alyxtour01" and lowerinput == "start" then
 			for _,ply in ipairs(player.GetAll()) do
 				ply:SetPos(Vector(174, 2128, -2734))
-				ply:SetViewAngles(Angle(0,180,0))
+				ply:SetEyeAngles(Angle(0,180,0))
+			end
+
+			timer.Remove("d1_eli_01.trap2")
+			for _,zm in pairs(ents.FindByClass("npc_*zombie")) do
+				zm:SetHealth(50)
+				zm:Ignite(1000)
 			end
 		end
 	end
