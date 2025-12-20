@@ -146,6 +146,10 @@ function GM:StartCommand(ply, ucmd)
 	end
 end
 
+-- function GM:Move(ply, mv)
+	-- print(mv:GetFinalIdealVelocity())
+-- end
+
 
 -- Players should never collide with each other or NPC's
 function GM:ShouldCollide(entA, entB)

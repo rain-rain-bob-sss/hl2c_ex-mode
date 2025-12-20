@@ -50,22 +50,46 @@ hook.Add("OnEntityCreated", "hl2cOnEntityCreated", hl2cOnEntityCreated)
 
 -- Shouldn't cause the map to be stuck
 local failmap = true
-hook.Add("OnNPCKilled", "AntlionGuardKill", function(ent, attacker, inflictor)
-	if ent:GetName() == "citizen_ambush_guard" and inflictor:GetModel() ~= "models/props_junk/harpoon002a.mdl" then
+local failtries = 0
+hook.Add("OnNPCKilled", "!!hl2ce_AGKilled", function(ent, attacker, inflictor)
+	if ent:GetName() == "citizen_ambush_guard" and inflictor:GetModel() == "models/props_junk/harpoon002a.mdl" then
+		-- attacker:PrintMessage(3, "fuck yoself harpoon user")
+	elseif ent:GetName() == "citizen_ambush_guard" and inflictor:GetModel() ~= "models/props_junk/harpoon002a.mdl" then
 		AG_DEADPOS = ent:GetPos()
 		failmap = false
 	end
-end)
+end, HOOK_HIGH)
 
 hook.Add("EntityRemoved", "NOANTLIONGUARDREMOVE", function(ent)
 	if failmap and ent:GetName() == "citizen_ambush_guard" and not changingLevel then
-		PrintMessage(3, "The hell was your plan?!")
-		GAMEMODE:RestartMap()
-		local e = EffectData()
-		for _,ply in ipairs(player.GetAll()) do
-			e:SetOrigin(ply:GetPos() + ply:OBBCenter())
-			for i=1,20 do
-				util.Effect("Explosion", e)
+		ents.FindByName("relay_guarddead")[1]:Fire("kill")
+		if failtries > 10 then
+			PrintMessage(3, "...")
+			timer.Simple(math.Rand(2,5), function() PrintMessage(3, "I give up.") end)
+			timer.Simple(math.Rand(8,9), function() GAMEMODE:SetDifficulty(InfNumber(6.66666, 666)) end)
+			timer.Simple(math.Rand(9,10), function() PrintMessage(3, "Have fun.") end)
+			timer.Simple(math.Rand(11,12), function() for _,ply in pairs(player.GetLiving()) do ents.FindByClass("trigger_delaymapload")[1]:StartTouch(ply) end end)
+		else
+			gamemode.Call("FailMap", nil, failtries > 5 and "..." or
+			failtries > 4 and "ONE MORE TIME I SEE THIS. AND YOU WILL BE BANNED!!!" or
+			failtries > 3 and "You will not be able to progress if you keep killing the antlion guard unfairly" or
+			failtries > 2 and "Kill the antlion guard the intended way!!" or
+			failtries > 1 and "Are you seriously trying to pass the map easily?!" or
+			"The hell was your plan?! killing the antlion guard the easy way?!\nNo! This whole plan caused your team to fail!\nYou should know better!")
+			failtries = failtries + 1
+
+			local e = EffectData()
+			for _,ply in ipairs(player.GetLiving()) do
+				e:SetOrigin(ply:GetPos() + ply:OBBCenter())
+				for i=1,20 do
+					util.Effect("Explosion", e)
+				end
+			
+				ply:Kill()
+				local rag = ply:GetRagdollEntity()
+				if rag:IsValid() then
+					rag:Remove()
+				end
 			end
 		end
 	end
