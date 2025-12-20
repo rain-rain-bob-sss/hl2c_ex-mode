@@ -69,7 +69,6 @@ local function callback()
 	local function bhop(enable)
 		if enable then
 			hook.Add("SetupMove", "hl2ce_bhop", function(ply, mv, ucmd)
-				if !ALLOWBHOP then return end
 				if ply:GetMoveType() ~= MOVETYPE_WALK or ply:WaterLevel() > 1 then return end
 				local buttons = ucmd:GetButtons()
 				local jumping = bit.band(buttons, IN_JUMP) ~= 0

@@ -1523,7 +1523,11 @@ concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmi
 function GM:OnMapFailed(ply)
 	local diff = self:GetDifficulty(true, true)
 	if diff > InfNumber(math.huge) then
-		self:SetDifficulty(infmath.max(1, diff ^ 0.9))
+		local result = 0.8/(1+math.log10(diff:log10())-math.log10(33))
+		self:SetDifficulty(diff^(0.9/math.log10(diff:log10())))
+	elseif diff > InfNumber(1, 33) then
+		local result = 0.9/(1+math.log10(diff:log10())-math.log10(33))
+		self:SetDifficulty(diff^(0.9/math.log10(diff:log10())))
 	else
 		self:SetDifficulty(infmath.max(1, diff * (
 			diff >= InfNumber(1000) and 0.85 or diff >= InfNumber(100) and 0.87 or
