@@ -1,4 +1,4 @@
-INFO_PLAYER_SPAWN = { Vector( -2489, -1292, 580 ), 90 }
+INFO_PLAYER_SPAWN = {Vector(-2489, -1292, 580), 90}
 GM.XpGainOnNPCKillMul = 0.35
 GM.DifficultyGainOnNPCKillMul = 0.5
 
@@ -7,23 +7,98 @@ NEXT_MAP_INSTANT_PERCENT = 101
 
 RESET_WEAPONS = true
 
-TRIGGER_DELAYMAPLOAD = { Vector( 14095, 15311, 14964 ), Vector( 13702, 14514, 15000 ) }
+TRIGGER_DELAYMAPLOAD = {Vector(14095, 15311, 14964), Vector(13702, 14514, 15000)}
 
-if ( PLAY_EPISODE_1 ) then
-
+if PLAY_EPISODE_1 then
 	NEXT_MAP = "ep1_citadel_00"
-
 else
-
 	NEXT_MAP = "d1_trainstation_01"
-
 end
 
 OVERRIDE_PLAYER_RESPAWNING = true
+MAP_FORCE_CHANGELEVEL_ON_MAPRESTART = true
 
 CITADEL_ENDING = false
 
-if CLIENT then return end
+if CLIENT then
+	local function CreateText(txt, col, pos_y, dur, time, func)
+		time = time or 10
+
+    	local font = "hl2ce_font_big"
+    	local createtime = CurTime()
+
+    	surface.SetFont(font)
+    	local x,y = surface.GetTextSize(txt)
+
+    	local failtext = vgui.Create("DLabel")
+    	failtext:SetFont("hl2ce_font_big")
+    	failtext:SetTextColor(col)
+    	failtext:SetSize(x, y)
+    	failtext:Center()
+		if pos_y then
+			failtext:CenterVertical(pos_y)
+		end
+    	failtext.Think = function(self)
+    	    local str = string.sub(txt, 1, math.min(#txt, math.ceil((#txt*(CurTime()-createtime)/(dur or 3)))))
+    	    if str == self:GetText() then return end
+    	    self:SetText(str)
+    	end
+
+    	failtext:AlphaTo(0, 1, time, function(_, self)
+    	    self:Remove()
+    	end)
+		if func then
+			func(failtext)
+		end
+
+		chat.AddText(col, txt)
+	end
+
+	net.Receive("hl2ce_map_event", function(len)
+		local t = net.ReadString()
+
+		if t == "citadel_explode" then
+			surface.PlaySound("ambient/explosions/explode_4.wav")
+			surface.PlaySound("ambient/explosions/explode_6.wav")
+
+			hook.Add("HUDShouldDraw", "Died", function(name)
+				return name == "CHudChat" or name == "CHudGMod"
+			end)
+			hook.Add("PreDrawHUD", "Died", function()
+				cam.Start2D()				
+				surface.SetDrawColor(255,255,255)
+				surface.DrawRect(0, 0, ScrW(), ScrH())
+				cam.End2D()
+			end)
+
+			timer.Simple(1, function() CreateText("YOU DIED.", Color(255,0,0), nil, 2, 7) end)
+			timer.Simple(8, function() CreateText("What the fuck?! So there's no ep1?!?", Color(255,0,0), 0.6, 4, 6) end)
+			timer.Simple(13, function() CreateText("I can't believe it! They should be alive!!", Color(255,0,0), 0.7, 4, 6) end)
+			timer.Simple(18, function() CreateText("We have alraedy reached the conclusion. This game is over.", Color(191,63,63), 0.3, 4, 7, function(self)
+				local s = CurTime()
+				hook.Add("PreDrawHUD", "Died", function()
+					local st = CurTime()-s
+					local c = 255-st*51
+
+					cam.Start2D()
+					surface.SetDrawColor(c,c,c)
+					surface.DrawRect(0, 0, ScrW(), ScrH())
+					cam.End2D()
+				end)
+			end) end)
+			timer.Simple(22, function() CreateText("WAIT WTH? NO WAY!! THERE MUST BE MORE!!", Color(255,255,255), 0.4, 2.5, 3.5, function(self)
+			end) end)
+			timer.Simple(27, function() CreateText("I'M ABSOLUTELY SURE THEY ARE STILL", Color(255,255,255), nil, 5, 10, function(self)
+				timer.Simple(5, function()
+					self:Remove()
+					RunConsoleCommand("stopsound")
+				end)
+			end) end)
+		end
+	end)
+
+	return
+end
 
 local completed
 
@@ -57,14 +132,6 @@ function hl2cPlayerSpawn(ply)
 end
 hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
-
-hook.Add("NextMap", "hl2cEX_NextMap", function()
-	if changingLevel then return end
-	for _,ply in ipairs(player.GetAll()) do
-		ply:PrintMessage(HUD_PRINTTALK, "Congratulations, you have completed the campaign!")
-		-- ply:GiveXP(40)
-	end
-end)
 
 -- Initialize entities
 function hl2cMapEdit()
@@ -232,16 +299,17 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	end
 
 	if ( !game.SinglePlayer() && ( ent:GetName() == "view_gman_end_1" ) && string.lower(input) == "enable" ) then
-	
-		hook.Call( "NextMap", GAMEMODE )
+		gamemode.Call("NextMap")
+		gamemode.Call("OnCampaignCompleted")
 
 		if not completed then
+			completed = true
 			for _,ply in ipairs(player.GetAll()) do
 				gamemode.Call("PlayerCompletedCampaign", ply)
 			end
-			completed = true
 		end
-	
+
+		gamemode.Call("PostOnCampaignCompleted")
 	end
 
 	if ( !game.SinglePlayer() && ( ent:GetClass() == "player_speedmod" ) && ( string.lower(input) == "modifyspeed" ) ) then
@@ -256,10 +324,50 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 	end
 
-	if ent:GetClass() == "citadel_scene_br_dead1" and string.lower(input) == "trigger" then
-	end
+	if GAMEMODE.EXMode then
+		if ent:GetName() == "citadel_scene_br_dead1" and string.lower(input) == "trigger" then
+		end
 
-	if ent:GetClass() == "logic_portal_final_end_2" and string.lower(input) == "trigger" then
+		if ent:GetName() == "logic_portal_final_end_2" and string.lower(input) == "trigger" then
+			hook.Add("AcceptInput", "!!goodbye", function() return true end, HOOK_HIGH)
+
+			net.Start("hl2ce_map_event")
+			net.WriteString("citadel_explode")
+			net.Broadcast()
+
+			for _,ply in ipairs(player.GetAll()) do
+				ply:SetPos(Vector(math.random(-1e5,1e5), math.random(-1e5,1e5), math.random(5e4,1e5)))
+				ply:StripWeapons()
+				ply:RemoveSuit()
+			end
+			local dontremove = {"logic_portal_final_end_2", "credits", "song3"}
+			for _,ent in ipairs(ents.GetAll()) do
+				if table.HasValue(dontremove, ent:GetName()) then continue end
+				ent:Remove()
+			end
+
+			timer.Simple(40, function()
+				if !IsValid(ent) then return end
+
+				gamemode.Call("NextMap")
+				gamemode.Call("OnCampaignCompleted")
+
+				if not completed then
+					completed = true
+					for _,ply in ipairs(player.GetAll()) do
+						gamemode.Call("PlayerCompletedCampaign", ply)
+					end
+				end
+
+				gamemode.Call("PostOnCampaignCompleted")
+
+				hook.Remove("AcceptInput", "!!goodbye")
+				ents.FindByName("credits")[1]:Fire("rolloutrocredits")
+				ents.FindByName("song3")[1]:Fire("playsound")
+			end)
+
+			return true
+		end
 	end
 
 end
@@ -268,51 +376,33 @@ hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 -- Every frame or tick
 function hl2cThink()
-
 	if game.GetGlobalState("super_phys_gun") == GLOBAL_ON then
-	
-		for _, ent in ipairs( ents.FindByClass( "weapon_physcannon" ) ) do
-		
-			if ( IsValid( ent ) && ent:IsWeapon() ) then
-			
-				if ( ent:GetSkin() != 1 ) then ent:SetSkin( 1 ); end
-			
+		for _, ent in ipairs(ents.FindByClass("weapon_physcannon")) do
+			if IsValid(ent) and ent:IsWeapon() then
+				if ent:GetSkin() != 1 then
+					ent:SetSkin(1)
+				end
 			end
-		
 		end
 	
-		for _, ent in ipairs( ents.FindByClass( "weapon_*" ) ) do
-		
-			if ( IsValid( ent ) && ent:IsWeapon() && ( ent:GetClass() != "weapon_physcannon" ) && ( !IsValid( ent:GetOwner() ) || ( IsValid( ent:GetOwner() ) && ent:GetOwner():IsPlayer() ) ) ) then
-			
+		for _,ent in ipairs(ents.FindByClass("weapon_*")) do
+			if IsValid(ent) and ent:IsWeapon() and ent:GetClass() ~= "weapon_physcannon" and (!IsValid(ent:GetOwner()) or (IsValid(ent:GetOwner()) and ent:GetOwner():IsPlayer())) then
 				ent:Remove()
-			
 			end
-		
 		end
-	
 	end
-
 end
-hook.Add( "Think", "hl2cThink", hl2cThink )
+hook.Add("Think", "hl2cThink", hl2cThink)
 
 
-if ( !game.SinglePlayer() ) then
-
+if !game.SinglePlayer() then
 	-- Update player position to the vehicle
 	function hl2cUpdatePlayerPosition()
-	
-		for _, ply in ipairs( team.GetPlayers( TEAM_ALIVE ) ) do
-		
-			if ( IsValid( ply ) && IsValid( ents.FindByName( "pod" )[ 1 ] ) && ply:Alive() ) then
-			
-				ply:SetPos( ents.FindByName( "pod" )[ 1 ]:GetPos() )
-			
+		for _, ply in ipairs(player.GetLiving()) do
+			if IsValid(ply) and IsValid(ents.FindByName("pod")[1]) and ply:Alive() then
+				ply:SetPos(ents.FindByName("pod")[1]:GetPos())
 			end
-		
 		end
-	
 	end
-	timer.Create( "hl2cUpdatePlayerPosition", 0.1, 0, hl2cUpdatePlayerPosition )
-
+	timer.Create("hl2cUpdatePlayerPosition", 0.1, 0, hl2cUpdatePlayerPosition)
 end

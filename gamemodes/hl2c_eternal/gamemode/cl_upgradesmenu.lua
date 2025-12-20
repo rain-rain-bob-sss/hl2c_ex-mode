@@ -72,7 +72,7 @@ function GM:UpgradesMenu()
 			perkdesc:SetFont("TargetIDSmall")
 			perkdesc:SetPos(0, 35)
 			local desc = string.format(isfunction(v.Description) and v.Description(LocalPlayer()) or v.Description,
-			math.Round((LocalPlayer():GetEternityUpgradeEffectValue(k, 1) - 1) * 100))
+			infmath.Round((LocalPlayer():GetEternityUpgradeEffectValue(k, 1) - 1) * 100))
 			perkdesc:SetText(desc)
 
 			perkdesc:SetToolTip(desc)
@@ -91,26 +91,26 @@ function GM:UpgradesMenu()
 
 			local perkcost = vgui.Create("DLabel", perkpanel)
 			perkcost:SetFont("TargetIDSmall")
-			perkcost:SetText("Cost: "..math.Round(LocalPlayer():GetEternityUpgradeCost(k), 2))
+			perkcost:SetText(Format("Cost: %s", infmath.Round(LocalPlayer():GetEternityUpgradeCost(k), 2)))
 	        perkcost:SetPos(10, 72)
 			perkcost:SetSize(size_x - 20, 15)
 			perkcost:SetWrap(true)
 			perkcost:SetColor(Color(155,155,255,255))
 			perkcost.Think = function(panel)
-				local txt = "Cost: "..math.Round(LocalPlayer():GetEternityUpgradeCost(k), 2)
+				local txt = Format("Cost: %s", infmath.Round(LocalPlayer():GetEternityUpgradeCost(k), 2))
 				if panel:GetText() == txt then return end
 				panel:SetText(txt)	
 			end
 
 			local perkeffect = vgui.Create("DLabel", perkpanel)
 			perkeffect:SetFont("TargetIDSmall")
-			perkeffect:SetText("Current effect: "..math.Round(LocalPlayer():GetEternityUpgradeEffectValue(k)*100).."%")
+			perkeffect:SetText(Format("Current effect: %s%%", infmath.Round(LocalPlayer():GetEternityUpgradeEffectValue(k)*100)))
 	        perkeffect:SetPos(10, 90)
 			perkeffect:SetSize(size_x - 20, 15)
 			perkeffect:SetWrap(true)
 			perkeffect:SetColor(Color(155,255,255,255))
 			perkeffect.Think = function(panel)
-				local txt = "Current effect: "..math.Round(LocalPlayer():GetEternityUpgradeEffectValue(k)*100).."%"
+				local txt = Format("Current effect: %s%%", infmath.Round(LocalPlayer():GetEternityUpgradeEffectValue(k)*100))
 				if panel:GetText() == txt then return end
 				panel:SetText(txt)	
 			end
@@ -137,6 +137,7 @@ function GM:UpgradesMenu()
 				net.WriteString("once")
 				net.SendToServer()
 			end
+			buyupg_once.DoDoubleClick = buyupg_once.DoClick
 
 			local buyupg_max = vgui.Create("DButton", perkpanel)
 			buyupg_max:SetSize(size_x/3 - 20, 30)

@@ -17,33 +17,33 @@ function GM:CMenu()
 		local alpha = 125
 		local x,y,y_add = 220,140,18
 		local xp,reqxp = pl.XP, self:GetReqXP(pl)
-		draw.DrawText("Moneys: "..FormatNumber(pl.Moneys), "TargetIDSmall", x, y, Color(205,255,205,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText(Format("Moneys: %s", FormatNumber(infmath.Round(pl.Moneys, -2))), "TargetIDSmall", x, y, Color(205,255,205,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("XP: "..FormatNumber(xp).." / "..FormatNumber(reqxp)..(xp < InfNumber(MAX_NUMBER) and " ("..FormatNumber(infmath.Round(xp/reqxp* 100,2)).."%)" or ""), "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText(Format("XP: %s / %s%s", FormatNumber(xp), FormatNumber(reqxp), xp < InfNumber(MAX_NUMBER) and " ("..FormatNumber(infmath.Round(xp/reqxp* 100,2)).."%)" or ""), "TargetIDSmall", x, y, xp>=reqxp and Color(105,255,105,alpha) or Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("Level: "..tostring(pl.Level), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText(Format("Level: %s", infmath.Round(pl.Level)), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
-		draw.DrawText("Skill Points: "..FormatNumber(pl.StatPoints), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
+		draw.DrawText("Skill Points: "..FormatNumber(infmath.Round(pl.StatPoints)), "TargetIDSmall", x, y, Color(255,255,255,alpha), TEXT_ALIGN_LEFT)
 		y = y + y_add
 
 		if pl:HasPrestigeUnlocked() then
-			draw.DrawText("Prestige: "..FormatNumber(pl.Prestige), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Prestige: %s", FormatNumber(pl.Prestige)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText("Prestige Points: "..FormatNumber(pl.PrestigePoints), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Prestige Points: %s", FormatNumber(pl.PrestigePoints)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
 		if pl:HasEternityUnlocked() then
-			draw.DrawText("Eternities: "..FormatNumber(pl.Eternities), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Eternities: %s", FormatNumber(pl.Eternities)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText("Eternity Points: "..FormatNumber(pl.EternityPoints), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Eternity Points: %s", FormatNumber(pl.EternityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
 		if pl:HasCelestialityUnlocked() then
-			draw.DrawText("Celestialities: "..FormatNumber(pl.Celestiality), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Celestialities: %s", FormatNumber(pl.Celestiality)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText("Celestiality Points: "..FormatNumber(pl.CelestialityPoints), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Celestiality Points: %s", FormatNumber(pl.CelestialityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
@@ -195,9 +195,6 @@ function GM:CMenu()
 		end
 		perks.DoClick = function()
 			gamemode.Call("PerksMenu")
-
-			chat.AddText(Color(255,0,0), "PERKS DO NOT WORK IN THIS VERSION")
-			chat.AddText(Color(255,128,0), "because i need to recode the perks after renaming them and adding the break infinity code")
 			ContextMenu:Close()
 		end
 	end

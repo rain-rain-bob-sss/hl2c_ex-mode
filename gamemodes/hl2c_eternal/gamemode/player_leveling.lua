@@ -2,14 +2,14 @@ local meta = FindMetaTable("Player")
 
 function meta:GiveXP(xp, nomul)
     local xpmul = InfNumber(1)
-    xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("better_knowledge_1") and 0.065 or 0.05) or 0.03))
+    xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("1_better_knowledge") and 0.065 or 0.05) or 0.03))
 
     if GAMEMODE.EndlessMode then
-        if self:HasPerkActive("difficult_decision_1") then
+        if self:HasPerkActive("1_difficult_decision") then
             xpmul = xpmul * 1.1
         end
 
-        if self:HasPerkActive("aggressive_gameplay_1") then
+        if self:HasPerkActive("1_aggressive_gameplay") then
             xpmul = xpmul * 1.35
         end
     end
@@ -37,6 +37,8 @@ function meta:GiveXP(xp, nomul)
     net.WriteInfNumber(xpgain)
     net.Send(self)
     GAMEMODE:NetworkString_UpdateStats(self)
+
+    return xpgain
 end
 
 function meta:GainLevel()
@@ -56,13 +58,14 @@ function meta:GainLevel()
             if not self:CanLevelup() or infmath.ConvertInfNumberToNormalNumber(self.Level) >= self:GetMaxLevel() then break end
             self.XP = self.XP - GAMEMODE:GetReqXP(self)
             self.Level = self.Level + 1
+            local normallvl = infmath.ConvertInfNumberToNormalNumber(self.Level)
             self.StatPoints = self.StatPoints + (
-                self:HasCelestialityUnlocked() and (self.Level >= 100 and 2 or 5) or
-                self:HasEternityUnlocked() and (self.Level >= 100 and 1 or 3) or self:HasPrestigeUnlocked() and 2 or 1
+                self:HasCelestialityUnlocked() and (normallvl >= 100 and 2 or 5) or
+                self:HasEternityUnlocked() and (normallvl >= 100 and 1 or 3) or self:HasPrestigeUnlocked() and 2 or 1
             )
         end
 
-        if self:HasPerkActive("skills_improver_2") then
+        if self:HasPerkActive("2_skills_improver") then
             local equalspuse = math.floor(self.StatPoints / table.Count(GAMEMODE.SkillsInfo))
             for id,count in pairs(self.Skills) do
                 if count >= self:GetMaxSkillLevel(id) then continue end
@@ -90,7 +93,7 @@ function meta:GainPrestige()
         local prevlvl = self.Prestige
         local prevprestigeunlocked = self:HasPrestigeUnlocked()
         local gainmul = self:GetPrestigeGainMul()
-        self.XP = self.XP * (self:HasPerkActive("prestige_improvement_2") and 0.25 or self:HasPerkActive("prestige_improvement_1") and 0.15 or 0)
+        self.XP = self.XP * (self:HasPerkActive("2_prestige_improvement_2") and 0.25 or self:HasPerkActive("prestige_improvement_1") and 0.15 or 0)
         self.XPUsedThisPrestige = 0
         self.Level = 1
         self.StatPoints = 0
@@ -127,7 +130,7 @@ function meta:GainEternity()
         self.Level = 1
         self.StatPoints = 0
         self.Prestige = 0
-        self.PrestigePoints = self:HasPerkActive("perk_points_2") and 12 or 0
+        self.PrestigePoints = self:HasPerkActive("2_perk_points") and 12 or 0
         self.Eternities = self.Eternities + 1
         self.EternityPoints = self.EternityPoints + 1
 
@@ -135,7 +138,7 @@ function meta:GainEternity()
             local perk = GAMEMODE.PerksData[id]
             if not perk then continue end
             if perk.PrestigeLevel <= 1 then
-                if self:HasPerkActive("prestige_improvement_2") then
+                if self:HasPerkActive("2_prestige_improvement_2") then
                     self.PrestigePoints = self.PrestigePoints - perk.Cost
                 else
                     self.UnlockedPerks[id] = nil
@@ -188,7 +191,7 @@ function meta:GainCelestiality()
         self.Level = 1
         self.StatPoints = 0
         self.Prestige = 0
-        self.PrestigePoints = self:HasPerkActive("perk_points_2") and 12 or 0
+        self.PrestigePoints = self:HasPerkActive("2_perk_points") and 12 or 0
         self.Celestiality = self.Celestiality + 1
         self.CelestialityPoints = self.CelestialityPoints + 1
 
@@ -196,7 +199,7 @@ function meta:GainCelestiality()
             local perk = GAMEMODE.PerksData[id]
             if not perk then continue end
             if perk.PrestigeLevel <= 1 then
-                if self:HasPerkActive("prestige_improvement_2") then
+                if self:HasPerkActive("2_prestige_improvement_2") then
                     self.PrestigePoints = self.PrestigePoints - perk.Cost
                 else
                     self.UnlockedPerks[id] = nil

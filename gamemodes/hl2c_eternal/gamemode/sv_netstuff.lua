@@ -138,7 +138,7 @@ net.Receive("hl2ce_buyupgrade", function(len, ply)
     local function BuyUpgrade(ply, upg)
         local cost = ply:GetEternityUpgradeCost(upg)
 
-		if ply.Moneys >= cost then
+		if ply.Moneys:log10() >= cost:log10() then
 			ply.EternityUpgradeValues[upg] = ply.EternityUpgradeValues[upg] + 1
 			ply.Moneys = ply.Moneys - cost
             return true
@@ -149,7 +149,7 @@ net.Receive("hl2ce_buyupgrade", function(len, ply)
     if buy == "once" then
         local success = BuyUpgrade(ply, upg)
     elseif buy == "max" then
-        for i=1,1000 do
+        for i=1,1e5 do
             local success = BuyUpgrade(ply, upg)
             if not success then
                 break

@@ -152,7 +152,9 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 
 
 	if attacker:IsNPC() then
-		ply:PrintMessage(3, "Died by "..Format("#%s", attacker:GetClass()))
+		net.Start("hl2ce_playerkilled")
+		net.WriteString(attacker:GetClass())
+		net.Send(ply)
 	end
 	
 	local diff = self:GetDifficulty(true, true)
@@ -322,7 +324,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		-- print("increase damage", ent:IsFriendlyNPC(), attacker:IsFriendlyNPC())
 		if not ispoisonheadcrab then
 			damage = damage * self:GetDifficulty()^0.7
-		elseif ent:IsPlayer() and ent:HasPerkActive("antipoison_1") then
+		elseif ent:IsPlayer() and ent:HasPerkActive("1_antipoison") then
 			damage = damage - math.min(self.EndlessMode and 100 or 25, ent:Health()/2)
 		end
 	end
@@ -336,7 +338,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 	if ent:IsPlayer() and attacker:IsNPC() and not dmgdirect then
 		local chance = (10 + math.max(0, (ent:GetMaxHealth()*0.75 - ent:Health())/ent:GetMaxHealth()*10)) / math.Clamp(1.1^math.max(0, ent.UnoReverseTimesActivated), 0, 100)
-		if ent:HasPerkActive("uno_reverse_3") and ent:Health() <= ent:GetMaxHealth()*0.75 and math.Rand(1,100) <= chance then
+		if ent:HasPerkActive("3_uno_reverse") and ent:Health() <= ent:GetMaxHealth()*0.75 and math.Rand(1,100) <= chance then
 			local d = DamageInfo()
 			d:SetDamage(damage)
 			d:SetDamageType(DMG_DIRECT)
@@ -354,7 +356,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	end
 
 	if ent:IsNPC() and attacker:IsPlayer() and not dmgdirect then
-		if attacker:HasPerkActive("damage_of_eternity_2") then
+		if attacker:HasPerkActive("2_damage_of_eternity") then
 			if math.random(100) <= 15 then
 				local delayed = infmath.ConvertInfNumberToNormalNumber(damage)*2
 				if ent.DelayedDamage then
@@ -366,7 +368,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			end
 		end
 
-		if attacker:HasPerkActive("vampiric_killer_2") then
+		if attacker:HasPerkActive("2_vampiric_killer") then
 			local heal = math.ceil(math.min(ent:Health(), damage)*0.2)
 			attacker:SetHealth(math.min(attacker:Health() + heal, attacker:GetMaxHealth()))
 		end
@@ -377,7 +379,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		local diff = self:GetDifficulty()^0.1
 		local diff2 = infmath.min(1e200, infmath.max(1, diff/1e10)^0.1)
 
-		damage = damage * infmath.min(diff, 1e5) * 1e200
+		damage = damage * infmath.min(diff, 1e5) * diff2
 	end
 
 	infmath.ConvertInfNumberToNormalNumber(damage)
@@ -526,6 +528,8 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_boss")
 	util.AddNetworkString("hl2ce_music")
 	util.AddNetworkString("hl2ce_fail")
+	util.AddNetworkString("hl2ce_map_event")
+	util.AddNetworkString("hl2ce_playerkilled")
 
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
@@ -669,7 +673,7 @@ end
 function GM:PlayerCompletedCampaign(ply)
 	if !(ply and ply:IsValid()) then return end
 	local map = game.GetMap()
-	local gamename = ""
+	local gamename = "[INVALID]"
 	if map == "d3_breen_01" then
 		gamename = "Half-Life 2"
 	elseif map == "ep1_c17_06" then
@@ -678,12 +682,13 @@ function GM:PlayerCompletedCampaign(ply)
 		gamename = "Half-Life 2: Episode Two"
 	end
 
-	local xp = (1 + math.max(0, 2-math.log10(ply:Frags()))*0.2)
+	local xp = 1 + (2+math.max(0, math.log10(ply:Frags()))*0.2)
 	if ply.MapStats.GainedXP then
 		xp = xp * ply.MapStats.GainedXP*0.15
 	end
-	ply:PrintMessage(3, "Congratulations - you have completed "..gamename)
-	ply:PrintMessage(3, "You were awarded "..xp.." XP")
+
+	ply:PrintMessage(3, Format("Congratulations - you have completed %s", gamename))
+	ply:PrintMessage(3, Format("You were awarded %s XP", ply:GiveXP(xp)))
 end
 
 
@@ -853,27 +858,23 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			local npcxpmul = npc.XPGainMult or 1
 
 			local gainfromdifficultymul = infmath.min(difficulty^0.8, killer:GetMaxDifficultyXPGainMul())
-			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and (infmath.ConvertInfNumberToNormalNumber(nonmoddiff) >= 6.50 and 1.55 or 1.3) or !self.EndlessMode and 1.25) or 1
+			local better_knowledge_gain = killer:HasPerkActive("1_better_knowledge") and (self.EndlessMode and (infmath.ConvertInfNumberToNormalNumber(nonmoddiff) >= 6.50 and 1.55 or 1.3) or !self.EndlessMode and 1.25) or 1
 			local xpmul = gainfromdifficultymul * npckillxpmul * npcxpmul * better_knowledge_gain
 
 			if killer:GetSkillAmount("Knowledge") > 15 then
 				npckilldiffgainmul = npckilldiffgainmul * (1 + (killer:GetSkillAmount("Knowledge")-15)*0.02)
 			end
 			if self.EndlessMode then
-				if killer:HasPerkActive("difficult_decision_2") then
-					xpmul = xpmul * 1.45
-				end
-
-
-				if killer:HasPerkActive("difficult_decision_1") then
+				if killer:HasPerkActive("1_difficult_decision") then
 					npckilldiffgainmul = npckilldiffgainmul * 1.75
 				end
 
-				if killer:HasPerkActive("aggressive_gameplay_1") then
+				if killer:HasPerkActive("1_aggressive_gameplay") then
 					npckilldiffgainmul = npckilldiffgainmul * 2.3
 				end
 
-				if killer:HasPerkActive("difficult_decision_2") then
+				if killer:HasPerkActive("2_difficult_decision") then
+					xpmul = xpmul * 1.45
 					npckilldiffgainmul = npckilldiffgainmul * 3.35
 				end
 			end
@@ -885,10 +886,10 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			local moneys = NPC_MONEYS_VALUES[npcclass]
 			local npckillxpmul,npckilldiffgainmul = self.MoneysGainOnNPCKillMul or 1
 			local npcxpmul = npc.MoneyGainMult or 1
-			killer:GiveMoneysGain(infmath.Round(NPC_MONEYS_VALUES[npcclass]*(difficulty^0.25)))
+			killer:GiveMoneysGain(infmath.Round(NPC_MONEYS_VALUES[npcclass]*(infmath.min(killer:GetMaxDifficultyMoneyGainMul(), difficulty)^0.25)))
 		end
 
-		if killer:HasPerkActive("vampiric_killer_1") then
+		if killer:HasPerkActive("2_vampiric_killer") then
 			if self.EndlessMode then
 				killer:SetHealth(math.min(killer:GetMaxHealth(), killer:Health() + math.min(50, killer:GetMaxHealth()*0.04)))
 			else
@@ -980,7 +981,7 @@ function GM:PlayerCanPickupItem(ply, item)
 	end
 	local class = item:GetClass()
 	if class == "item_healthkit" then
-		if ply:HasPerkActive("medkit_enhancer_3") then
+		if ply:HasPerkActive("3_medkit_enhancer") then
 			if ply:Health() < ply:GetMaxHealth() then
 				timer.Simple(0, function() -- using a timer bcoz directly trying to set health while calling the hook won't really work much well
 					-- but even with timer sethealth will still be called 1 tick later (Troublesome, no?)
@@ -1371,14 +1372,14 @@ function GM:PlayerSpawn(ply)
 
 	local maxhp = ply:GetOriginalMaxHealth()
 	local maxap = 100 -- calculate their max armor
-	if ply:HasPerkActive("super_armor_1") then
+	if ply:HasPerkActive("1_super_armor") then
 		maxap = maxap + (self.EndlessMode and 30 or 5)
 	end
 	if self.EndlessMode then
-		if ply:HasPerkActive("hyper_armor_2") then
+		if ply:HasPerkActive("2_hyper_armor") then
 			maxap = maxap + 100
 		end
-		if ply:HasPerkActive("celestial_3") then
+		if ply:HasPerkActive("3_celestial") then
 			maxap = maxap + 80
 		end
 	end
@@ -1741,7 +1742,7 @@ function GM:Think()
 		SecondTick = CurTime() + 1
 
 		for _,ply in ipairs(player.GetAll()) do
-			if ply:HasPerkActive("hyper_armor_2") then
+			if ply:HasPerkActive("2_hyper_armor") then
 				if ply:WaterLevel() < 3 and ply:GetSuitPower() < 100 then
 					ply:SetSuitPower(math.min(100, ply:GetSuitPower() + 1))
 					ply.HyperArmorCharge = 0

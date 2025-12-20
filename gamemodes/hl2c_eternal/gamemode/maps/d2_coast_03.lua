@@ -39,7 +39,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput(ent, input)
+function hl2cAcceptInput(ent, input, activator)
 
 	if ( !game.SinglePlayer() && ( ent:GetName() == "aisc_ingreeterrange" ) && string.lower(input) == "enable" ) then
 	
@@ -103,36 +103,31 @@ function hl2cAcceptInput(ent, input)
 		ALLOWED_VEHICLE = nil
 		PrintMessage( HUD_PRINTTALK, "Vehicle spawning has been disabled." )
 	
-		for _, ply in ipairs(player.GetAll()) do
-		
-			if ( !IsValid( ply.vehicle ) && !ply:InVehicle() ) then
-			
-				ply:SetVelocity( Vector( 0, 0, 0 ) )
-				ply:SetPos( Vector( 8755, 4055, 257 ) )
-				ply:SetEyeAngles( Angle( 0, 0, 0 ) )
-			
+		for _, ply in ipairs(player.GetLiving()) do
+			if ply == activator then continue end
+			if IsValid(ply.vehicle) or !ply:InVehicle() then
+				ply:ExitVehicle()
+				ply:RemoveVehicle()
 			end
-		
+
+			ply:SetVelocity(Vector(0, 0, 0))
+			ply:SetPos(Vector(8755, 4055, 257))
+			ply:SetEyeAngles(Angle(0, 0, 0))
 		end
-		GAMEMODE:CreateSpawnPoint( Vector( 8755, 4055, 257 ), 0 )
-	
+
+		GAMEMODE:ReplaceSpawnPoint(Vector(8755, 4055, 257), 0)
+		ent:Fire("kill")
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "spawner_rpg" ) && ( string.lower(input) == "forcespawn" ) ) then
-	
+	if !game.SinglePlayer() && ( ent:GetName() == "spawner_rpg" ) && ( string.lower(input) == "forcespawn" ) then
 		for _, ply in ipairs(player.GetAll()) do
-		
-			ply:Give( "weapon_rpg" )
-		
+			ply:Give("weapon_rpg")
 		end
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "lr_odessa_goodbye" ) && ( string.lower(input) == "trigger" ) ) then
-	
+	if !game.SinglePlayer() and ent:GetName() == "lr_odessa_goodbye" and string.lower(input) == "trigger" then
 		ALLOWED_VEHICLE = "Jeep"
 		PrintMessage( HUD_PRINTTALK, "You're now allowed to spawn the Jeep (F3)." )
-	
 	end
 
 end

@@ -115,3 +115,8 @@ net.Receive("hl2ce_fail", function(len)
 
     chat.AddText(Color(255,0,0), s1, " - ", Color(200,50,50), s2)
 end)
+
+net.Receive("hl2ce_playerkilled", function(len)
+    chat.AddText("Killed by ", Color(255,0,0), language.GetPhrase(net.ReadString()))
+end)
+

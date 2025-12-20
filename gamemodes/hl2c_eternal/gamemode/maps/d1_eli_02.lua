@@ -170,6 +170,14 @@ function hl2cAcceptInput(ent, input, activator)
 			PrintMessage(3, "YOU FUCKED UP")
 		end
 
+		if ent:GetClass() == "env_headcrabcanister" and inputlower == "firecanister" then
+			PrintMessage(3, "YOU FUCKED UP")
+		end
+
+		if ent:GetClass() == "env_explosion" and inputlower == "explode" then
+			PrintMessage(3, "YOU FUCKED UP")
+		end
+
 		if entname == "relay_found_HEVplate" and inputlower == "trigger" then
 			local eff = EffectData()
 			eff:SetOrigin(activator:GetPos())

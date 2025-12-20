@@ -166,17 +166,20 @@ function GM:HUDPaint()
 		local l = 0
 		
 
-		local c = d_normal >= 1e33 and Color(255,0,255) or
-			d_normal >= 1e6 and Color(255,0,0) or
+		local c = d_normal >= 1e63 and HSVToColor(SysTime()*math.log10(d_normal)^1.15, 1, 1) or
+			d_normal >= 1e33 and HSVToColor((math.log10(d_normal)-33)*(65*(math.log10(d_normal)-30)), 1, 1) or
+			d_normal >= 1e6 and HSVToColor((math.log10(d_normal)-6)*(13+1/3), 1, 1) or
 			colordifference
 
 		c.a = colordifference.a
 		if d >= InfNumber(math.huge) then
+			-- I know it's unoptimal, but frick it
 			for i=1,#s do
 				local r = math.Rand(0.5, 1)
 				c = HSVToColor((SysTime()*(60+math.log10(d:log10()*100)*10) + (
-					d:log10() > 1000 and -math.sin(l/5)*10*(math.log10(d:log10())-2) or l/3
-			))%360, 1, 1)
+					d:log10() > 6969 and -math.sin(l/5)*10*(math.log10(d:log10())-2) or l/(3/math.max(1, (d:log10()-308)^0.8/100))
+			))%360, d:log10() > 1e6 and 0.8+math.sin(SysTime()*0.6+l/5)/5 or 1,
+			d:log10() > 1e9 and 0.8+math.sin(SysTime()+l/5)/5 or 1)
 
 				draw.DrawText(s[i], "TargetIDSmall", ScrW() / 2 - len/2 + l, ScrH() / 6, c, TEXT_ALIGN_LEFT)
 				l = l + surface.GetTextSize(s[i])
