@@ -198,7 +198,8 @@ function GM:HUDPaint()
 		if not self.DifficultyDifferenceTimeChange then
 			self.DifficultyDifferenceTimeChange = 0
 		end
-		colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (self.DifficultyDifference < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0)) or Color(255, 220, 0)
+
+		colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (diff_difference < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0)) or Color(255, 220, 0)
 		colordifference.a = 155
 
 		local d = self:GetDifficulty() * 100
