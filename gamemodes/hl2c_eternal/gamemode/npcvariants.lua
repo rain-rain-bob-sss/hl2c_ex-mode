@@ -80,9 +80,13 @@ function HL2cEX_NPCVariantSpawn(ent)
 		ent.VariantType = math.random(1,5) --make antlion guard variant less common
 		if ent.VariantType == 5 then
 			ent.ent_Color = Color(0,255,0)
-			ent.ent_MaxHealthMul = 2
-			ent.ent_HealthMul = 2
-			ent.XPGainMult = 2.2
+			ent.ent_MaxHealthMul = 1.1
+			ent.ent_HealthMul = 1.1
+			ent.XPGainMult = 1.3
+	 else
+			ent.ent_MaxHealthMul = 1.3
+			ent.ent_HealthMul = 1.3
+			ent.XPGainMult = 1.4
 		end
 	elseif ent:GetClass() == "npc_cscanner" or ent:GetClass() == "npc_clawscanner" then
 		if ent.VariantType == 1 then
@@ -151,14 +155,6 @@ function HL2cEX_NPCVariantKilled(ent, attacker)
 		end
 	elseif ent:GetClass() == "npc_sniper" then
 		PrintMessage(3, "WTF YOU KILLED HIM!")
-	elseif ent:GetClass() == "npc_antlionguard" then
-		if ent.VariantType == 5 then
-			local entdrop = ents.Create("weapon_hl2ce_medkit")
-			entdrop:SetPos(ent:GetPos() + Vector(0, 0, 50))
-			entdrop:SetAngles(ent:GetAngles())
-			entdrop:Spawn()
-			entdrop:Activate()
-		end
 	elseif ent:GetClass() == "npc_poisonzombie" then
 		if ent.VariantType == 1 then
 			local entdrop = ents.Create("npc_headcrab_poison")

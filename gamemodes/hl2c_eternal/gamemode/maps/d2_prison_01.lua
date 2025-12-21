@@ -18,7 +18,7 @@ hook.Add( "PlayerInitialSpawn", "hl2cPlayerInitialSpawn", hl2cPlayerInitialSpawn
 
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -33,7 +33,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities

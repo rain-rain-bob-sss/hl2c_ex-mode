@@ -7,7 +7,7 @@ NEXT_MAP = "d2_coast_11"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -21,7 +21,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_crossbow" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -43,21 +43,21 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "greeter_briefing_conditions" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "greeter_briefing_conditions" ) && string.lower(input) == "enable" ) then
 	
 		if ( IsValid( ents.FindByName( "briefing_relay" )[ 1 ] ) ) then ents.FindByName( "briefing_relay" )[ 1 ]:Fire( "Trigger" ) end
 		return true
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "garage_door" ) && ( string.lower( input ) == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "garage_door" ) && ( string.lower(input) == "close" ) ) then
 	
 		ALLOWED_VEHICLE = nil
 		PrintMessage( HUD_PRINTTALK, "Vehicle spawning has been disabled." )
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			if ( ply:InVehicle() ) then ply:ExitVehicle() end
 			ply:RemoveVehicle()
@@ -70,14 +70,14 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "lighthouse_secret_door" ) && ( string.lower( input ) == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "lighthouse_secret_door" ) && ( string.lower(input) == "close" ) ) then
 	
 		return true
 	
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 
 if ( !game.SinglePlayer() ) then

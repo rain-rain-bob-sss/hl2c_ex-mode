@@ -10,7 +10,7 @@ if CLIENT then return end
 
 -- Player spawns
 
-hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
+hook.Add("PlayerReady", "hl2cPlayerReady", function(ply)
 	if !GAMEMODE.EXMode then return end
 	timer.Simple(1, function()
 		-- ply:SendLua([[chat.AddText("You take greatly increased damage to bullets up to 6x more on this map.") chat.AddText("Take shelter!")]])
@@ -20,99 +20,75 @@ hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
 end)
 
 
-function hl2cPlayerSpawn( ply )
-
+function hl2cPlayerSpawn(ply)
 	ply:RemoveSuit()
-	timer.Simple( 0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end )
+	timer.Simple(0.01, function()
+		if !IsValid(ply) then return end
+		GAMEMODE:SetPlayerSpeed(ply, 150, 150)
+	end)
 
-	if ( !game.SinglePlayer() && IsValid( PLAYER_VIEWCONTROL ) && ( PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) ) then
-	
-		ply:SetViewEntity( PLAYER_VIEWCONTROL )
-		ply:Freeze( true )
-	
+	if !game.SinglePlayer() && IsValid(PLAYER_VIEWCONTROL) && PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" then
+		ply:SetViewEntity(PLAYER_VIEWCONTROL)
+		ply:Freeze(true)
 	end
 
 	timer.Simple(0, function()
 		ply:SetHealth(ply:GetMaxHealth())
 	end)
-
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
 function hl2cMapEdit()
+	if !game.SinglePlayer() then
+		ents.FindByName("kickdown_relay")[1]:Remove()
 
-	if ( !game.SinglePlayer() ) then
-	
-		ents.FindByName( "kickdown_relay" )[ 1 ]:Remove()
-	
-		for _, ent in ipairs( ents.GetAll() ) do
-		
-			if ( ent:GetPos() == Vector( -7818, -4128, -176 ) ) then ent:Remove(); end
-		
+		for _, ent in ipairs(ents.GetAll()) do
+			if ent:GetPos() == Vector(-7818, -4128, -176) then
+				ent:Remove()
+			end
 		end
-	
 	end
-
 end
-hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
+hook.Add("MapEdit", "hl2cMapEdit", hl2cMapEdit)
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
-
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "point_viewcontrol" ) ) then
-	
-		if ( string.lower( input ) == "enable" ) then
-		
+function hl2cAcceptInput(ent, input)
+	if !game.SinglePlayer() && ent:GetClass() == "point_viewcontrol" then
+		if string.lower(input) == "enable" then
 			PLAYER_VIEWCONTROL = ent
-		
-			for _, ply in ipairs( player.GetAll() ) do
-			
+			for _, ply in ipairs(player.GetAll()) do
 				ply:SetViewEntity( ent )
-				ply:Freeze( true )
-			
+				ply:Freeze(true)
 			end
 		
-			if ( !ent.doubleEnabled ) then
-			
+			if !ent.doubleEnabled then
 				ent.doubleEnabled = true
-				ent:Fire( "Enable" )
-			
+				ent:Fire("Enable")
 			end
-		
-		elseif ( string.lower( input ) == "disable" ) then
-		
+		elseif string.lower(input) == "disable" then
+
 			PLAYER_VIEWCONTROL = nil
-		
 			for _, ply in ipairs( player.GetAll() ) do
-			
 				ply:SetViewEntity( ply )
 				ply:Freeze( false )
-			
 			end
-		
+
 			return true
-		
 		end
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "lcs_alyxgreet02" ) && ( string.lower( input ) == "start" ) ) then
-	
-		for _, ply in pairs( player.GetAll() ) do
-		
+	if !game.SinglePlayer() and ent:GetName() == "lcs_alyxgreet02" and string.lower(input) == "start" then
+		for _, ply in ipairs(player.GetAll()) do
 			ply:SetPos( Vector( -7740, -3960, 407 ) )
 			ply:SetEyeAngles( Angle( 0, 0, 0 ) )
 			ply:SetFOV( 0, 1 )
-		
 		end
-	
 	end
-
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 function hl2cEntityTakeDamage(ent, dmginfo)
 	if !GAMEMODE.EXMode then return end

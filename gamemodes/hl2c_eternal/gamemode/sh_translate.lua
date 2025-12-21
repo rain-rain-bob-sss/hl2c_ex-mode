@@ -69,7 +69,7 @@ if SERVER then
 	end
 
 	function PrintTranslatedMessage(printtype, str, ...)
-		for _, pl in pairs(player.GetAll()) do
+		for _, pl in ipairs(player.GetAll()) do
 			pl:PrintMessage(printtype, translate.ClientFormat(pl, str, ...))
 		end
 	end

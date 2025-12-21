@@ -2,25 +2,27 @@ local meta = FindMetaTable("Player")
 
 function meta:GiveXP(xp, nomul)
     local xpmul = self:GetXPMul(nomul)
-
-    self.XP = self.XP + xp*xpmul
+    local xpgain = xp * xpmul
+    self.XP = self.XP + xpgain
     if self.MapStats then
-        self.MapStats.GainedXP = (self.MapStats.GainedXP or 0) + xp*xpmul
+        self.MapStats.GainedXP = (self.MapStats.GainedXP or 0) + xpgain
     end
-    if self.XP >= GAMEMODE:GetReqXP(self) and tonumber(self.Level) < self:GetMaxLevel() then
+    if self.XP >= GAMEMODE:GetReqXP(self) and infmath.ConvertInfNumberToNormalNumber(self.Level) < self:GetMaxLevel() then
         self:GainLevel()
     end
 
     net.Start("XPGain")
-    net.WriteFloat(xp*xpmul)
+    net.WriteInfNumber(xpgain)
     net.Send(self)
     GAMEMODE:NetworkString_UpdateStats(self)
+
+    return xpgain
 end
 
 function meta:GainLevel()
     if self.IsLevelingup then return end
-    if tonumber(self.Level) >= self:GetMaxLevel() then
-        if tonumber(self.Prestige) >= MAX_PRESTIGE then
+    if infmath.ConvertInfNumberToNormalNumber(self.Level) >= self:GetMaxLevel() then
+        if infmath.ConvertInfNumberToNormalNumber(self.Prestige) >= MAX_PRESTIGE then
             self:PrintMessage(HUD_PRINTTALK, "Prestige is maxed. Become Eternal.")
         else
            self:PrintMessage(HUD_PRINTTALK, "Level is maxed. You must prestige to go further.")
@@ -29,29 +31,31 @@ function meta:GainLevel()
         local prevlvl = self.Level
         local prevxp, xp = self.XP, self.XPUsedThisPrestige
         local gainedsp = 0
-        for i=1,1e4 do
-            if not self:CanLevelup() or self.Level >= self:GetMaxLevel() then break end
+
+        for i=1,1e3 do
+            if not self:CanLevelup() or infmath.ConvertInfNumberToNormalNumber(self.Level) >= self:GetMaxLevel() then break end
             self.XP = self.XP - GAMEMODE:GetReqXP(self)
             self.Level = self.Level + 1
+            local normallvl = infmath.ConvertInfNumberToNormalNumber(self.Level)
             self.StatPoints = self.StatPoints + (
-                self:HasCelestialityUnlocked() and (self.Level >= 100 and 2 or 5) or
-                self:HasEternityUnlocked() and (self.Level >= 100 and 1 or 3) or self:HasPrestigeUnlocked() and 2 or 1
+                self:HasCelestialityUnlocked() and (normallvl >= 100 and 2 or 5) or
+                self:HasEternityUnlocked() and (normallvl >= 100 and 1 or 3) or self:HasPrestigeUnlocked() and 2 or 1
             )
         end
 
-        if self:HasPerkActive("skills_improver_2") then
+        if self:HasPerkActive("2_skills_improver") then
             local equalspuse = math.floor(self.StatPoints / table.Count(GAMEMODE.SkillsInfo))
-            for id,_ in pairs(GAMEMODE.SkillsInfo) do
-                if self["Stat"..id] >= self:GetMaxSkillLevel(id) then continue end
-                local new = math.min(self["Stat"..id] + equalspuse, self:GetMaxSkillLevel(id))
-                local used = new - self["Stat"..id]
-                self["Stat"..id] = new
+            for id,count in pairs(self.Skills) do
+                if count >= self:GetMaxSkillLevel(id) then continue end
+                local new = math.min(count + equalspuse, self:GetMaxSkillLevel(id))
+                local used = new - count
+                self.Skills[id] = new
                 self.StatPoints = self.StatPoints - used
             end
         end
         self.XPUsedThisPrestige = prevxp + xp - self.XP
-        if not self:HasEternityUnlocked() then
-            self:PrintMessage(HUD_PRINTTALK, Format("Level increased: %i --> %i", prevlvl, self.Level))
+        if not self:HasEternityUnlocked() and not self:CanLevelup() then
+            self:PrintMessage(HUD_PRINTTALK, Format("Level increased: %s --> %s", tostring(prevlvl), tostring(self.Level)))
         end
         GAMEMODE:NetworkString_UpdateStats(self)
         GAMEMODE:NetworkString_UpdateSkills(self)
@@ -63,20 +67,20 @@ function meta:GainLevel()
 end
 
 function meta:GainPrestige()
-    if self:CanPrestige() and self.Prestige < self:GetMaxPrestige() then
+    if self:CanPrestige() and infmath.ConvertInfNumberToNormalNumber(self.Prestige) < self:GetMaxPrestige() then
         local prevlvl = self.Prestige
         local prevprestigeunlocked = self:HasPrestigeUnlocked()
         local gainmul = self:GetPrestigeGainMul()
-        self.XP = self.XP * (self:HasPerkActive("prestige_improvement_2") and 0.25 or self:HasPerkActive("prestige_improvement_1") and 0.15 or 0)
+        self.XP = self.XP * (self:HasPerkActive("2_prestige_improvement_2") and 0.25 or self:HasPerkActive("prestige_improvement_1") and 0.15 or 0)
         self.XPUsedThisPrestige = 0
         self.Level = 1
         self.StatPoints = 0
         self.Prestige = self.Prestige + gainmul
         self.PrestigePoints = self.PrestigePoints + gainmul
-        self:PrintMessage(HUD_PRINTTALK, Format("Prestige increased! (%i --> %i)", prevlvl, self.Prestige))
+        self:PrintMessage(HUD_PRINTTALK, Format("Prestige increased! (%s --> %s)", FormatNumber(prevlvl), FormatNumber(self.Prestige)))
 
         for id,_ in pairs(GAMEMODE.SkillsInfo) do
-            self["Stat"..id] = 0
+            self.Skills[id] = 0
         end
 
         if not prevprestigeunlocked then
@@ -96,25 +100,23 @@ function meta:GainPrestige()
 end
 
 function meta:GainEternity()
-    if tonumber(self.Eternity) >= self:GetMaxEternity() then
-        self:PrintMessage(HUD_PRINTTALK, "You have reached maximum amount of Eternities. You must Celestialize to go even further beyond.")
-    elseif self:CanEternity() then
-        local prevlvl = self.Eternity
+    if self:CanEternity() then
+        local prevlvl = self.Eternities
         local preveternityunlocked = self:HasEternityUnlocked()
         self.XP = 0
         self.XPUsedThisPrestige = 0
         self.Level = 1
         self.StatPoints = 0
         self.Prestige = 0
-        self.PrestigePoints = self:HasPerkActive("perk_points_2") and 12 or 0
-        self.Eternity = self.Eternity + 1
+        self.PrestigePoints = self:HasPerkActive("2_perk_points") and 12 or 0
+        self.Eternities = self.Eternities + 1
         self.EternityPoints = self.EternityPoints + 1
 
         for id,_ in pairs(self.UnlockedPerks) do
             local perk = GAMEMODE.PerksData[id]
             if not perk then continue end
             if perk.PrestigeLevel <= 1 then
-                if self:HasPerkActive("prestige_improvement_2") then
+                if self:HasPerkActive("2_prestige_improvement_2") then
                     self.PrestigePoints = self.PrestigePoints - perk.Cost
                 else
                     self.UnlockedPerks[id] = nil
@@ -123,11 +125,11 @@ function meta:GainEternity()
         end
 
         for id,_ in pairs(GAMEMODE.SkillsInfo) do
-            self["Stat"..id] = 0
+            self.Skills[id] = 0
         end
 
         -- if self:HasEternityUnlocked() then
-            self:PrintMessage(HUD_PRINTTALK, Format("Eternity increased! (%i --> %i)", prevlvl, self.Eternity))
+            self:PrintMessage(HUD_PRINTTALK, Format("Eternity increased! (%s --> %s)", tostring(prevlvl), tostring(self.Eternities)))
         -- end
 
         
@@ -167,7 +169,7 @@ function meta:GainCelestiality()
         self.Level = 1
         self.StatPoints = 0
         self.Prestige = 0
-        self.PrestigePoints = self:HasPerkActive("perk_points_2") and 12 or 0
+        self.PrestigePoints = self:HasPerkActive("2_perk_points") and 12 or 0
         self.Eternity = 0
         self.EternityPoints = 0
         self.Celestiality = self.Celestiality + 1
@@ -176,17 +178,17 @@ function meta:GainCelestiality()
         for id,_ in pairs(self.UnlockedPerks) do
             local perk = GAMEMODE.PerksData[id]
             if not perk then continue end
-            if perk.PrestigeLevel <= 2 then
-                --if self:HasPerkActive("prestige_improvement_2") then
-                    --self.PrestigePoints = self.PrestigePoints - perk.Cost
-                --else
+            if perk.PrestigeLevel <= 1 then
+                if self:HasPerkActive("2_prestige_improvement_2") then
+                    self.PrestigePoints = self.PrestigePoints - perk.Cost
+                else
                     self.UnlockedPerks[id] = nil
-                --end
+                end
             end
         end
 
         for id,_ in pairs(GAMEMODE.SkillsInfo) do
-            self["Stat"..id] = 0
+            self.Skills[id] = 0
         end
 
         -- if self:HasEternityUnlocked() then

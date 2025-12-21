@@ -5,7 +5,7 @@ NEXT_MAP = "d3_c17_11"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -20,7 +20,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -51,30 +51,30 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 -- Accept input
 function hl2cAcceptInput( ent, input, activator, caller, value )
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "firstdropship_lcs1" ) && ( string.lower( input ) == "start" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "firstdropship_lcs1" ) && string.lower(input) == "start" ) then
 	
 		ents.FindByName( "barney" )[ 1 ]:SetLastPosition( Vector( 2466.740234, -466.801117, 256.03125 ) )
 		ents.FindByName( "barney" )[ 1 ]:SetSchedule( SCHED_FORCED_GO )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "ctrlrm_east_field_off_relay" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "ctrlrm_east_field_off_relay" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		ents.FindByName( "barney" )[ 1 ]:SetLastPosition( Vector( 3429.184814, -509.042206, 512.03125 ) )
 		ents.FindByName( "barney" )[ 1 ]:SetSchedule( SCHED_FORCED_GO_RUN )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "barney_laseroom_lcs" ) && ( string.lower( input ) == "start" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "barney_laseroom_lcs" ) && string.lower(input) == "start" ) then
 	
 		ents.FindByName( "barney" )[ 1 ]:SetLastPosition( Vector( 3168.077881, -1477.226807, 512.03125 ) )
 		ents.FindByName( "barney" )[ 1 ]:SetSchedule( SCHED_FORCED_GO_RUN )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "n_room_trigger_relay" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "n_room_trigger_relay" ) && ( string.lower(input) == "trigger" ) ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( 3140, 830, 513 ) )
@@ -89,7 +89,7 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "s_room_detected_relay" ) && ( string.lower( input ) == "trigger" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "s_room_detected_relay" ) && ( string.lower(input) == "trigger" ) ) then
 	
 		timer.Simple( 20, function()
 		
@@ -127,11 +127,11 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 			ents.FindByName( "s_room_panelswitch" )[ 1 ]:Fire( "Unlock" )
 			ents.FindByName( "laser_on_sound" )[ 1 ]:Fire( "PlaySound" )
 		
-		end )
+		end)
 	
 	end
 
-	if ( ( ent:GetName() == "lcs_barney_h4x_pows" ) && ( string.lower( input ) == "start" ) ) then
+	if ( ( ent:GetName() == "lcs_barney_h4x_pows" ) && string.lower(input) == "start" ) then
 	
 		for _, ent in pairs( ents.FindByName( "citizen_pod*" ) ) do
 		
@@ -145,11 +145,11 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ( ent:GetName() == "lobby_combinedoor" ) || ( ent:GetName() == "exit_combinedoor" ) ) && ( string.lower( input ) == "setanimation" ) && ( ( string.lower( value ) == "close" ) || ( string.lower( value ) == "idle_closed" ) ) ) then
+	if ( !game.SinglePlayer() && ( ( ent:GetName() == "lobby_combinedoor" ) || ( ent:GetName() == "exit_combinedoor" ) ) && ( string.lower(input) == "setanimation" ) && ( ( string.lower( value ) == "close" ) || ( string.lower( value ) == "idle_closed" ) ) ) then
 	
 		return true
 	
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

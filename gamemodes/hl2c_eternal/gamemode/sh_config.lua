@@ -1,4 +1,4 @@
--- Allow admins to noclip [0 = No, 1 = Yes] (Default: 0)
+-- Allow admins to noclip [0 = No, 1 = Yes] (Default: 1)
 ADMIN_NOCLIP = 1
 
 
@@ -10,8 +10,12 @@ ADMIN_PHYSGUN = 0
 DIFFICULTY_RANGE = {1, 3}
 
 
--- Percent of players that need to be in the loading section for the next map to load (Default: 60)
-NEXT_MAP_PERCENT = 60
+-- Percent of players that need to have completed the map in order to continue. Does not include dead players. (Default: 40)
+NEXT_MAP_PERCENT = 40
+
+
+-- Percent of players that need to be in the loading section for the next map to load (Default: 90)
+NEXT_MAP_INSTANT_PERCENT = 90
 
 
 -- Seconds before the next map loads (Default: 60)
@@ -141,8 +145,8 @@ PLAY_EPISODE_1 = false
 PLAY_EPISODE_2 = false
 
 
--- Seconds before the map is restarted (Default: 13)
-RESTART_MAP_TIME = 13
+-- Seconds before the map is restarted (Default: 12)
+RESTART_MAP_TIME = 12
 
 
 -- Models the player can be
@@ -238,7 +242,14 @@ GM.SkillsInfo = {
 	["Vitality"] = {
 		Name = "Vitality",
 		Description = "+1 health",
-		DescriptionEndless = "+5 health"
+		DescriptionEndless = "+5 health",
+		OnApply = function(ply, oldamt, newamt)
+			local oldmhp = ply:GetMaxHealth()
+			local newmhp = ply:GetOriginalMaxHealth()
+
+			ply:SetHealth(ply:Health() * (newmhp / oldmhp))
+			ply:SetMaxHealth(newmhp)
+		end
 	},
 
 	["Knowledge"] = {
@@ -250,7 +261,7 @@ GM.SkillsInfo = {
 }
 
 GM.PerksData = {
-	["healthboost_1"] = {
+	["1_healthboost"] = {
 		Name = "Health Boost",
 		Description = "Increases health by 15",
 		DescriptionEndless = "Increases health by 85",
@@ -259,7 +270,7 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
-	["damageboost_1"] = {
+	["1_damageboost"] = {
 		Name = "Damage Boost",
 		Description = "+6% damage dealt",
 		DescriptionEndless = "+47% damage dealt",
@@ -268,7 +279,7 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
-	["damageresistanceboost_1"] = {
+	["1_damageresistanceboost"] = {
 		Name = "Damage Resistance Boost",
 		Description = "+7% boost to damage resistance",
 		DescriptionEndless = "+57% boost to damage resistance",
@@ -277,7 +288,7 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
-	["antipoison_1"] = {
+	["1_antipoison"] = {
 		Name = "Anti-Poison",
 		Description = "Reduces damage taken from poison headcrabs by half (reduces up to 25 damage)",
 		DescriptionEndless = "Reduces damage taken from poison headcrabs by half (reduces up to 100 damage)",
@@ -286,7 +297,7 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
-	["difficult_decision_1"] = {
+	["1_difficult_decision"] = {
 		Name = "Difficult Decision",
 		Description = "+25% personal difficulty (Functions same as difficulty, but only affects you, ignores the difficulty cap.)\nDoesn't work yet",
 		DescriptionEndless = "+75% difficulty gain on NPC kill, increases xp gain by 10%",
@@ -295,7 +306,7 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
-	["critical_damage_1"] = {
+	["1_critical_damage"] = {
 		Name = "Critical Damage I",
 		Description = "7% chance to deal 1.2x damage",
 		DescriptionEndless = "12% chance to deal 2.2x damage",
@@ -304,7 +315,7 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
-	["super_armor_1"] = {
+	["1_super_armor"] = {
 		Name = "Super Armor",
 		Description = "+5 max armor, up to +5% damage resistance depending on your current armor (max efficiency at 100 armor)",
 		DescriptionEndless = "+30 max armor, up to +45% damage resistance depending on your current armor (max efficiency at 100 armor)",
@@ -340,7 +351,7 @@ GM.PerksData = {
 		PrestigeLevel = 1
 	},
 
-	["aggressive_gameplay_1"] = {
+	["1_aggressive_gameplay"] = {
 		Name = "Aggressive Gameplay I",
 		Description = "+15% personal difficulty",
 		DescriptionEndless = "2.3x difficulty gain on NPC kill, and +35% xp gain",
@@ -358,7 +369,7 @@ GM.PerksData = {
 		PrestigeLevel = 1,
 	},
 
-	["vampiric_killer_1"] = {
+	["1_vampiric_killer"] = {
 		Name = "Vampiric Killer",
 		Description = "You gain +2 HP upon killing an NPC.",
 		DescriptionEndless = "You gain +4% health upon killing an NPC. Recovers max of 50 HP.",
@@ -366,20 +377,46 @@ GM.PerksData = {
 		PrestigeReq = 10,
 		PrestigeLevel = 1
 	},
+--[[
+	["1_critical_damage_2"] = {
+		Name = "Critical Damage II",
+		Description = "Improves \"Critical Damage I\" perk: chance 12% -> 25%; damage 2.2x -> 2.8x",
+		Cost = 15,
+		PrestigeReq = 20,
+		PrestigeLevel = 1,
+		EndlessOnly = true
+	},
 
-	["prestige_improvement_1"] = {
-		Name = "Prestige Improvement I",
-		Description = "On prestige you keep 15% of your XP.",
-		DescriptionEndless = "On prestige you keep 15% of your XP.",
-		Cost = 6,
-		PrestigeReq = 13,
+	["1_break_limits"] = {
+		Name = "Break Limits I",
+		Description = "Breaks the limits of prestige by greatly increasing max level and increases max skill levels.\n1.5x XP gained",
+		Cost = 10,
+		PrestigeReq = 42,
 		PrestigeLevel = 1
 	},
 
+	["1_breaking_point"] = {
+		Name = "Breaking Point",
+		Description = "Perk points gain increased ^0.9 -> ^0.99;\n^1.25 to xp gain multiplier",
+		Cost = 66,
+		PrestigeReq = 45,
+		PrestigeLevel = 1
+	},
 
-	-- Eternity (Note that all perks beyond this point on Non-Endless mode do not work.)
+	["1_difficult_decision_2"] = {
+		Name = "Difficult Decision II",
+		Description = "",
+		DescriptionEndless = "x1.65 difficulty gain; x(1+log10(difficulty)x0.3) boost to difficulty gain\nDifficulty damage modification effectiveness ^0.9",
+		Cost = 789,
+		PrestigeReq = 60,
+		PrestigeLevel = 1,
+		EndlessOnly = true
+	},
+]]
 
-	["damage_of_eternity_2"] = {
+	-- Eternity
+
+	["2_damage_of_eternity"] = {
 		Name = "Damage of Eternity",
 		Description = "Does nothing.",
 		DescriptionEndless = "2x Damage dealt. Has 35% chance to triple the damage and convert that damage to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
@@ -392,86 +429,78 @@ GM.PerksData = {
 		Name = "Bleed for 8 seconds",
 		Description = "Does nothing.",
 		DescriptionEndless = "1.25x Damage dealt.\nNPC will bleed for 8 seconds(stackable,max:3) if you damage them.",
+		DescriptionEndless = "2x Damage dealt. Has 15% chance to triple the damage and convert that damage to Delayed Damage.\nDelayed damage damages NPC's every 0.5 seconds for 20% of remaining Delayed Damage.",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 2
 	},
 
-	["skills_improver_2"] = {
+	["2_skills_improver"] = {
 		Name = "Skills Improver I",
-		Description = "Does nothing.",
 		DescriptionEndless = "Automatically uses gained skill points evenly to skills on level up. Only upgrades skills fully, no decimals!\nIncreases skills max level to 80 (only for Eternity)",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 2
 	},
 
-	["difficult_decision_2"] = {
+	["2_difficult_decision"] = {
 		Name = "A very difficult decision",
-		Description = "Doesn't do anything.",
 		DescriptionEndless = "3.35x difficulty gain per NPC kill, and a +45% XP Gain",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 2
 	},
 
-	["critical_damage_2"] = {
-		Name = "Critical Damage II",
-		Description = "Doesn't do anything.",
+	["2_super_critical_damage"] = {
+		Name = "Super Critical Damage",
 		DescriptionEndless = "Improves Critical Damage I perk, chance 12% -> 19% and damage 2.2x -> 2.5x.\nAlso grants a 6% chance to inflict super critical hit, granting 4x damage!.",
 		Cost = 1,
 		PrestigeReq = 3,
 		PrestigeLevel = 2
 	},
 
-	["prestige_improvement_2"] = {
+	["2_prestige_improvement_2"] = {
 		Name = "Prestige Improvement II",
-		Description = "Does nothing.",
 		DescriptionEndless = "On prestige you keep 25% of your XP. You will keep your Prestige perks after Eternity. (Affects your Prestige Points)\nHas a increased damage taken penalty when having negative prestige points.",
 		Cost = 1,
 		PrestigeReq = 4,
 		PrestigeLevel = 2
 	},
 
-	["perk_points_2"] = {
+	["2_perk_points"] = {
 		Name = "Perk Points I",
-		Description = "Does nothing.",
 		DescriptionEndless = "+12 Perk Points for each Eternity",
 		Cost = 1,
 		PrestigeReq = 4,
 		PrestigeLevel = 2
 	},
 
-	["damageboost_2"] = {
-		Name = "Damage Boost II",
-		Description = "Does nothing.",
+	["2_damageboost"] = {
+		Name = "Super Damage Boost",
 		DescriptionEndless = "+40% damage dealt, +5% damage for every unspent perk point\n(Negative points will apply too but can reduce only up to 40%)",
 		Cost = 1,
 		PrestigeReq = 4,
 		PrestigeLevel = 2
 	},
 
-	["healthboost_2"] = {
-		Name = "Health Boost II",
-		Description = "Does nothing.",
+	["2_healthboost"] = {
+		Name = "Super Health Boost",
 		DescriptionEndless = "+450 health and +1 HP/s to regeneration",
 		Cost = 3,
 		PrestigeReq = 5,
 		PrestigeLevel = 2
 	},
 
-	["hyper_armor_2"] = {
-		Name = "Hyper Armor I",
-		Description = "Does nothing.",
-		DescriptionEndless = "+100 armor, also charges AUX power by +3% per second if not submerged underwater\nIf AUX Power is full, charge +1% armor every 5 seconds.", -- Thinking of another buff for this, but maybe later
+	["2_hyper_armor"] = {
+		Name = "Hyper Armor",
+		DescriptionEndless = "+100 armor, also charges AUX power by +1% per second if not submerged underwater\nIf AUX Power is full, charge +1% armor every 5 seconds.", -- Thinking of another buff for this, but maybe later
 		Cost = 3,
 		PrestigeReq = 5,
 		PrestigeLevel = 2
 	},
 
-	["vampiric_killer_2"] = {
+	["2_vampiric_killer"] = {
 		Name = "Vampiric Killer II",
-		Description = "Does nothing.",
 		DescriptionEndless = "You regain HP depending on the damage you do to enemies.",
 		Cost = 2,
 		PrestigeReq = 5,
@@ -489,27 +518,24 @@ GM.PerksData = {
 
 
 	-- Celestial Perks
-	["celestial_3"] = {
+	["3_celestial"] = {
 		Name = "Celestial.",
-		Description = "Does nothing.",
 		DescriptionEndless = "OP Perk: +320 health, +80 armor, x1.6 damage dealt, 1.7x damage resistance, 1.4x xp gain", -- 1.4x xp gain unimplemented
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 3
 	},
 
-	["difficult_decision_3"] = {
-		Name = "Difficult Decision III",
-		Description = "Does nothing.",
+	["3_difficult_decision"] = {
+		Name = "Megea Difficult Decision",
 		DescriptionEndless = "Increases difficulty gain from NPC kills by x log10(difficulty)*2.5\n1.25x xp gain (NYI)",
 		Cost = 1,
 		PrestigeReq = 3,
 		PrestigeLevel = 3
 	},
 
-	["prestige_improvement_3"] = {
+	["3_prestige_improvement_3"] = {
 		Name = "Prestige Improvement III",
-		Description = "Does nothing.",
 		DescriptionEndless = " (NYI)",
 		Cost = 1,
 		PrestigeReq = 2,
@@ -517,9 +543,8 @@ GM.PerksData = {
 
 	},
 
-	["medkit_enhancer_3"] = {
+	["3_medkit_enhancer"] = {
 		Name = "Medkit Enhancer",
-		Description = "Does nothing.",
 		DescriptionEndless = "Medkits you pick up refill additional +100hp and 20% of your health",
 		Cost = 1,
 		PrestigeReq = 2,
@@ -527,9 +552,8 @@ GM.PerksData = {
 
 	},
 
-	["uno_reverse_3"] = {
+	["3_uno_reverse"] = {
 		Name = "Uno Reverse",
-		Description = "Does nothing.",
 		DescriptionEndless = "10% chance to deflect all the damage taken to the attacker and quadruples it\n(<75% health needed for this to work, the lower hp the better chance).\nAlso recovers 25% health upon activation. Chance divides by 1.1 each time this ability is activated",
 		Cost = 1,
 		PrestigeReq = 2,
@@ -543,7 +567,7 @@ GM.UpgradesEternity = {
 	["damage_upgrader"] = {
 		Name = "Damage Upgrader",
 		Description = "Increases damage multiplier by %s%%",
-		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
+		Cost = function(ply, amt) return InfNumber(100) + InfNumber(25*amt*amt)^(1 + amt*0.01) end,
 		EffectValue = function(ply, amt)
 			return 1 + 0.1*amt
 		end,
@@ -551,12 +575,15 @@ GM.UpgradesEternity = {
 
 	["damageresistance_upgrader"] = {
 		Name = "Damage Resistance Upgrader",
-		Description = "+%s%% damage resistance per upgrade (Multiplicative. Past 10x the effect gets softcapped.)",
-		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
+		Description = "+%s%% damage resistance per upgrade\n(Multiplicative. Past 10x the effect starts getting softcapped.)",
+		Cost = function(ply, amt)
+			return InfNumber(100) + (InfNumber(25*amt*amt)*(amt > 1e2 and (amt-1e2)^1.1 or 1))^(1 + amt*0.01)^(amt > 1e3 and 1+(amt-1e3)/1e3 or 1)
+		end,
 		EffectValue = function(ply, amt)
-			local val = 1.1^amt
-			if val > 10 then
-				val = val / math.max(1, (val/10)^0.25)
+			local val = InfNumber(1.1)
+			val = val^amt
+			if infmath.ConvertInfNumberToNormalNumber(val) > 10 then
+				val = val / infmath.max(1, (val/10)^(1-(0.9/(val:log10()/1.25))))
 			end
 
 			return val
@@ -565,8 +592,8 @@ GM.UpgradesEternity = {
 
 	["difficultygain_upgrader"] = {
 		Name = "Difficulty Gain Upgrader",
-		Description = "+%s%% difficulty gain (Softcaps after 10x)",
-		Cost = function(ply, amt) return 100 + (25*amt*amt)^(1 + amt*0.01) end,
+		Description = "+%s%% difficulty gain\n(Softcaps after 10x)",
+		Cost = function(ply, amt) return InfNumber(100) + InfNumber(25*amt*amt)^(1 + amt*0.01) end,
 		EffectValue = function(ply, amt)
 			local val = 1 + 0.1*amt
 			if val > 10 then

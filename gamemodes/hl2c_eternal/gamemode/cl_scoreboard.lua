@@ -28,7 +28,7 @@ function PANEL:Init()
 	self.playerList = vgui.Create( "scoreboard_playerlist", self )
 
 	self:UpdateScoreboard()
-	timer.Create( "hl2c_scoreboard_updater", 3, 0, function() self:UpdateScoreboard() end )
+	timer.Create( "hl2c_scoreboard_updater", 3, 0, function() self:UpdateScoreboard() end)
 
 end
 

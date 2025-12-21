@@ -9,6 +9,39 @@ local function FirstPrestige()
 	ui:SetSize(ScrW(),ScrH())
 	ui:SetMouseInputEnabled(false)
 	ui.Paint = function() end
+	ui.OnRemove = function()
+		gui.EnableScreenClicker(false)
+	end
+
+	local function Loseit()
+		ui:Remove()
+		hook.Remove("PreDrawHUD", "hl2ce_firstprestige")
+		snd:Stop()
+
+		chat.AddText("Gordon! We got no time to lose! We must keep on going!")
+		chat.AddText(Color(0,255,0), "Perks unlocked.")
+		chat.AddText(Color(0,255,0), "Each level up awards you with 2 skill points and skills max level increased to 35.")
+	end
+
+	ui.CreatedTime = SysTime()
+	ui.Think = function(this)
+		if input.IsKeyDown(KEY_C) then
+			this:SetMouseInputEnabled(true)
+			this:RequestFocus()
+			gui.EnableScreenClicker(true)
+		end
+
+		if this.CreatedTime + 16 < SysTime() then
+			Loseit()
+		end
+	end
+
+
+
+	local button = vgui.Create("DButton", ui)
+	button:SetPos(ui:GetWide()-button:GetWide(), 0)
+	button:SetText("Skip")
+	button.DoClick = Loseit
 
 
 	local text1 = vgui.Create("DLabel", ui)
@@ -62,16 +95,6 @@ local function FirstPrestige()
 		surface.SetDrawColor(255, 255, 255, 255-(CurTime() - ct)*10)
 		surface.DrawRect(0, 0, ScrW(), ScrH())
 		cam.End2D()
-	end)
-	timer.Simple(16, function()
-		ui:Remove()
-		hook.Remove("PreDrawHUD", "hl2ce_firstprestige")
-		snd:Stop()
-
-		chat.AddText("Gordon! We got no time to lose! We must keep on going!")
-		chat.AddText(Color(0,255,0), "Perks unlocked.")
-		chat.AddText(Color(0,255,0), "Each level up awards you with 2 skill points and skills max level increased to 35.")
-		chat.AddText(Color(0,255,0), "")
 	end)
 end
 

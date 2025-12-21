@@ -3,13 +3,14 @@ NEXT_MAP = "d3_c17_01"
 TRIGGER_DELAYMAPLOAD = { Vector( -954, -1049, 912 ), Vector( -868, -965, 995 ) }
 
 NEXT_MAP_PERCENT = 1
+NEXT_MAP_INSTANT_PERCENT = 1
 
 PRISON_PREVENT_DOORS = false
 
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -24,7 +25,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -41,7 +42,7 @@ function hl2cMapEdit()
 	
 	end
 
-	timer.Create( "hl2cTurretRelationship", 1, 0, function() if ( IsValid( ents.FindByName( "relationship_turret_vs_player_like" )[ 1 ] ) ) then ents.FindByName( "relationship_turret_vs_player_like" )[ 1 ]:Fire( "ApplyRelationship" ) end end )
+	timer.Create( "hl2cTurretRelationship", 1, 0, function() if ( IsValid( ents.FindByName( "relationship_turret_vs_player_like" )[ 1 ] ) ) then ents.FindByName( "relationship_turret_vs_player_like" )[ 1 ]:Fire( "ApplyRelationship" ) end end)
 
 end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
@@ -50,10 +51,10 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 -- Accept input
 function hl2cAcceptInput( ent, input, activator, caller, value )
 
-	if ( !game.SinglePlayer() && !PRISON_PREVENT_DOORS && ( ent:GetName() == "brush_bigdoor_PClip_1" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && !PRISON_PREVENT_DOORS && ( ent:GetName() == "brush_bigdoor_PClip_1" ) && string.lower(input) == "enable" ) then
 	
 		PRISON_PREVENT_DOORS = true
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( -914, 943, 961 ) )
@@ -64,9 +65,9 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "PClip_teleport_shield_final" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "PClip_teleport_shield_final" ) && string.lower(input) == "enable" ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( 128, 7, 1066 ) )
@@ -77,17 +78,17 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 	end
 
-	if ( !game.SinglePlayer() && PRISON_PREVENT_DOORS && ( ( ent:GetName() == "sec_room_door_1" ) || ( ent:GetName() == "sec_tp_door_1" ) ) && ( string.lower( input ) == "close" ) ) then
+	if ( !game.SinglePlayer() && PRISON_PREVENT_DOORS && ( ( ent:GetName() == "sec_room_door_1" ) || ( ent:GetName() == "sec_tp_door_1" ) ) && ( string.lower(input) == "close" ) ) then
 	
 		return true
 	
 	end
 
-	if ( !game.SinglePlayer() && PRISON_PREVENT_DOORS && ( ent:GetName() == "combine_door_1" ) && ( string.lower( input ) == "setanimation" ) && ( ( string.lower( value ) == "close" ) || ( string.lower( value ) == "idle_closed" ) ) ) then
+	if ( !game.SinglePlayer() && PRISON_PREVENT_DOORS && ( ent:GetName() == "combine_door_1" ) && ( string.lower(input) == "setanimation" ) && ( ( string.lower( value ) == "close" ) || ( string.lower( value ) == "idle_closed" ) ) ) then
 	
 		return true
 	
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

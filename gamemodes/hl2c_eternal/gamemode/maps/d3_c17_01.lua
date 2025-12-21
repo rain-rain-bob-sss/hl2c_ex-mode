@@ -4,7 +4,7 @@ GM.XP_REWARD_ON_MAP_COMPLETION = 0
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -19,7 +19,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -36,23 +36,23 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 -- Accept input
 function hl2cAcceptInput( ent, input, activator, caller, value )
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "door_klab01" ) && ( string.lower( input ) == "setanimation" ) && ( string.lower( value ) == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "door_klab01" ) && ( string.lower(input) == "setanimation" ) && ( string.lower( value ) == "close" ) ) then
 	
 		return true
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ( ent:GetName() == "doors_elevator_1" ) || ( ent:GetName() == "doors_elevator_2" ) ) && ( string.lower( input ) == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ( ent:GetName() == "doors_elevator_1" ) || ( ent:GetName() == "doors_elevator_2" ) ) && ( string.lower(input) == "close" ) ) then
 	
 		return true
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ( ent:GetName() == "pclip_TPdoor" ) || ( ent:GetName() == "pclip_exitdoor" ) ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ( ent:GetName() == "pclip_TPdoor" ) || ( ent:GetName() == "pclip_exitdoor" ) ) && string.lower(input) == "enable" ) then
 	
 		return true
 	
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

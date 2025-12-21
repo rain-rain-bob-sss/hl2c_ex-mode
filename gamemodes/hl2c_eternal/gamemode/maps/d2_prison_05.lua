@@ -14,7 +14,7 @@ hook.Add( "PlayerInitialSpawn", "hl2cPlayerInitialSpawn", hl2cPlayerInitialSpawn
 
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -29,7 +29,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -44,11 +44,11 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "point_of_no_return" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "point_of_no_return" ) && string.lower(input) == "enable" ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( -3662, -548, 439 ) )
@@ -60,4 +60,4 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

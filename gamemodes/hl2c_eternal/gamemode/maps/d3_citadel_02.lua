@@ -2,13 +2,14 @@ NEXT_MAP = "d3_citadel_03"
 GM.XP_REWARD_ON_MAP_COMPLETION = 0
 
 NEXT_MAP_PERCENT = 1
+NEXT_MAP_INSTANT_PERCENT = 1
 
 TRIGGER_DELAYMAPLOAD = { Vector( 3781, 13186, 3900 ), Vector( 3984, 13590, 4000 ) }
 
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -22,19 +23,19 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_crossbow" )
 	ply:Give( "weapon_bugbait" )
 
-	if ( !game.SinglePlayer() && IsValid( PLAYER_VIEWCONTROL ) && ( PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) ) then
+	if ( !game.SinglePlayer() && IsValid(PLAYER_VIEWCONTROL) && PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) then
 	
-		ply:SetViewEntity( PLAYER_VIEWCONTROL )
+		ply:SetViewEntity(PLAYER_VIEWCONTROL)
 		ply:Spectate( OBS_MODE_ROAMING )
 		ply:DrawWorldModel( false )
 		ply:Lock()
 	
 	end
 
-	timer.Simple( 0.1, function() if ( IsValid( ply ) ) then ply:SetNoTarget( true ); end; end )
+	timer.Simple( 0.1, function() if ( IsValid( ply ) ) then ply:SetNoTarget(true); end; end)
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -62,11 +63,11 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "point_viewcontrol" ) ) then
+	if ( !game.SinglePlayer() && ent:GetClass() == "point_viewcontrol" ) then
 	
-		if ( string.lower( input ) == "enable" ) then
+		if string.lower(input) == "enable" then
 		
 			PLAYER_VIEWCONTROL = ent
 		
@@ -79,14 +80,14 @@ function hl2cAcceptInput( ent, input )
 			
 			end
 		
-			if ( !ent.doubleEnabled ) then
+			if !ent.doubleEnabled then
 			
 				ent.doubleEnabled = true
 				ent:Fire( "Enable" )
 			
 			end
 		
-		elseif ( string.lower( input ) == "disable" ) then
+		elseif string.lower(input) == "disable" then
 		
 			PLAYER_VIEWCONTROL = nil
 		
@@ -94,7 +95,7 @@ function hl2cAcceptInput( ent, input )
 			
 				ply:SetViewEntity( ply )
 				ply:UnSpectate()
-				ply:DrawWorldModel( true )
+				ply:DrawWorldModel(true)
 				ply:UnLock()
 			
 				ply:Spawn()
@@ -107,7 +108,7 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "track_dump" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "track_dump" ) && string.lower(input) == "enable" ) then
 	
 		if ( timer.Exists( "hl2cUpdatePlayerPosition" ) ) then timer.Destroy( "hl2cUpdatePlayerPosition" ); end
 	
@@ -118,7 +119,7 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 
 if ( !game.SinglePlayer() ) then

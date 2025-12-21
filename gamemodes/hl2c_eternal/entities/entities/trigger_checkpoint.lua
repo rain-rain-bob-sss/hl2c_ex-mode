@@ -51,7 +51,7 @@ function ENT:StartTouch( ent )
 		end
 	
 		-- Each individual player
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			-- Set player positions
 			if ( IsValid( ply ) && ( ply != ent ) && ( ply:Team() == TEAM_ALIVE ) ) then
@@ -69,7 +69,7 @@ function ENT:StartTouch( ent )
 			end
 		
 			-- Dead players become alive again
-			if ( GetConVar( "hl2c_server_checkpoint_respawn" ):GetBool() && IsValid( ply ) && ( ply != ent ) && ( ply:Team() == TEAM_DEAD ) ) then
+			if ( GAMEMODE.CheckpointRespawn && IsValid( ply ) && ( ply != ent ) && ( ply:Team() == TEAM_DEAD ) ) then
 				deadPlayers = {}
 			
 				ply:SetTeam( TEAM_ALIVE )

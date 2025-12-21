@@ -8,9 +8,9 @@ TRIGGER_CHECKPOINT = {
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -26,9 +26,9 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
         return true
     end
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "player_speedmod" ) && ( string.lower( input ) == "modifyspeed" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetClass() == "player_speedmod" ) && ( string.lower(input) == "modifyspeed" ) ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetLaggedMovementValue( tonumber( value ) )
 		
@@ -39,9 +39,9 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	end
 
 	if ent:GetName() == "command_physcannon" and string.lower(input) == "command" then
-		for _,ply in pairs(player.GetAll()) do
+		for _,ply in ipairs(player.GetAll()) do
 			ply:Give("weapon_physcannon")
 		end
 	end
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

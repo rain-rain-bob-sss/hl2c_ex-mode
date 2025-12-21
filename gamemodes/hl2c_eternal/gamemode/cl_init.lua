@@ -18,9 +18,9 @@ include("vgui/hud_timespent.lua")
 
 local hl2ce_cl_noearringing = CreateClientConVar("hl2ce_cl_noearringing", 1, true, true, "Disables annoying tinnitus sound when taking damage from explosions", 0, 1)
 local hl2ce_cl_nohuddifficulty = CreateClientConVar("hl2ce_cl_nohuddifficulty", 0, true, true, "Disables Difficulty text from HUD if not having CMenu Open", 0, 1)
---local hl2ce_cl_huddifficultytype = CreateClientConVar("hl2ce_cl_huddifficultytype", 1, true, true, "Difficulty HUD Type", 0, 1)
 local hl2ce_cl_nocustomhud = CreateClientConVar("hl2ce_cl_nocustomhud", 1, true, true, "Disables the HL2 Health and Armor Bars", 0, 1)
 local hl2ce_cl_nodamageindicator = CreateClientConVar("hl2ce_cl_nodamageindicator", 1, true, true, "Disables the HL2 Damage Indicator", 0, 1)
+local hl2ce_cl_nodifficultytext = CreateClientConVar("hl2ce_cl_nodifficultytext", 0, true, true, "Displays only the % on difficulty", 0, 1)
 
 timeleft = timeleft or 0
 
@@ -88,15 +88,23 @@ end
 function GM:Think()
 	local difficulty = self:GetDifficulty()
 
-	if difficulty ~= self.PreviousDifficulty then
-		self.DifficultyDifference = difficulty - (self.PreviousDifficulty or 0)
-		self.DifficultyDifferenceTotal = (self.DifficultyDifferenceTotal or 0) + self.DifficultyDifference
-		self.DifficultyDifferenceTimeChange = CurTime()
+	if not self.PreviousDifficulty then
+		self.PreviousDifficulty = difficulty
 	end
 
-	if self.DifficultyDifferenceTimeChange + 3 < CurTime() then
+	if not self.DifficultyDifferenceTimeChange or self.DifficultyDifferenceTimeChange + 3 < CurTime() then
 		self.DifficultyDifference = 0
 		self.DifficultyDifferenceTotal = 0
+		self.DifficultyDifferenceTimeChange = 0
+	end
+
+	if difficulty ~= self.PreviousDifficulty then
+		self.DifficultyDifference = difficulty - self.PreviousDifficulty
+		if infmath.ConvertInfNumberToNormalNumber(self.DifficultyDifference) ~= 0 then
+			self.DifficultyDifferenceTotal = self.DifficultyDifferenceTotal + self.DifficultyDifference
+			self.DifficultyDifferenceTimeChange = CurTime()
+		end
+		self.PreviousDifficulty = difficulty
 	end
 
 	self.PreviousDifficulty = difficulty
@@ -137,6 +145,7 @@ function GM:Think()
 	end
 end
 
+local bosshp = 0
 -- Called every frame to draw the hud
 function GM:HUDPaint()
 	if !GetConVar("cl_drawhud"):GetBool() || (self.ShowScoreboard && IsValid(LocalPlayer()) && (LocalPlayer():Team() != TEAM_DEAD)) then return end
@@ -182,21 +191,53 @@ function GM:HUDPaint()
 		draw.DrawText(Format("Map forced difficulty bonus: %s%%", FormatNumber(math.Round(FORCE_DIFFICULTY * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 - 15, colordifference, TEXT_ALIGN_CENTER)
 	end
 
+	local diff_difference = infmath.ConvertInfNumberToNormalNumber(self.DifficultyDifference)
+	local diff_difference_total = infmath.ConvertInfNumberToNormalNumber(self.DifficultyDifferenceTotal)
+
 	if (ContextMenu and ContextMenu:IsValid()) or not hl2ce_cl_nohuddifficulty:GetBool() then
 		if not self.DifficultyDifferenceTimeChange then
 			self.DifficultyDifferenceTimeChange = 0
 		end
 		colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (self.DifficultyDifference < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0)) or Color(255, 220, 0)
 		colordifference.a = 155
-		draw.DrawText(Format("Difficulty: %s%%", FormatNumber(math.Round(self:GetDifficulty() * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6, colordifference, TEXT_ALIGN_CENTER )
-		if self.DifficultyDifferenceTimeChange + 3 >= CurTime() then
-			colordifference.a = (self.DifficultyDifferenceTimeChange+3-CurTime())*155/3
-			draw.DrawText(Format("%s%s%%", self.DifficultyDifference < 0 and "-" or "+", math.abs(math.Round(self.DifficultyDifference * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 15, colordifference, TEXT_ALIGN_CENTER )
-			draw.DrawText(Format("%s%s%%", self.DifficultyDifference < 0 and "-" or "+", math.abs(math.Round(self.DifficultyDifference * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 15, colordifference, TEXT_ALIGN_CENTER )
 
-			if self.DifficultyDifference ~= self.DifficultyDifferenceTotal then
-				colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (self.DifficultyDifferenceTotal < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0, colordifference.a) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0, colordifference.a)) or Color(255, 220, 0, colordifference.a)
-				draw.DrawText(Format("%s%s%% total", self.DifficultyDifferenceTotal < 0 and "-" or "+", math.abs(math.Round(self.DifficultyDifferenceTotal * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 30, colordifference, TEXT_ALIGN_CENTER )
+		local d = self:GetDifficulty() * 100
+		local d_normal = infmath.ConvertInfNumberToNormalNumber(d)
+		local s = Format(hl2ce_cl_nodifficultytext:GetBool() and "%s%%" or "Difficulty: %s%%", FormatNumber(infmath.Round(d, 2)))
+		surface.SetFont("TargetIDSmall")
+		local len = surface.GetTextSize(s)
+		local l = 0
+		
+
+		local c = d_normal >= 1e63 and HSVToColor(SysTime()*math.log10(d_normal)^1.15, 1, 1) or
+			d_normal >= 1e33 and HSVToColor((math.log10(d_normal)-33)*(65*(math.log10(d_normal)-30)), 1, 1) or
+			d_normal >= 1e6 and HSVToColor((math.log10(d_normal)-6)*(13+1/3), 1, 1) or
+			colordifference
+
+		c.a = colordifference.a
+		if d >= InfNumber(math.huge) then
+			-- I know it's unoptimal, but frick it
+			for i=1,#s do
+				local r = math.Rand(0.5, 1)
+				c = HSVToColor((SysTime()*(60+math.log10(d:log10()*100)*10) + (
+					d:log10() > 6969 and -math.sin(l/5)*10*(math.log10(d:log10())-2) or l/(3/math.max(1, (d:log10()-308)^0.8/100))
+			))%360, d:log10() > 1e6 and 0.8+math.sin(SysTime()*0.6+l/5)/5 or 1,
+			d:log10() > 1e9 and 0.8+math.sin(SysTime()+l/5)/5 or 1)
+
+				draw.DrawText(s[i], "TargetIDSmall", ScrW() / 2 - len/2 + l, ScrH() / 6, c, TEXT_ALIGN_LEFT)
+				l = l + surface.GetTextSize(s[i])
+			end
+		else
+			draw.DrawText(s, "TargetIDSmall", ScrW() / 2 - len/2 + l, ScrH() / 6, c, TEXT_ALIGN_LEFT )
+		end
+
+		if self.DifficultyDifferenceTimeChange + 3 >= CurTime() and self.DifficultyDifference ~= 0 then
+			colordifference.a = (self.DifficultyDifferenceTimeChange+3-CurTime())*155/3
+			draw.DrawText(Format("%s%s%%", diff_difference < 0 and "-" or "+", infmath.abs(infmath.Round(self.DifficultyDifference * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 15, colordifference, TEXT_ALIGN_CENTER )
+
+			if self.DifficultyDifference ~= self.DifficultyDifferenceTotal and infmath.ConvertInfNumberToNormalNumber(self.DifficultyDifferenceTotal) ~= 0 then
+				colordifference = self.DifficultyDifferenceTimeChange + 3 >= CurTime() and (diff_difference_total < 0 and Color(255, 220-((self.DifficultyDifferenceTimeChange+3-CurTime())*110), 0, colordifference.a) or Color(255-((self.DifficultyDifferenceTimeChange+3-CurTime())*255/2), 220, 0, colordifference.a)) or Color(255, 220, 0, colordifference.a)
+				draw.DrawText(Format("%s%s%% total", diff_difference_total < 0 and "-" or "+", infmath.abs(infmath.Round(self.DifficultyDifferenceTotal * 100, 2))), "TargetIDSmall", ScrW() / 2, ScrH() / 6 + 30, colordifference, TEXT_ALIGN_CENTER )
 			end
 		end
 	end
@@ -242,13 +283,13 @@ function GM:PostDrawHUD()
 	surface.SetDrawColor(0, 0, 0, 0)
 
 	if XPColor > 0 then
-		draw.SimpleText(math.Round(XPGained, 2).." XP gained", "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
+		draw.SimpleText(tostring(infmath.Round(XPGained, 2)).." XP gained", "TargetID", ScrW() / 2 + 15, (ScrH() / 2) + 15, Color(255,255,255,XPColor), 0, 1 )
 		if XPGainedTotal ~= XPGained then
-			draw.SimpleText("("..math.Round(XPGainedTotal, 2).." XP gained total)", "TargetIDSmall", ScrW() / 2 + 15, (ScrH() / 2) + 30, Color(255,255,205,XPColor), 0, 1 )
+			draw.SimpleText("("..tostring(infmath.Round(XPGainedTotal, 2)).." XP gained total)", "TargetIDSmall", ScrW() / 2 + 15, (ScrH() / 2) + 30, Color(255,255,205,XPColor), 0, 1 )
 		end
 	else
-		XPGained = 0
-		XPGainedTotal = 0
+		XPGained = InfNumber(0)
+		XPGainedTotal = InfNumber(0)
 	end
 
 	XPColor = math.max(0, XPColor - 90*FrameTime())
@@ -291,6 +332,8 @@ function GM:Initialize()
 	-- surface.CreateFont( "Roboto16", { size = 16, weight = 400, antialias = true, additive = false, font = "Roboto" } )
 	surface.CreateFont( "Roboto16", { size = 16, weight = 700, antialias = true, additive = false, font = "Roboto-Bold" } )
 	surface.CreateFont( "roboto32BlackItalic", { size = 32, weight = 900, antialias = true, additive = false, font = "Roboto Black Italic" } )
+	surface.CreateFont( "hl2ce_font", { size = 32, weight = 700, font = "Roboto Black" } )
+	surface.CreateFont( "hl2ce_font_big", { size = 48, weight = 900, font = "Roboto Black" } )
 
 	-- Language
 	language.Add( "worldspawn", "World" )
@@ -332,28 +375,29 @@ end
 function GM:PlayerReady()
 	local ply = LocalPlayer()
 
-	ply.XP = 0
-	ply.Level = 0
-	ply.StatPoints = 0
-	ply.Prestige = 0
-	ply.PrestigePoints = 0
-	ply.Eternity = 0
-	ply.EternityPoints = 0
+	ply.XP = InfNumber(0)
+	ply.Level = InfNumber(0)
+	ply.StatPoints = InfNumber(0)
+	ply.Prestige = InfNumber(0)
+	ply.PrestigePoints = InfNumber(0, 0)
+	ply.Eternities = InfNumber(0)
+	ply.EternityPoints = InfNumber(0, 0)
 
 	-- Endless
-	ply.Celestiality = 0
-	ply.CelestialityPoints = 0
-	ply.Rebirths = 0
-	ply.RebirthPoints = 0
-	ply.Ascensions = 0
-	ply.AscensionPoints = 0
+	ply.Celestiality = InfNumber(0)
+	ply.CelestialityPoints = InfNumber(0)
+	ply.Rebirths = InfNumber(0)
+	ply.RebirthPoints = InfNumber(0)
+	ply.Ascensions = InfNumber(0)
+	ply.AscensionPoints = InfNumber(0)
 
 	-- True Endless
-	ply.MythiLegendaries = 0
-	ply.MythiLegendaryPoints = 0
+	ply.MythiLegendaries = InfNumber(0)
+	ply.MythiLegendaryPoints = InfNumber(0)
 
 
-	ply.Moneys = 0
+	ply.Moneys = InfNumber(0, 0)
+	ply.Skills = {}
 
 
 	ply.UnlockedPerks = {}
@@ -477,6 +521,19 @@ function RestartMap(len)
 end
 net.Receive("RestartMap", RestartMap)
 
+function GM:OnMapCompleted()
+end
+
+function GM:OnCampaignCompleted()
+end
+
+function GM:PostOnMapCompleted()
+end
+
+function GM:PostOnCampaignCompleted()
+end
+
+
 if file.Exists(GM.VaultFolder.."/gamemode/maps/"..game.GetMap()..".lua", "LUA") then
 	include("maps/"..game.GetMap()..".lua")
 end
@@ -547,12 +604,12 @@ function GM:ShowSkills()
 	local skillsText3 = vgui.Create("DLabel", skillsPanel)
 	local skillsForm = vgui.Create("DPanelList", skillsPanel)
 
-	skillsText:SetText("Unspent skill points: "..math.floor(pl.StatPoints))
+	skillsText:SetText("Unspent skill points: "..tostring(infmath.floor(pl.StatPoints)))
 	skillsText:SetTextColor(color_black)
 	skillsText:SetPos(5, 5)
 	skillsText:SizeToContents()
 	skillsText.Think = function(this)
-		local txt = "Unspent skill points: "..math.floor(pl.StatPoints)
+		local txt = "Unspent skill points: "..tostring(infmath.floor(pl.StatPoints))
 		if txt == this:GetText() then return end
 		this:SetText(txt)
 		this:SizeToContents()
@@ -595,12 +652,12 @@ function GM:ShowSkills()
 		for k, v in SortedPairs(self.SkillsInfo) do
 			local LabelDefense = vgui.Create("DLabel")
 			LabelDefense:SetPos(50, 50)
-			LabelDefense:SetText(v.Name..": "..tostring(pl["Stat"..k]))
+			LabelDefense:SetText(v.Name..": "..tostring(pl.Skills[k]))
 			LabelDefense:SetTextColor(color_black)
-			LabelDefense:SetToolTip(v.Name.."\n\nIn Non-Endless Mode:\n"..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
+			LabelDefense:SetToolTip(v.Name..("\n\n"..v.DescriptionEndless and "(In Non-Endless Mode:\n)" or "")..v.Description..(v.DescriptionEndless and "\n\nIn Endless Mode:\n"..v.DescriptionEndless or ""))
 			LabelDefense:SizeToContents()
 			LabelDefense.Think = function(this)
-				local txt = v.Name..": "..tostring(pl["Stat"..k])
+				local txt = v.Name..": "..tostring(pl.Skills[k])
 				if txt == this:GetText() then return end
 				this:SetText(txt)
 				this:SizeToContents()

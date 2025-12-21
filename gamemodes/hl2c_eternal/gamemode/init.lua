@@ -1,6 +1,7 @@
 if ulx then function ulx.uteamEnabled() return false end end
 
 -- Send the required lua files to the client
+AddCSLuaFile("break_infinity.lua")
 AddCSLuaFile("cl_calcview.lua")
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("cl_playermodels.lua")
@@ -19,6 +20,7 @@ AddCSLuaFile("vgui/hud_hp.lua")
 AddCSLuaFile("vgui/hud_armor.lua")
 AddCSLuaFile("vgui/hud_timespent.lua")
 
+AddCSLuaFile("sh_cvars.lua")
 AddCSLuaFile("sh_config.lua")
 AddCSLuaFile("sh_globals.lua")
 AddCSLuaFile("sh_init.lua")
@@ -59,16 +61,6 @@ end
 
 
 -- Create console variables to make these config vars easier to access
-local hl2c_admin_physgun = CreateConVar("hl2c_admin_physgun", ADMIN_NOCLIP, FCVAR_NOTIFY)
-local hl2c_admin_noclip = CreateConVar("hl2c_admin_noclip", ADMIN_PHYSGUN, FCVAR_NOTIFY)
-local hl2c_server_force_gamerules = CreateConVar("hl2c_server_force_gamerules", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_custom_playermodels = CreateConVar("hl2c_server_custom_playermodels", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_checkpoint_respawn = CreateConVar("hl2c_server_checkpoint_respawn", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_dynamic_skill_level = CreateConVar("hl2c_server_dynamic_skill_level", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_lag_compensation = CreateConVar("hl2c_server_lag_compensation", 1, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_player_respawning = CreateConVar("hl2c_server_player_respawning", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2c_server_jeep_passenger_seat = CreateConVar("hl2c_server_jeep_passenger_seat", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
-local hl2ce_server_ex_mode_enabled = CreateConVar("hl2ce_server_ex_mode_enabled", 0, { FCVAR_NOTIFY, FCVAR_ARCHIVE })
 COldGetConvar=COldGetConvar or GetConvar
 function GetConvar(n)
 	if(string.StartsWith(n,"hl2c_"))then
@@ -79,9 +71,7 @@ end
 
 -- Precache all the player models ahead of time
 for _, playerModel in pairs(PLAYER_MODELS) do
-
 	util.PrecacheModel(playerModel)
-
 end
 
 local function DbgEntTS(ent)
@@ -123,13 +113,23 @@ end
 
 -- Creates a spawn point
 function GM:CreateSpawnPoint(pos, yaw)
+	local ips = ents.Create("info_player_start")
+	ips:SetPos(pos)
+	ips:SetAngles(Angle(0, yaw, 0))
+	ips:SetKeyValue("spawnflags", "1")
+	ips:Spawn()
+end
+
+function GM:ReplaceSpawnPoint(pos, yaw)
+	for _,ent in ipairs(ents.FindByClass("info_player_start")) do
+		ent:Remove()
+	end
 
 	local ips = ents.Create("info_player_start")
 	ips:SetPos(pos)
 	ips:SetAngles(Angle(0, yaw, 0))
 	ips:SetKeyValue("spawnflags", "1")
 	ips:Spawn()
-
 end
 
 
@@ -153,7 +153,7 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 	ply.GravGunGrab = NULL
 
 	-- Add to deadPlayers table to prevent respawning on re-connect
-	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && !table.HasValue(deadPlayers, ply:SteamID())) then
+	if (((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && !table.HasValue(deadPlayers, ply:SteamID())) then
 		table.insert(deadPlayers, ply:SteamID())
 	end
 
@@ -174,17 +174,16 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 
 
 	if attacker:IsNPC() then
-		ply:PrintMessage(3, "Killed by ")
-		ply:PrintMessage(3, "#"..attacker:GetClass())
+		net.Start("hl2ce_playerkilled")
+		net.WriteString(attacker:GetClass())
+		net.Send(ply)
 	end
-
-	if attacker ~= ply then
-		local diff = self:GetDifficulty(true, true)
-		self:SetDifficulty(math.max(1, diff * (
-			diff >= 1000 and 0.957 or diff >= 100 and 0.962 or
-			diff >= 10 and 0.968 or diff >= 4 and 0.974 or 0.98
-		)))
-	end
+	
+	local diff = self:GetDifficulty(true, true)
+	self:SetDifficulty(infmath.max(1, diff * (
+		diff >= InfNumber(1000) and 0.957 or diff >= InfNumber(100) and 0.962 or
+		diff >= InfNumber(10) and 0.968 or diff >= InfNumber(4) and 0.974 or 0.98
+	)))
 
 
 	local lowermodelname = string.lower(ply:GetModel())
@@ -202,9 +201,9 @@ function GM:PlayerDeathThink(ply)
 	if (ply.NextSpawnTime && (ply.NextSpawnTime > CurTime())) then return; end
 
 	if ((ply:GetObserverMode() != OBS_MODE_ROAMING) && (ply:IsBot() || ply:KeyPressed(IN_ATTACK) || ply:KeyPressed(IN_ATTACK2) || ply:KeyPressed(IN_JUMP))) then
-
-		if ((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) then
-
+	
+		if ((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) then
+		
 			ply:Spectate(OBS_MODE_ROAMING)
 			ply:SetPos(ply.deathPos)
 			ply:SetNoTarget(true)
@@ -225,15 +224,12 @@ end
 function GM:OnEntityCreated(ent)
 
 	-- NPC Lag Compensation
-	if (hl2c_server_lag_compensation:GetBool() && ent:IsNPC() && !table.HasValue(NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass())) then
-
+	if (self.LagCompensation && ent:IsNPC() && !table.HasValue(NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass())) then
 		ent:SetLagCompensated(true)
-
 	end
 
 	-- Vehicle Passenger Seating
-	if (hl2c_server_jeep_passenger_seat:GetBool() && !GetConVar("hl2_episodic"):GetBool() && ent:IsVehicle() && string.find(ent:GetClass(), "prop_vehicle_jeep")) then
-
+	if (self.JeepPassengerSeat && !GetConVar("hl2_episodic"):GetBool() && ent:IsVehicle() && string.find(ent:GetClass(), "prop_vehicle_jeep")) then
 		ent.passengerSeat = ents.Create("prop_vehicle_prisoner_pod")
 		ent.passengerSeat:SetPos(ent:LocalToWorld(Vector(21, -32, 18)))
 		ent.passengerSeat:SetAngles(ent:LocalToWorldAngles(Angle(0, -3.5, 0)))
@@ -243,12 +239,16 @@ function GM:OnEntityCreated(ent)
 		ent.passengerSeat:Spawn()
 		ent.passengerSeat:Activate()
 		ent.passengerSeat.allowWeapons = true
-
 	end
 
 	if ent:IsNPC() and not ent:IsFriendlyNPC() and not table.HasValue(GODLIKE_NPCS, ent:GetClass()) then
-		ent.ent_MaxHealthMul = (ent.ent_MaxHealthMul or 1) * math.min(self:GetDifficulty()^0.3, 100000)
-		ent.ent_HealthMul = (ent.ent_HealthMul or 1) * math.min(self:GetDifficulty()^0.3, 100000)
+		local diff = self:GetDifficulty()^0.1
+		local diff2 = infmath.min(1e200, infmath.max(1, diff/1e10)^0.1)
+
+		ent.ent_MaxHealthMul = (ent.ent_MaxHealthMul or 1) * infmath.min(diff, 1e5) * diff2
+		ent.ent_HealthMul = (ent.ent_HealthMul or 1) * infmath.min(diff, 1e5) * diff2
+
+		-- ent:EnableCustomCollisions(true)
 	end
 
 	if ent:GetClass() == "entityflame" then
@@ -264,10 +264,10 @@ function GM:OnEntityCreated(ent)
 		ent.OData = ent:GetData()
 		if !ent:IsNPC() then return end
 		if ent.ent_MaxHealthMul then
-			ent:SetMaxHealth(ent.ent_MaxHealthMul * ent:Health())
+			ent:SetMaxHealth(infmath.ConvertInfNumberToNormalNumber(ent.ent_MaxHealthMul * ent:Health()))
 		end
 		if ent.ent_HealthMul then
-			ent:SetHealth(ent.ent_HealthMul * ent:Health())
+			ent:SetHealth(infmath.ConvertInfNumberToNormalNumber(ent.ent_HealthMul * ent:Health()))
 		end
 		if ent.ent_Color then
 			ent:SetColor(ent.ent_Color)
@@ -350,10 +350,7 @@ local StunstickDamageMul={
 function GM:EntityTakeDamage(ent, dmgInfo)
 	-- Gets the attacker
 	local attacker = dmgInfo:GetAttacker()
-
-	if attacker.OverrideAttacker then dmgInfo:SetAttacker(attacker.OverrideAttacker) end
-
-	local damage = math.min(dmgInfo:GetDamage(), 2^128) -- fuck the infinite damage's float limits
+	local damage = InfNumber(math.min(dmgInfo:GetDamage(), 2^128)) -- fuck the infinite damage's float limits
 	local dmgdirect = bit.band(DMG_DIRECT, dmgInfo:GetDamageType()) ~= 0
 
 	-- Godlike NPCs take no damage ever
@@ -421,7 +418,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		-- print("increase damage", ent:IsFriendlyNPC(), attacker:IsFriendlyNPC())
 		if not ispoisonheadcrab then
 			damage = damage * self:GetDifficulty()^0.7
-		elseif ent:IsPlayer() and ent:HasPerkActive("antipoison_1") then
+		elseif ent:IsPlayer() and ent:HasPerkActive("1_antipoison") then
 			damage = damage - math.min(self.EndlessMode and 100 or 25, ent:Health()/2)
 		end
 	end
@@ -435,7 +432,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 	if ent:IsPlayer() and attacker:IsNPC() and not dmgdirect then
 		local chance = (10 + math.max(0, (ent:GetMaxHealth()*0.75 - ent:Health())/ent:GetMaxHealth()*10)) / math.Clamp(1.1^math.max(0, ent.UnoReverseTimesActivated), 0, 100)
-		if ent:HasPerkActive("uno_reverse_3") and ent:Health() <= ent:GetMaxHealth()*0.75 and math.Rand(1,100) <= chance then
+		if ent:HasPerkActive("3_uno_reverse") and ent:Health() <= ent:GetMaxHealth()*0.75 and math.Rand(1,100) <= chance then
 			local d = DamageInfo()
 			d:SetDamage(damage)
 			d:SetDamageType(DMG_DIRECT)
@@ -453,13 +450,13 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	end
 
 	if ent:IsNPC() and attacker:IsPlayer() and not dmgdirect then
-		if attacker:HasPerkActive("damage_of_eternity_2") then
-			if math.random(100) <= 35 then
-				--[[
+		if attacker:HasPerkActive("2_damage_of_eternity") then
+			if math.random(100) <= 15 then
+				local delayed = infmath.ConvertInfNumberToNormalNumber(damage)*2
 				if ent.DelayedDamage then
-					ent.DelayedDamage = ent.DelayedDamage + damage*2
+					ent.DelayedDamage = ent.DelayedDamage + delayed
 				else
-					ent.DelayedDamage = damage*2
+					ent.DelayedDamage = delayed
 				end
 				ent.DelayedDamageAttacker = attacker
 				]]
@@ -467,7 +464,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 			end
 		end
 
-		if attacker:HasPerkActive("vampiric_killer_2") then
+		if attacker:HasPerkActive("2_vampiric_killer") then
 			local heal = math.ceil(math.min(ent:Health(), damage)*0.2)
 			attacker:SetHealth(math.min(attacker:Health() + heal, attacker:GetMaxHealth()))
 		end
@@ -479,7 +476,10 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 
 	if ent ~= attacker and ent:IsNPC() and attacker:IsNPC() and (not attacker:IsFriendlyNPC() and not ent:IsFriendlyNPC()) then
-		damage = damage * math.min(self:GetDifficulty()^0.3, 100000)
+		local diff = self:GetDifficulty()^0.1
+		local diff2 = infmath.min(1e200, infmath.max(1, diff/1e10)^0.1)
+
+		damage = damage * infmath.min(diff, 1e5) * diff2
 	end
 
 	if ent:IsNPC() then
@@ -489,7 +489,12 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		end
 	end
 
+	infmath.ConvertInfNumberToNormalNumber(damage)
 	dmgInfo:SetDamage(damage)
+
+	if attacker:IsPlayer() then
+		-- attacker:PrintMessage(3, tostring(damage))
+	end
 
 	if self.EXMode and attacker:GetClass() == "npc_sniper" and attacker.VariantType == 1 then
 		--PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
@@ -498,12 +503,12 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	local cantakedamage = ent:IsValid() and ent:IsPlayer() and not (ent:HasGodMode() or not gamemode.Call("PlayerShouldTakeDamage", ent, attacker)) or ent:IsValid() and !ent:IsPlayer()
 	if cantakedamage then
 		if ent:Inf_Health() > 2e9 then
-			if damage < ent:Inf_Health() then
-				dmgInfo:SetDamage(math.min(damage, 2e9-1))
+			if infmath.ConvertInfNumberToNormalNumber(damage) < ent:Inf_Health() then
+				dmgInfo:SetDamage(infmath.ConvertInfNumberToNormalNumber(infmath.min(damage, 2e9-1)))
 			end
-			--print(ent:Inf_Health(), math.log10(damage))
+
+			ent:Inf_SetHealth(infmath.ConvertInfNumberToNormalNumber(ent:Inf_Health() - damage))
 		end
-		ent:Inf_SetHealth(ent:Inf_Health() - damage)
 	else return true
 	end
 end
@@ -571,6 +576,46 @@ function GM:ClearPlayerDataFolder()
 	end
 end
 
+function GM:WriteCampaignSaveData(ply, save)
+	if !ply or !ply:IsValid() then return end
+	local plyID = ply:SteamID64() || ply:UniqueID()
+	if ply.hl2cSavedData and save then
+		file.Write(self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON(ply.hl2cSavedData))
+		return
+	end
+
+
+	local plyInfo = {}
+	local plyWeapons = ply:GetWeapons()
+
+	plyInfo.predicted_map = NEXT_MAP
+	plyInfo.health = ply:Health()
+	plyInfo.armor = ply:Armor()
+	plyInfo.score = ply:Frags()
+	plyInfo.deaths = ply:Deaths()
+	plyInfo.model = ply.modelName
+	plyInfo.SessionStats = ply.SessionStats
+	if (IsValid(ply:GetActiveWeapon())) then plyInfo.weapon = ply:GetActiveWeapon():GetClass(); end
+	if (plyWeapons && #plyWeapons > 0) then
+		plyInfo.loadout = {}
+		for _, wep in ipairs(plyWeapons) do
+			plyInfo.loadout[wep:GetClass()] = {
+				wep:Clip1(),
+				wep:Clip2(),
+				ply:GetAmmoCount(wep:GetPrimaryAmmoType()),
+				ply:GetAmmoCount(wep:GetSecondaryAmmoType())
+			}
+		end
+	end
+	plyInfo.EternityUpgradeValues = ply.EternityUpgradeValues
+
+	ply.hl2cSavedData = plyInfo
+
+	if save then
+		file.Write(self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON(plyInfo))
+	end
+end
+
 
 -- Called by GoToNextLevel
 function GM:GrabAndSwitch()
@@ -580,33 +625,8 @@ function GM:GrabAndSwitch()
 	hook.Call("ClearPlayerDataFolder", GAMEMODE)
 
 	-- Store player information
-	for _, ply in pairs(player.GetAll()) do
-		local plyInfo = {}
-		local plyWeapons = ply:GetWeapons()
-
-		plyInfo.predicted_map = NEXT_MAP
-		plyInfo.health = ply:Health()
-		plyInfo.armor = ply:Armor()
-		plyInfo.score = ply:Frags()
-		plyInfo.deaths = ply:Deaths()
-		plyInfo.model = ply.modelName
-		plyInfo.SessionStats = ply.SessionStats
-		if (IsValid(ply:GetActiveWeapon())) then plyInfo.weapon = ply:GetActiveWeapon():GetClass(); end
-		if (plyWeapons && #plyWeapons > 0) then
-			plyInfo.loadout = {}
-			for _, wep in pairs(plyWeapons) do
-				plyInfo.loadout[ wep:GetClass() ] = {
-					wep:Clip1(),
-					wep:Clip2(),
-					ply:GetAmmoCount(wep:GetPrimaryAmmoType()),
-					ply:GetAmmoCount(wep:GetSecondaryAmmoType())
-				}
-			end
-		end
-		plyInfo.EternityUpgradeValues = ply.EternityUpgradeValues
-
-		local plyID = ply:SteamID64() || ply:UniqueID()
-		file.Write(self.VaultFolder.."/players/"..plyID..".txt", util.TableToJSON(plyInfo))
+	for _, ply in ipairs(player.GetAll()) do
+		self:WriteCampaignSaveData(ply, true)
 		self:SavePlayer(ply)
 	end
 
@@ -614,7 +634,7 @@ function GM:GrabAndSwitch()
 end
 
 function GM:ShutDown()
-	for _,ply in pairs(player.GetAll()) do
+	for _,ply in ipairs(player.GetAll()) do
 		self:SavePlayer(ply)
 	end
 	self:SaveServerData()
@@ -631,8 +651,8 @@ function GM:Initialize()
 
 	self.XP_REWARD_ON_MAP_COMPLETION = self.XP_REWARD_ON_MAP_COMPLETION or 1 -- because it would call true if it was false, we use other values
 	self:SetDifficulty(1)
-	self.EXMode = GetConVar("hl2ce_server_ex_mode_enabled"):GetBool()
-
+	self.EXMode = self.EnableEXMode
+	
 	-- Network strings
 	util.AddNetworkString("SetCheckpointPosition")
 	util.AddNetworkString("NextMap")
@@ -656,6 +676,11 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_buyupgrade")
 	util.AddNetworkString("hl2ce_updateeternityupgrades")
 	util.AddNetworkString("hl2ce_finishedmap")
+	util.AddNetworkString("hl2ce_boss")
+	util.AddNetworkString("hl2ce_music")
+	util.AddNetworkString("hl2ce_fail")
+	util.AddNetworkString("hl2ce_map_event")
+	util.AddNetworkString("hl2ce_playerkilled")
 
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
@@ -680,7 +705,7 @@ function GM:Initialize()
 	end
 
 	-- Force game rules such as aux power and max ammo
-	if hl2c_server_force_gamerules:GetBool() then
+	if self.ForceGamerules then
 		if !AUXPOW then game.ConsoleCommand("gmod_suit 1\n"); end
 		game.ConsoleCommand("gmod_maxammo 0\n")
 	end
@@ -753,32 +778,38 @@ end
 function GM:OnCampaignCompleted()
 end
 
+function GM:PostOnMapCompleted()
+end
+
+function GM:PostOnCampaignCompleted()
+end
+
 function GM:PlayerCompletedMap(ply)
 	-- XP
 	local txp = 0
-	local xp = math.Round(math.Rand(4,7)) * math.min(self:GetDifficulty(), ply:GetMaxDifficultyXPGainMul())
+	local xp = math.Round(math.Rand(4,7)) * infmath.min(self:GetDifficulty(), ply:GetMaxDifficultyXPGainMul())
 
 	if (self.XP_REWARD_ON_MAP_COMPLETION or 1) > 0 then
 		xp = xp * self.XP_REWARD_ON_MAP_COMPLETION
 		txp = txp + xp
 	end
 	if ply.MapStats.GainedXP then
-		xp = math.floor(ply.MapStats.GainedXP * 0.15)
+		xp = infmath.floor(ply.MapStats.GainedXP * 0.15)
 		txp = txp + xp
 	end
 
-	if txp > 0 then
+	if infmath.ConvertInfNumberToNormalNumber(txp) > 0 then
 		ply:GiveXP(txp, true)
-		ply:PrintMessage(HUD_PRINTTALK, Format("You were given additional %i XP for completing this map.", txp))
+		ply:PrintMessage(HUD_PRINTTALK, Format("You were given additional %s XP for completing this map.", tostring(txp)))
 	end
 
 	-- Moneys
 	local gain = ply.MoneysGain
 
-	if gain > 0 then
+	if infmath.ConvertInfNumberToNormalNumber(gain) > 0 then
 		ply.MoneysGain = 0
 		ply.Moneys = ply.Moneys + gain
-		ply:PrintMessage(3, "You have gained +"..gain.." moneys")
+		ply:PrintMessage(3, "You have gained +"..tostring(gain).." moneys")
 	end
 
 	if ply.MapStats then -- Map stats display after completing the map (Not yet.)
@@ -793,7 +824,7 @@ end
 function GM:PlayerCompletedCampaign(ply)
 	if !(ply and ply:IsValid()) then return end
 	local map = game.GetMap()
-	local gamename = ""
+	local gamename = "[INVALID]"
 	if map == "d3_breen_01" then
 		gamename = "Half-Life 2"
 	elseif map == "ep1_c17_06" then
@@ -804,15 +835,16 @@ function GM:PlayerCompletedCampaign(ply)
 		gamename = MAP_COMPLETE_GAME_NAME
 	end
 
-	local xp = (1 + math.max(0, 2-math.log10(ply:Frags()))*0.2)
+	local xp = 1 + (2+math.max(0, math.log10(ply:Frags()))*0.2)
 	if ply.MapStats.GainedXP then
 		xp = xp + ply.MapStats.GainedXP*0.5
 	end
+
 	xp = xp + math.max(500,math.min(20000,ply:Frags() * 200)) ^ 1.25 + 800
 	xp = xp * math.min(5,self:GetDifficulty() ^ 1.25)
 	ply:GiveXP(xp)
-	ply:PrintMessage(3, "Congratulations - you have completed "..gamename)
-	ply:PrintMessage(3, "You were awarded "..xp.." XP")
+	ply:PrintMessage(3, Format("Congratulations - you have completed %s", gamename))
+	ply:PrintMessage(3, Format("You were awarded %s XP", ply:GiveXP(xp)))
 end
 
 
@@ -844,7 +876,7 @@ function GM:OnReloaded()
 
 	print("Gamemode "..self.Name.." ("..self.Version..") files have been refreshed")
 	timer.Simple(1, function()
-		for _,ply in pairs(player.GetAll()) do
+		for _,ply in ipairs(player.GetAll()) do
 			self:NetworkString_UpdateStats(ply)
 			self:NetworkString_UpdateSkills(ply)
 			self:NetworkString_UpdatePerks(ply)
@@ -943,11 +975,12 @@ function GM:NextMap()
 	end)
 end
 concommand.Add("hl2ce_next_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then NEXT_MAP_TIME = 0; hook.Call("NextMap", GAMEMODE); else ply:PrintMessage(HUD_PRINTTALK, "You are not admin!") end end)
-concommand.Add("hl2ce_admin_respawn", function(ply)
-	if IsValid(ply) && ply:IsAdmin() && (!ply:Alive() || table.HasValue(deadPlayers, ply:SteamID())) && !changingLevel then
+concommand.Add("hl2ce_admin_respawn", function(ply, cmd, args)
+	if IsValid(ply) && ply:IsAdmin() && (!ply:Alive() || table.HasValue(deadPlayers, ply:SteamID()) or args[1] == "force") && !changingLevel then
 		table.RemoveByValue(deadPlayers, ply:SteamID())
 		ply:SetTeam(TEAM_ALIVE)
 		timer.Simple(0, function()
+			ply:KillSilent()
 			ply:Spawn()
 		end)
 		print(ply:Nick().." used respawn command!")
@@ -1020,28 +1053,24 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			local npckillxpmul,npckilldiffgainmul = self.XpGainOnNPCKillMul or 1, self.DifficultyGainOnNPCKillMul or 1
 			local npcxpmul = npc.XPGainMult or 1
 
-			local gainfromdifficultymul = math.min(difficulty^0.8, killer:GetMaxDifficultyXPGainMul())
-			local better_knowledge_gain = killer:HasPerkActive("better_knowledge_1") and (self.EndlessMode and (nonmoddiff >= 6.50 and 1.55 or 1.3) or !self.EndlessMode and 1.25) or 1
+			local gainfromdifficultymul = infmath.min(difficulty^0.8, killer:GetMaxDifficultyXPGainMul())
+			local better_knowledge_gain = killer:HasPerkActive("1_better_knowledge") and (self.EndlessMode and (infmath.ConvertInfNumberToNormalNumber(nonmoddiff) >= 6.50 and 1.55 or 1.3) or !self.EndlessMode and 1.25) or 1
 			local xpmul = gainfromdifficultymul * npckillxpmul * npcxpmul * better_knowledge_gain
 
 			if killer:GetSkillAmount("Knowledge") > 15 then
 				npckilldiffgainmul = npckilldiffgainmul * (1 + (killer:GetSkillAmount("Knowledge")-15)*0.02)
 			end
 			if self.EndlessMode then
-				if killer:HasPerkActive("difficult_decision_2") then
-					xpmul = xpmul * 1.45
-				end
-
-
-				if killer:HasPerkActive("difficult_decision_1") then
+				if killer:HasPerkActive("1_difficult_decision") then
 					npckilldiffgainmul = npckilldiffgainmul * 1.75
 				end
 
-				if killer:HasPerkActive("aggressive_gameplay_1") then
+				if killer:HasPerkActive("1_aggressive_gameplay") then
 					npckilldiffgainmul = npckilldiffgainmul * 2.3
 				end
 
-				if killer:HasPerkActive("difficult_decision_2") then
+				if killer:HasPerkActive("2_difficult_decision") then
+					xpmul = xpmul * 1.45
 					npckilldiffgainmul = npckilldiffgainmul * 3.35
 				end
 			end
@@ -1053,10 +1082,10 @@ function GM:OnNPCKilled(npc, killer, weapon)
 			local moneys = NPC_MONEYS_VALUES[npcclass]
 			local npckillxpmul,npckilldiffgainmul = self.MoneysGainOnNPCKillMul or 1
 			local npcxpmul = npc.MoneyGainMult or 1
-			killer:GiveMoneysGain(math.Round(NPC_MONEYS_VALUES[npcclass]*(difficulty^0.25)))
+			killer:GiveMoneysGain(infmath.Round(NPC_MONEYS_VALUES[npcclass]*(infmath.min(killer:GetMaxDifficultyMoneyGainMul(), difficulty)^0.25)))
 		end
 
-		if killer:HasPerkActive("vampiric_killer_1") then
+		if killer:HasPerkActive("2_vampiric_killer") then
 			if self.EndlessMode then
 				killer:SetHealth(math.min(killer:GetMaxHealth(), killer:Health() + math.min(50, killer:GetMaxHealth()*0.04)))
 			else
@@ -1066,16 +1095,15 @@ function GM:OnNPCKilled(npc, killer, weapon)
 	end
 
 	-- If the NPC is godlike and they die
-	if (IsValid(npc)) then
-
+	if IsValid(npc) then
 		if npc:IsGodlikeNPC() then
+			if IsValid(killer) and killer:IsPlayer() then
+				game.KickID(killer:UserID(), "You killed an important NPC actor!")
+			end
 
-			if (IsValid(killer) && killer:IsPlayer()) then game.KickID(killer:UserID(), "You killed an important NPC actor!"); end
 			PrintMessage(HUD_PRINTTALK, "Important NPC actor died!")
-			gamemode.Call("RestartMap")
-
+			gamemode.Call("FailMap", ply, "Important NPC died!")
 		end
-
 	end
 
 	-- Convert the inflictor to the weapon that they're holding if we can
@@ -1164,7 +1192,69 @@ function GM:WeaponEquip(wep,owner)
 	end
 end
 
-hook.Add("OnNPCKilled", "NoMoreHarpoonInstaKills", function(ent, atk, inf)
+hook.Add("OnNPCKilled", "!NoMoreHarpoonInstaKills", function(ent, atk, inf)
+	if inf:IsValid() and inf:GetModel() == "models/props_junk/harpoon002a.mdl" then return false end
+end, HOOK_HIGH)
+
+hook.Add("EntityRemoved","HL2CE_NPCDeathHack",function(ent)
+	if NPC_NO_KILLEDHOOK[ent:GetClass()] and not ent.HL2CEKilled then
+		ent.HL2CEKilled = true
+		local att = ent:GetLastAttacker()
+		if IsValid(att) then
+			if att:IsPlayer() then
+				--not hook.Run.
+				GAMEMODE:OnNPCKilled(ent,att,att)
+			end
+		end
+	end
+
+	if MAP_ENTITIES_RESPAWN and (MAP_CAN_RESPAWN_ENTITIES[ent:GetClass()] or (MAP_CAN_RESPAWN_ENTITY and MAP_CAN_RESPAWN_ENTITY(ent))) then
+		local _,map_force = MAP_CAN_RESPAWN_ENTITY(ent)
+		GAMEMODE:AddToRespawn(ent,map_force)
+	end
+
+end)
+
+GM.RespawningEntities = {}
+function GM:RespawnEntity(data)
+	local ent = ents.Create(data.classname)
+	if not IsValid(ent) then return end
+	ent:SpawnWithData(data)
+	ent:EmitSound("AlyxEmp.Charge")
+	return ent
+end
+
+function GM:RespawnThink(data)
+	for k,data in pairs(self.RespawningEntities) do
+		if (data.respawntime or 0) < CurTime() then
+			self:RespawnEntity(data)
+			self.RespawningEntities[k] = nil
+		end
+	end
+end
+
+function GM:AddToRespawn(ent,map_force)
+
+	if not mapforce then
+		if (not ent.CanRespawn) and ent:MapCreationID() == -1 then return end
+		if ent:IsWeapon() and IsValid(ent:GetOwner()) then return end
+	end
+
+	print("added ",ent," to respawning entities")
+
+	local data = table.Copy(ent.OData or ent:GetData())
+	data.respawntime = CurTime() + MAP_ENTITIES_RESPAWNTIME or 15
+	self.RespawningEntities[ent:GetCreationID()] = data
+end
+
+function GM:WeaponEquip(wep,owner)
+	if MAP_ENTITIES_RESPAWN and (MAP_CAN_RESPAWN_WEAPONS[ent:GetClass()] or (MAP_CAN_RESPAWN_ENTITY and MAP_CAN_RESPAWN_ENTITY(ent))) then
+		local _,map_force = MAP_CAN_RESPAWN_ENTITY(ent)
+		GAMEMODE:AddToRespawn(ent,map_force)
+	end
+end
+
+hook.Add("OnNPCKilled", "!NoMoreHarpoonInstaKills", function(ent, atk, inf)
 	if inf:IsValid() and inf:GetModel() == "models/props_junk/harpoon002a.mdl" then return false end
 end, HOOK_HIGH)
 
@@ -1207,6 +1297,7 @@ function GM:PlayerCanPickupItem(ply, item)
 	end
 	local class = item:GetClass()
 	if class == "item_healthkit" then
+		if ply:HasPerkActive("3_medkit_enhancer") then
 		if not ply:HasWeapon("weapon_hl2ce_medkit") then ply:Give("weapon_hl2ce_medkit") end
 		if ply:HasPerkActive("medkit_enhancer_3") then
 			if ply:Health() < ply:GetMaxHealth() then
@@ -1247,48 +1338,77 @@ function GM:PlayerInitialSpawn(ply)
 	ply.startTime = CurTime()
 	ply:SetTeam(TEAM_ALIVE)
 
-	ply.XP = 0
-	ply.Level = 1
-	ply.StatPoints = 0
-
-	ply.Prestige = 0
-	ply.PrestigePoints = 0
-	ply.Eternity = 0
-	ply.EternityPoints = 0
-
-	-- Endless?
-	ply.Celestiality = 0
-	ply.CelestialityPoints = 0
-	ply.Rebirths = 0
-	ply.RebirthPoints = 0
-	-- Renamed due to Ascension feeling like a low tier prestige (in Revo Idle it's used to boost color mult gain)
-	ply.Transcension = 0
-	ply.TranscensionPoints = 0
-
-	-- New 6th prestige type?
-	ply.MythiLegendaries = 0
-	ply.MythiLegendaryPoints = 0
-
-	-- True Endless...????
-	-- ...but... you sure?
-
-	-- this won't be included since the mastery will be working differently
-	-- ply.Mastery = 0
-	-- ply.MasteryPoints = 0
+	ply.XP = InfNumber(0)
+	ply.Level = InfNumber(0)
+	ply.StatPoints = InfNumber(0)
 
 
+	-- a HUGE EXTREME LIST OF PRESTIGE LAYERS. (nah we stick to the ones previously for now)
+
+	ply.Prestige = InfNumber(0)
+	ply.PrestigePoints = InfNumber(0)
+	ply.Eternities = InfNumber(0)
+	ply.EternityPoints = InfNumber(0)
+	ply.Celestiality = InfNumber(0)
+	ply.CelestialityPoints = InfNumber(0)
+
+	--[[
+	ply.Resets = InfNumber(0) -- 2nd layer
+	ply.ResetPoints = InfNumber(0)
+
+	-- Infinite (XP: Past 1.8e308)
+	ply.Infinities = InfNumber(0)
+	ply.InfinityPoints = InfNumber(0)
+	ply.Ascensions = InfNumber(0)
+	ply.AscensionPoints = InfNumber(0)
+
+	-- Extreme (XP: Past ~e100,000)
+	ply.Transcendences = InfNumber(0)
+	ply.TranscendencePoints = InfNumber(0)
+	ply.Singularities = InfNumber(0)
+	ply.SingularityPoints = InfNumber(0)
+	ply.Hyperions = InfNumber(0)
+	ply.HyperionPoints = InfNumber(0)
+	ply.Omnipotence = InfNumber(0)
+	ply.OmnipotencePoints = InfNumber(0)
+
+	-- Godlous (XP: Past ~ee20)
+	ply.Absolutes = InfNumber(0)
+	ply.AbsolutePoints = InfNumber(0)
+	ply.Voids = InfNumber(0)
+	ply.VoidPoints = InfNumber(0)
+
+	-- Ultimated (Past ~ee308)
+	ply.Brokens = InfNumber(0)
+	ply.BrokenPoints = InfNumber(0)
+	ply.Transfinities = InfNumber(0)
+	ply.TransfinityPoints = InfNumber(0)
+	ply.Continuum = InfNumber(0)
+	ply.ContinuumPoints = InfNumber(0)
+	ply.Oblivion = InfNumber(0)
+	ply.OblivionPoints = InfNumber(0)
+
+	-- Hyper-Broken. (Past ~eee308)
+	ply.Endlessness = InfNumber(0)
+	ply.EndlessnessPoints = InfNumber(0)
+
+	-- The END (Past eeee30)
+	ply.Terminus = InfNumber(0)
+	ply.TerminusPoints = InfNumber(0)
+]]
 
 
-	ply.Moneys = 0
+
+	ply.Moneys = InfNumber(0)
 	ply.MoneysGain = 0 -- Resets on restart and only gives after map completion
 
 
-
+	ply.Skills = {}
 	for k, v in pairs(self.SkillsInfo) do
-		ply["Stat"..k] = 0
+		ply.Skills[k] = 0
 	end
 
-	ply.XPUsedThisPrestige = 0
+	ply.XPUsedThisPrestige = InfNumber(0)
 
 	ply.UnlockedPerks = {}
 	ply.DisabledPerks = {}
@@ -1329,7 +1449,7 @@ function GM:PlayerInitialSpawn(ply)
 
 	-- Send initial player spawn to client
 	net.Start("PlayerInitialSpawn")
-	net.WriteBool(hl2c_server_custom_playermodels:GetBool())
+	net.WriteBool(self.CustomPMs)
 	net.Send(ply)
 
 	-- Send current checkpoint position
@@ -1365,6 +1485,7 @@ function GM:PlayerReady(ply)
 end
 
 function GM:ReachedCheckpoint(ply) -- ply is activator, not working yet
+
 end
 
 
@@ -1386,9 +1507,9 @@ function GM:PlayerLoadout(ply)
 		end
 
 		ply:RemoveAllAmmo()
-
-		for _, wep in pairs(ply:GetWeapons()) do
-
+	
+		for _, wep in ipairs(ply:GetWeapons()) do
+		
 			local wepClass = wep:GetClass()
 
 			if (ply.info.loadout[ wepClass ]) then
@@ -1422,10 +1543,12 @@ function GM:PlayerLoadout(ply)
 	end
 
 	-- Lastly give physgun to admins
-	if (hl2c_admin_physgun:GetBool() && ply:IsAdmin()) then
-
+	if self.AdminPhysgun and ply:IsAdmin() then
 		ply:Give("weapon_physgun")
+	end
 
+	if self.PlayerMedkitOnSpawn then
+		ply:Give("weapon_hl2ce_medkit")
 	end
 
 	hook.Call("PostPlayerLoadout", GAMEMODE, ply)
@@ -1440,7 +1563,7 @@ function GM:PlayerNoClip(ply)
 		return false
 	end
 
-	return ply:IsAdmin() && hl2c_admin_noclip:GetBool()
+	return ply:IsAdmin() && self.AdminNoclip
 end
 
 
@@ -1470,16 +1593,16 @@ hook.Add("PlayerSelectSpawn", "hl2cPlayerSelectSpawn", hl2cPlayerSelectSpawn)
 function GM:PlayerSetModel(ply)
 
 	-- Stores the model as a variable part of the player
-	if (!hl2c_server_custom_playermodels:GetBool() && ply.info && ply.info.model) then
-
+	if (!self.CustomPMs && ply.info && ply.info.model) then
+	
 		ply.modelName = ply.info.model
 
 	else
 
 		local modelName = player_manager.TranslatePlayerModel(ply:GetInfo("cl_playermodel"))
-
-		if (hl2c_server_custom_playermodels:GetBool() || (modelName && table.HasValue(PLAYER_MODELS, string.lower(modelName)))) then
-
+	
+		if (self.CustomPMs || (modelName && table.HasValue(PLAYER_MODELS, string.lower(modelName)))) then
+		
 			ply.modelName = modelName
 
 		else
@@ -1490,8 +1613,8 @@ function GM:PlayerSetModel(ply)
 
 	end
 
-	if (!hl2c_server_custom_playermodels:GetBool()) then
-
+	if (!self.CustomPMs) then
+	
 		if (ply:IsSuitEquipped()) then
 
 			ply.modelName = string.gsub(string.lower(ply.modelName), "group01", "group03")
@@ -1510,8 +1633,8 @@ function GM:PlayerSetModel(ply)
 	ply:SetupHands()
 
 	-- Skin, modelgroups and player color are primarily a custom playermodel thing
-	if (hl2c_server_custom_playermodels:GetBool()) then
-
+	if (self.CustomPMs) then
+	
 		ply:SetSkin(ply:GetInfoNum("cl_playerskin", 0))
 
 		ply.modelGroups = ply:GetInfo("cl_playerbodygroups")
@@ -1537,8 +1660,8 @@ end
 function GM:PlayerSpawn(ply)
 	player_manager.SetPlayerClass(ply, "player_hl2ce")
 
-	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (ply:Team() == TEAM_DEAD)) then
-
+	if (((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (ply:Team() == TEAM_DEAD)) then
+	
 		ply:Spectate(OBS_MODE_ROAMING)
 		ply:SetPos(ply.deathPos)
 		ply:SetNoTarget(true)
@@ -1558,7 +1681,7 @@ function GM:PlayerSpawn(ply)
 
 	-- Player statistics
 	ply:UnSpectate()
-	ply:ShouldDropWeapon((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING)
+	ply:ShouldDropWeapon((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING)
 	ply:AllowFlashlight(GetConVar("mp_flashlight"):GetBool())
 	ply:SetCrouchedWalkSpeed(0.3)
 	gamemode.Call("SetPlayerSpeed", ply, 190, 320)
@@ -1572,14 +1695,14 @@ function GM:PlayerSpawn(ply)
 
 	local maxhp = ply:GetOriginalMaxHealth()
 	local maxap = 100 -- calculate their max armor
-	if ply:HasPerkActive("super_armor_1") then
+	if ply:HasPerkActive("1_super_armor") then
 		maxap = maxap + (self.EndlessMode and 30 or 5)
 	end
 	if self.EndlessMode then
-		if ply:HasPerkActive("hyper_armor_2") then
+		if ply:HasPerkActive("2_hyper_armor") then
 			maxap = maxap + 100
 		end
-		if ply:HasPerkActive("celestial_3") then
+		if ply:HasPerkActive("3_celestial") then
 			maxap = maxap + 80
 		end
 	end
@@ -1685,7 +1808,7 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 
 	timer.Create("hl2c_restart_map", overridetime, 1, function()
 		if not noplayerdatasave then
-			for k,v in pairs(player.GetAll()) do
+			for k,v in ipairs(player.GetAll()) do
 				self:SavePlayer(v)
 			end
 
@@ -1702,36 +1825,60 @@ function GM:RestartMap(overridetime, noplayerdatasave)
 				net.Broadcast()
 				self:Initialize() -- why run GAMEMODE:Initialize() again? so that difficulty will also reset if noplayerdatasave is true
 				changingLevel = true
-				game.CleanUpMap(false, {"env_fire", "entityflame", "_firesmoke"})
-				changingLevel = nil
-				local plyrespawn = FORCE_PLAYER_RESPAWNING
-				FORCE_PLAYER_RESPAWNING = true
-				for k,v in pairs(player.GetAll()) do
-					self:PlayerInitialSpawn(v)
-					v:KillSilent()
-					v:SetTeam(TEAM_ALIVE)
-					timer.Simple(0.05, function()
-						v:Spawn()
-					end)
-				end
-				changingLevel = false
-				FORCE_PLAYER_RESPAWNING=plyrespawn
+				game.CleanUpMap(false, {"env_fire", "entityflame", "_firesmoke"}, function()
+					changingLevel = nil
+					local plyrespawn = FORCE_PLAYER_RESPAWNING
+					FORCE_PLAYER_RESPAWNING = true
+					for k,v in ipairs(player.GetAll()) do
+						self:PlayerInitialSpawn(v)
+						v:KillSilent()
+						v:SetTeam(TEAM_ALIVE)
+						timer.Simple(0.05, function()
+							v:Spawn()
+						end)
+					end
+					changingLevel = false
+					FORCE_PLAYER_RESPAWNING=plyrespawn
+				end)
 			end
 		end)
 	end)
 end
-concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then hook.Call("RestartMap", GAMEMODE, 0); end end)
+concommand.Add("hl2ce_restart_map", function(ply) if (IsValid(ply) && ply:IsAdmin()) then gamemode.Call("RestartMap", 0); end end)
 
-function GM:FailMap(ply) -- ply argument is the one who caused the map to fail, giving them a quite big penalty
+function GM:OnMapFailed(ply)
+	local diff = self:GetDifficulty(true, true)
+	if diff > InfNumber(math.huge) then
+		local result = 0.8/(1+math.log10(diff:log10())-math.log10(33))
+		self:SetDifficulty(diff^(0.9/math.log10(diff:log10())))
+	elseif diff > InfNumber(1, 33) then
+		local result = 0.9/(1+math.log10(diff:log10())-math.log10(33))
+		self:SetDifficulty(diff^(0.9/math.log10(diff:log10())))
+	else
+		self:SetDifficulty(infmath.max(1, diff * (
+			diff >= InfNumber(1000) and 0.85 or diff >= InfNumber(100) and 0.87 or
+			diff >= InfNumber(10) and 0.87 or diff >= InfNumber(4) and 0.89 or 0.91
+		)))
+	end
+end
+
+function GM:FailMap(ply, reason) -- ply is the one who caused the map to fail, giving them a quite big penalty
+	if changingLevel then return end
+	net.Start("hl2ce_fail")
+	net.WriteString(reason or "Map failed!")
+	net.Broadcast()
+
 	self:RestartMap()
 
 	if ply and ply:IsValid() and ply:IsPlayer() then
-		local xploss = ply.MapStats.XPGained * 1.1
+		local xploss = ply.XP*0.1 + ply.MapStats.XPGained*1.1
 		ply.XP = ply.XP - xploss
 
-		ply:PrintMessage(3, "Don't cause the map to fail bruh.")
+		ply:PrintMessage(3, "Don't cause the map to fail.")
 		ply:PrintMessage(3, "Lost "..xploss.." XP.")
 	end
+
+	gamemode.Call("OnMapFailed", ply)
 end
 
 
@@ -1819,7 +1966,7 @@ function GM:ShowSpare1(ply)
 		return
 	end
 
-	for _, ent in pairs(ents.FindInSphere(ply:GetPos(), 256)) do
+	for _, ent in ipairs(ents.FindInSphere(ply:GetPos(), 256)) do
 		if IsValid(ent) and ent:IsPlayer() and ent:Alive() and ent != ply then
 			ply:PrintMessage(HUD_PRINTTALK, "There are players around you! Find an open space to spawn your vehicle.")
 			return
@@ -1897,17 +2044,20 @@ local delayedDMGTick = 0
 function GM:Think()
 
 	-- Restart the map if all players are dead
-	if (((!hl2c_server_player_respawning:GetBool() && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (player.GetCount() > 0) && ((team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)) <= 0)) then
+	if ((!self.PlayerRespawning and !FORCE_PLAYER_RESPAWNING) or OVERRIDE_PLAYER_RESPAWNING) and player.GetCount() > 0 and ((team.NumPlayers(TEAM_ALIVE) + team.NumPlayers(TEAM_COMPLETED_MAP)) <= 0) then
 		if !changingLevel then
-			PrintMessage(HUD_PRINTTALK, "All players have died!")
+			gamemode.Call("FailMap", nil, "All players have died!")
 
-			local diff = self:GetDifficulty(true, true)
-			self:SetDifficulty(math.max(1, diff * (
-				diff >= 1000 and 0.85 or diff >= 100 and 0.87 or
-				diff >= 10 and 0.87 or diff >= 4 and 0.89 or 0.91
-			)))
+			for _,ply in ipairs(player.GetAll()) do
+				if ply:Team() ~= TEAM_ALIVE and ply:Team() ~= TEAM_COMPLETED_MAP and ply:Team() ~= TEAM_DEAD then
+					PrintMessage(3, "One of the players are on the invalid team!")
+					if ULib and ULib.isSandbox and ULib.isSandbox() then
+						PrintMessage(3, "It's likely it's due to a team being applied to one of the player's groups!")
+					end
 
-			hook.Call("RestartMap", GAMEMODE)
+					break
+				end
+			end
 		end
 	end
 
@@ -1916,7 +2066,7 @@ function GM:Think()
 		if self.EndlessMode then
 			game.SetSkillLevel(2)
 			-- game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
-		elseif hl2c_server_dynamic_skill_level:GetBool() then
+		elseif self.DynamicSkillLevel then
 			self:SetDifficulty(math.Clamp((0.55 + (player.GetCount() / 4.7)), DIFFICULTY_RANGE[1], DIFFICULTY_RANGE[2]))
 			game.SetSkillLevel(2)
 			-- game.SetSkillLevel(math.Clamp(math.floor(self:GetDifficulty()), 1, 3))
@@ -1926,8 +2076,8 @@ function GM:Think()
 	if SecondTick < CurTime() then
 		SecondTick = CurTime() + 1
 
-		for _,ply in pairs(player.GetAll()) do
-			if ply:HasPerkActive("hyper_armor_2") then
+		for _,ply in ipairs(player.GetAll()) do
+			if ply:HasPerkActive("2_hyper_armor") then
 				if ply:WaterLevel() < 3 and ply:GetSuitPower() < 100 then
 					ply:SetSuitPower(math.min(100, ply:GetSuitPower() + 3))
 					ply.HyperArmorCharge = 0
@@ -1957,7 +2107,7 @@ function GM:Think()
 
 	-- Open area portals
 	if nextAreaOpenTime <= CurTime() then
-		for _, fap in pairs(ents.FindByClass("func_areaportal")) do
+		for _, fap in ipairs(ents.FindByClass("func_areaportal")) do
 			fap:Fire("Open")
 		end
 		nextAreaOpenTime = CurTime() + 1
@@ -1986,7 +2136,7 @@ function GM:Think()
 
 	--[[
 	if delayedDMGTick + 0.5 < CurTime() then
-		for _,ent in pairs(ents.GetAll()) do
+		for _,ent in ipairs(ents.GetAll()) do
 			if ent.DelayedDamage and ent.DelayedDamage >= 1 then
 				local mult = (1 - (0.8 / math.max(1, math.log10(ent.DelayedDamage) - 2)))
 				ent.DelayedDamage = ent.DelayedDamage - math.ceil(ent.DelayedDamage*mult)
@@ -2041,7 +2191,7 @@ local function DynamicSkillToggleCallback(name, old, new)
 	if GAMEMODE.EndlessMode then
 		game.SetSkillLevel(2)
 		-- game.SetSkillLevel(math.Clamp(math.floor(GAMEMODE:GetDifficulty()), 1, 3))
-	elseif (!hl2c_server_dynamic_skill_level:GetBool()) then
+	elseif !self.DynamicSkillLevel then
 		GAMEMODE:SetDifficulty(DIFFICULTY_RANGE[1])
 		game.SetSkillLevel(2)
 		-- game.SetSkillLevel(math.Clamp(math.floor(GAMEMODE:GetDifficulty()), 1, 3))

@@ -5,9 +5,9 @@ INFO_PLAYER_SPAWN = {Vector(-3054, -12266, 538), 180}
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -24,7 +24,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

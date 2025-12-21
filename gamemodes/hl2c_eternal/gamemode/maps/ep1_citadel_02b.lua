@@ -13,10 +13,10 @@ TRIGGER_DELAYMAPLOAD = { Vector( 5120, 4840, -6720 ), Vector( 5136, 4480, -6480)
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 	ply:Give("weapon_physcannon")
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -34,7 +34,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 local allowfail
 
 -- Accept input
-function hl2cAcceptInput( ent, input,... )
+function hl2cAcceptInput(ent, input)
 	if ent == ents.FindByName("citadel_train_lift_glass")[1] and string.lower(input) == "break" then
 		allowfail = true
 		-- print("allowed fail map")
@@ -49,4 +49,4 @@ function hl2cAcceptInput( ent, input,... )
 		--DbgEntInput(ent,input,...)
 	end
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

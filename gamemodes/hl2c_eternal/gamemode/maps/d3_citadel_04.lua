@@ -11,12 +11,12 @@ CITADEL_ELEVATOR_CHECKPOINT2 = true
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_physcannon" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -37,13 +37,13 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && !CITADEL_ELEVATOR_CHECKPOINT1 && ( ent:GetName() == "citadel_brush_elevcage1_1" ) && ( string.lower( input ) == "enable" ) ) then
+	if ( !game.SinglePlayer() && !CITADEL_ELEVATOR_CHECKPOINT1 && ( ent:GetName() == "citadel_brush_elevcage1_1" ) && string.lower(input) == "enable" ) then
 	
 		CITADEL_ELEVATOR_CHECKPOINT1 = true
 		CITADEL_ELEVATOR_CHECKPOINT2 = false
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( 256, 832, 2320 ) )
@@ -53,10 +53,10 @@ function hl2cAcceptInput( ent, input )
 	
 	end
 
-	if ( !game.SinglePlayer() && !CITADEL_ELEVATOR_CHECKPOINT2 && ( ent:GetName() == "citadel_path_lift01_1" ) && ( string.lower( input ) == "inpass" ) ) then
+	if ( !game.SinglePlayer() && !CITADEL_ELEVATOR_CHECKPOINT2 && ( ent:GetName() == "citadel_path_lift01_1" ) && ( string.lower(input) == "inpass" ) ) then
 	
 		CITADEL_ELEVATOR_CHECKPOINT2 = true
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( 256, 832, 6420 ) )
@@ -68,7 +68,7 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 
 -- Every frame or tick

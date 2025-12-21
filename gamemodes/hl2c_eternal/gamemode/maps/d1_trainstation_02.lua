@@ -8,7 +8,7 @@ if CLIENT then return end
 local activated
 
 -- Player spawns
-hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
+hook.Add("PlayerReady", "hl2cPlayerReady", function(ply)
 	if !GAMEMODE.EXMode then return end
 	timer.Simple(1, function()
 		-- ply:SendLua([[chat.AddText("Combine in this map are hostile and will always oneshot on hit.") chat.AddText("Run for your life.")]])
@@ -18,13 +18,13 @@ hook.Add( "PlayerReady", "hl2cPlayerReady", function(ply)
 end)
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:RemoveSuit()
-	timer.Simple( 0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end )
+	timer.Simple(0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ); end; end)
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -66,7 +66,7 @@ hook.Add("AcceptInput", "hl2cAcceptInput", function(ent, input, activator)
 	local names = {"lcs_CupCop_Pass", "lcs_CupCop_Fail"}
 	if GAMEMODE.EXMode and table.HasValue(names, ent:GetName()) and string.lower(input) == "start" and not activated then
 		local ang = Angle(0,0,0)
-		local pl = player.GetAll()[1]
+		local pl = table.Random(player.GetLiving())
 		CreateMetropolice(Vector(-4388, -720, 64), ang, pl)
 		CreateMetropolice(Vector(-4388, -800, 64), ang, pl)
 		CreateMetropolice(Vector(-4388, -880, 64), ang, pl)

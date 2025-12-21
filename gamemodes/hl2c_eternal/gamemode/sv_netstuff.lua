@@ -2,21 +2,23 @@
 
 
 function GM:NetworkString_UpdateStats(ply)
+    if ply:IsBot() then return end
     net.Start("hl2c_updatestats")
-    net.WriteFloat(ply.Moneys)
-    net.WriteFloat(ply.XP)
-    net.WriteFloat(ply.Level)
-    net.WriteFloat(ply.StatPoints)
-    net.WriteFloat(ply.Prestige)
-    net.WriteFloat(ply.PrestigePoints)
-    net.WriteFloat(ply.Eternity)
-    net.WriteFloat(ply.EternityPoints)
-    net.WriteFloat(ply.Celestiality)
-    net.WriteFloat(ply.CelestialityPoints)
+    net.WriteInfNumber(ply.Moneys)
+    net.WriteInfNumber(ply.XP)
+    net.WriteInfNumber(ply.Level)
+    net.WriteInfNumber(ply.StatPoints)
+    net.WriteInfNumber(ply.Prestige)
+    net.WriteInfNumber(ply.PrestigePoints)
+    net.WriteInfNumber(ply.Eternities)
+    net.WriteInfNumber(ply.EternityPoints)
+    -- net.WriteInfNumber(ply.Celestiality)
+    -- net.WriteInfNumber(ply.CelestialityPoints)
     net.Send(ply)
 end
 
 function GM:NetworkString_UpdateSkills(ply)
+    if ply:IsBot() then return end
     net.Start("UpdateSkills")
     net.WriteFloat(ply.StatDefense)
     net.WriteFloat(ply.StatGunnery)
@@ -25,16 +27,19 @@ function GM:NetworkString_UpdateSkills(ply)
     net.WriteFloat(ply.StatVitality)
     net.WriteFloat(ply.StatKnowledge)
     net.WriteFloat(ply.StatHeadShotMul or 0)
+    net.WriteTable(ply.Skills)
     net.Send(ply)
 end
 
 function GM:NetworkString_UpdatePerks(ply)
+    if ply:IsBot() then return end
     net.Start("hl2ce_updateperks")
     net.WriteTable(ply.UnlockedPerks)
     net.Send(ply)
 end
 
 function GM:NetworkString_UpdateEternityUpgrades(ply)
+    if ply:IsBot() then return end
     net.Start("hl2ce_updateeternityupgrades")
     net.WriteTable(ply.EternityUpgradeValues)
     net.Send(ply)
@@ -52,27 +57,33 @@ end)
 net.Receive("UpgradePerk", function(length, ply)
 	local perk = net.ReadString()
     local count = net.ReadUInt(32)
-	local perk2 = "Stat"..perk
+    local sks = ply.Skills
+    local skill = GAMEMODE.SkillsInfo[perk]
 
     local curpoints = ply.StatPoints
     local limit = ply:GetMaxSkillLevel(perk)
 
-    count = math.min(count,curpoints)
-    count = math.min(limit - (tonumber(ply[perk2]) or 0),count) 
+    count = infmath.ConvertInfNumberToNormalNumber(infmath.min(limit - sks[perk], curpoints))
 
-    if tonumber(ply.StatPoints) < 1 then
+    if infmath.ConvertInfNumberToNormalNumber(ply.StatPoints) < 1 then
         ply:PrintMessage(HUD_PRINTTALK, "You need Skill Points to upgrade this skill!")
 		return false
 	end
 
-    if tonumber(ply[perk2]) >= limit then
+    if tonumber(sks[perk]) >= limit then
         ply:PrintMessage(HUD_PRINTTALK, "You have reached the max amount of points for this skill!")
 		return false
 	end
 
-	ply[perk2] = ply[perk2] + count
+    local old = sks[perk]
+	sks[perk] = old + count
 	ply.StatPoints = ply.StatPoints - count
-    ply:PrintMessage(HUD_PRINTTALK, "Increased "..perk.." by "..count.." point!")
+    ply:PrintMessage(HUD_PRINTTALK, Format("Increased %s by %d point(s)!", perk, count))
+
+    if skill.OnApply then
+        skill.OnApply(ply, old, sks[perk])
+    end
+
     GAMEMODE:NetworkString_UpdateStats(ply)
     GAMEMODE:NetworkString_UpdateSkills(ply)
 end)
@@ -83,11 +94,12 @@ net.Receive("hl2ce_unlockperk", function(len, ply)
     if !perk then return end
     if ply.UnlockedPerks[name] then return end
 
-    local cost = perk.Cost
+    local cost = infmath.ConvertNumberToInfNumber(perk.Cost)
     local prestigelvl = perk.PrestigeLevel
+    local prestigereq = infmath.ConvertNumberToInfNumber(perk.PrestigeReq)
     local prestigetype = prestigelvl == 3 and "Celestiality" or prestigelvl == 2 and "Eternity" or prestigelvl == 1 and "Prestige"
 
-    if ply[prestigetype] < perk.PrestigeReq then
+    if ply[prestigetype] < prestigereq then
         ply:PrintMessage(3, "Not enough "..prestigetype)
         return
     end
@@ -137,7 +149,7 @@ net.Receive("hl2ce_buyupgrade", function(len, ply)
     local function BuyUpgrade(ply, upg)
         local cost = ply:GetEternityUpgradeCost(upg)
 
-		if ply.Moneys >= cost then
+		if ply.Moneys:log10() >= cost:log10() then
 			ply.EternityUpgradeValues[upg] = ply.EternityUpgradeValues[upg] + 1
 			ply.Moneys = ply.Moneys - cost
             return true
@@ -148,7 +160,7 @@ net.Receive("hl2ce_buyupgrade", function(len, ply)
     if buy == "once" then
         local success = BuyUpgrade(ply, upg)
     elseif buy == "max" then
-        for i=1,1000 do
+        for i=1,1e5 do
             local success = BuyUpgrade(ply, upg)
             if not success then
                 break

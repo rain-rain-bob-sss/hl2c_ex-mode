@@ -9,7 +9,7 @@ TRIGGER_CHECKPOINT = {
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -24,7 +24,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -47,9 +47,9 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 -- Accept input
 function hl2cAcceptInput( ent, input, activator, caller, value )
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "lcs_np_meetup03" ) && ( string.lower( input ) == "resume" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "lcs_np_meetup03" ) && ( string.lower(input) == "resume" ) ) then
 	
-		for _, ply in pairs( player.GetAll() ) do
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( Vector( 0, 0, 0 ) )
 			ply:SetPos( Vector( 1570, 706, -680 ) )
@@ -59,13 +59,13 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "introom_door_1" ) && ( string.lower( input ) == "setanimation" ) && ( value == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "introom_door_1" ) && ( string.lower(input) == "setanimation" ) && ( value == "close" ) ) then
 	
 		return true
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ( ent:GetName() == "door_controlroom_1" ) || ( ent:GetName() == "door_room1_gate" ) ) && ( string.lower( input ) == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ( ent:GetName() == "door_controlroom_1" ) || ( ent:GetName() == "door_room1_gate" ) ) && ( string.lower(input) == "close" ) ) then
 	
 		return true
 	
@@ -77,10 +77,10 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	end
 
 	if string.lower(ent:GetName()) == "sound_elipod_move_1" and string.lower(input) == "startscripting" then
-		for _,ply in pairs(player.GetAll()) do
+		for _,ply in ipairs(player.GetAll()) do
 			ply:SetPos(Vector(500, 100, 0))
 		end
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

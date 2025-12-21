@@ -14,10 +14,10 @@ INFO_PLAYER_SPAWN = { Vector( -714, 12184, 5368 ) , 0}
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 	ply:Give("weapon_physcannon")
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 hook.Add("Think", "hl2cThink", function()
@@ -45,19 +45,19 @@ end
 hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 	if ent:GetName() == "beam_core_death" and string.lower(input) == "turnon" then
 		timer.Create("ep1_citadel_03_deathbeam_off", 1, 1, function()
 			ent:Fire("turnoff")
 		end)
 	end
 	if ent:GetName() == "super_phys_gun" and string.lower(input) == "turnoff" then
-		for _,ply in pairs(player.GetAll()) do
+		for _,ply in ipairs(player.GetAll()) do
 			ply:SetArmor(0)
 		end
 	end
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 
 local combinekilled = 0

@@ -20,9 +20,9 @@ else
 end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Player initial spawn
@@ -50,7 +50,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 -- Accept input
 function hl2cAcceptInput( ent, input, activator )
 	if !game.SinglePlayer() and ent:GetName() == "turret_arena_vcd_2" and string.lower(input) == "start" then
-		for _,ply in pairs(player.GetAll()) do
+		for _,ply in ipairs(player.GetAll()) do
 			if ply ~= activator then
 				ply:SetPos(Vector(-3024, -9304, -894))
 			end
@@ -59,4 +59,4 @@ function hl2cAcceptInput( ent, input, activator )
 		GAMEMODE:CreateSpawnPoint( Vector(-3024, -9304, -894), -90 )
 	end
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

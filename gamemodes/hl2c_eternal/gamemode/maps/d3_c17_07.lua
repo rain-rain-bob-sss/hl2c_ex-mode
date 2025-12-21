@@ -5,7 +5,7 @@ NEXT_MAP = "d3_c17_08"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -20,7 +20,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_bugbait" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -42,17 +42,17 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 -- Accept input
 function hl2cAcceptInput( ent, input, activator, caller, value )
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "alyx_briefingroom_exitdoor" ) && ( string.lower( input ) == "lock" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "alyx_briefingroom_exitdoor" ) && ( string.lower(input) == "lock" ) ) then
 	
 		return true
 	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "barricade_gate" ) && ( string.lower( input ) == "setanimation" ) && ( string.lower( tostring( value ) ) == "close" ) ) then
+	if ( !game.SinglePlayer() && ( ent:GetName() == "barricade_gate" ) && ( string.lower(input) == "setanimation" ) && ( string.lower( tostring( value ) ) == "close" ) ) then
 	
 		return true
 	
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

@@ -3,7 +3,9 @@
 local hl2c_cl_thirdperson = CreateClientConVar("hl2c_cl_thirdperson", 0, true, false, "Enable thirdperson")
 local hl2c_cl_firstpersondeath = CreateClientConVar("hl2c_cl_firstpersondeath", 0, true, false, "Enable firstperson death")
 -- Calculate the player's view (taken from Base)
-function GM:CalcView(ply, origin, angles, fov, znear, zfar)
+function GM:CalcView( ply, origin, angles, fov, znear, zfar )
+	fov = ply:GetFOV()
+
 	local Vehicle = ply:GetVehicle()
 	local Weapon = ply:GetActiveWeapon()
 	local view = {}

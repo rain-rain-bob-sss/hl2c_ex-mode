@@ -5,7 +5,7 @@ NEXT_MAP = "d2_coast_07"
 if CLIENT then return end
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:Give( "weapon_crowbar" )
 	ply:Give( "weapon_pistol" )
@@ -18,7 +18,7 @@ function hl2cPlayerSpawn( ply )
 	ply:Give( "weapon_rpg" )
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -42,13 +42,13 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 
 -- Accept input
-function hl2cAcceptInput( ent, input )
+function hl2cAcceptInput(ent, input)
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "button_press" ) && ( string.lower( input ) == "trigger" ) ) then
-
+	if ( !game.SinglePlayer() && ( ent:GetName() == "button_press" ) && ( string.lower(input) == "trigger" ) ) then
+	
 		ents.FindByName( "prop_block" )[ 1 ]:Remove()
-
-		for _, ply in pairs( player.GetAll() ) do
+	
+		for _, ply in ipairs(player.GetAll()) do
 		
 			ply:SetVelocity( -ply:GetVelocity() )
 			ply:SetPos( Vector( 2991, -3426, 1932 ) )
@@ -66,4 +66,4 @@ function hl2cAcceptInput( ent, input )
 	end
 
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

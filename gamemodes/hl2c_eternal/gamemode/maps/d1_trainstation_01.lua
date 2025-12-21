@@ -26,20 +26,20 @@ hook.Add( "PlayerInitialSpawn", "hl2cPlayerInitialSpawn", hl2cPlayerInitialSpawn
 
 
 -- Player spawns
-function hl2cPlayerSpawn( ply )
+function hl2cPlayerSpawn(ply)
 
 	ply:RemoveSuit()
-	timer.Simple( 0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ) end end )
+	timer.Simple(0.01, function() if ( IsValid( ply ) ) then GAMEMODE:SetPlayerSpeed( ply, 150, 150 ) end end)
 
-	if ( !game.SinglePlayer() && IsValid( PLAYER_VIEWCONTROL ) && ( PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) ) then
+	if ( !game.SinglePlayer() && IsValid(PLAYER_VIEWCONTROL) && PLAYER_VIEWCONTROL:GetClass() == "point_viewcontrol" ) then
 	
-		ply:SetViewEntity( PLAYER_VIEWCONTROL )
-		ply:Freeze( true )
+		ply:SetViewEntity(PLAYER_VIEWCONTROL)
+		ply:Freeze(true)
 	
 	end
 
 end
-hook.Add( "PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn )
+hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 
 -- Initialize entities
@@ -68,89 +68,66 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 
 -- Accept input
 function hl2cAcceptInput( ent, input, activator )
+	local entname = ent:GetName()
+	local inputlower = input:lower()
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "point_viewcontrol" ) ) then
-	
-		if ( string.lower( input ) == "enable" ) then
-		
+	if !game.SinglePlayer() and ent:GetClass() == "point_viewcontrol" then
+		if inputlower == "enable" then
 			PLAYER_VIEWCONTROL = ent
-		
-			for _, ply in ipairs( player.GetAll() ) do
-			
-				ply:SetViewEntity( ent )
-				ply:Freeze( true )
-			
+
+			for _, ply in ipairs(player.GetAll()) do
+				ply:SetViewEntity(ent)
+				ply:Freeze(true)
 			end
 		
-			if ( !ent.doubleEnabled ) then
-			
+			if !ent.doubleEnabled then
 				ent.doubleEnabled = true
-				ent:Fire( "Enable" )
-			
+				ent:Fire("Enable")
 			end
-		
-		elseif ( string.lower( input ) == "disable" ) then
-		
+
+		elseif inputlower == "disable" then
 			PLAYER_VIEWCONTROL = nil
 		
-			for _, ply in ipairs( player.GetAll() ) do
-			
-				ply:SetViewEntity( ply )
-				ply:Freeze( false )
-			
+			for _, ply in ipairs(player.GetAll()) do
+				ply:SetViewEntity(ply)
+				ply:Freeze(false)
 			end
-		
+
 			return true
-		
 		end
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetClass() == "env_zoom" ) && ( string.lower( input ) == "zoom" ) ) then
-	
+	if !game.SinglePlayer() and ent:GetClass() == "env_zoom" and inputlower == "zoom"  then
 		for _, ply in ipairs( player.GetAll() ) do
-		
 			local keyValues = ent:GetKeyValues()
-			ply:SetFOV( tonumber( keyValues[ "FOV" ] ), tonumber( keyValues[ "Rate" ] ) )
-		
+			ply:SetFOV(tonumber(keyValues.FOV), tonumber(keyValues.Rate))
 		end
-	
+
 		return true
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "point_teleport_destination" ) && ( string.lower( input ) == "teleport" ) ) then
-	
-		for _, ply in ipairs( player.GetAll() ) do
-		
-			ply:SetVelocity( Vector( 0, 0, 0 ) )
-			ply:SetPos( ent:GetPos() )
-			ply:SetFOV( 0, 0 )
-		
+	if !game.SinglePlayer() and ent:GetName() == "point_teleport_destination" and inputlower == "teleport" then
+		for _, ply in ipairs(player.GetAll()) do
+			ply:SetVelocity(Vector(0, 0, 0))
+			ply:SetPos(ent:GetPos())
+			ply:SetFOV(0, 0)
 		end
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "storage_room_door" ) && ( string.lower( input ) == "close" ) ) then
-	
+	if !game.SinglePlayer() and ent:GetName() == "storage_room_door" and inputlower == "close" then
 		return true
-	
 	end
 
-	if ( !game.SinglePlayer() && ( ent:GetName() == "razor_train_gate_2" ) && ( string.lower( input ) == "close" ) ) then
-	
+	if !game.SinglePlayer() and ent:GetName() == "razor_train_gate_2" and inputlower == "close" then
 		TRAINSTATION_LEAVEBARNEYDOOROPEN = true
-	
 	end
 
-	if ( !game.SinglePlayer() && TRAINSTATION_LEAVEBARNEYDOOROPEN && ( ent:GetName() == "barney_door_1" ) && ( string.lower( input ) == "close" ) ) then
-	
+	if !game.SinglePlayer() and TRAINSTATION_LEAVEBARNEYDOOROPEN and ent:GetName() == "barney_door_1" and inputlower == "close" then
 		return true
-	
 	end
 
 	if GAMEMODE.EXMode then
-		if GAMEMODE:GetDifficulty() > 15 and ent:GetName() == "scene2_flash_mode_2" and string.lower(input) == "enablerefire" then
+		if infmath.ConvertInfNumberToNormalNumber(GAMEMODE:GetDifficulty()) > 15 and ent:GetName() == "scene2_flash_mode_2" and string.lower(input) == "enablerefire" then
 			if gman_killed then return true end
 
 			if math.random(10) == 1 then
@@ -212,7 +189,7 @@ function hl2cAcceptInput( ent, input, activator )
 			return true
 		end
 
-		if GAMEMODE:GetDifficulty() > 69.6969696969 and ent:GetName() == "ss_luggagedrop_2" and string.lower(input) == "beginsequence" then
+		if infmath.ConvertInfNumberToNormalNumber(GAMEMODE:GetDifficulty()) > 69.6969696969 and ent:GetName() == "ss_luggagedrop_2" and string.lower(input) == "beginsequence" then
 			local randommodels = {
 				"models/props_junk/watermelon01.mdl",
 				"models/props_junk/GlassBottle01a.mdl",
@@ -276,7 +253,7 @@ function hl2cAcceptInput( ent, input, activator )
 			activator:TakeDamage(1) -- kill it
 		end
 
-		if GAMEMODE:GetDifficulty() > 10 and ent:GetName() == "storage_room_door" then
+		if infmath.ConvertInfNumberToNormalNumber(GAMEMODE:GetDifficulty()) > 10 and ent:GetName() == "storage_room_door" then
 			local entity = ents.FindByClass("npc_barney")[1]
 			if !entity or !entity:IsValid() then return end
 
@@ -315,11 +292,10 @@ function hl2cAcceptInput( ent, input, activator )
 		end
 	end
 end
-hook.Add( "AcceptInput", "hl2cAcceptInput", hl2cAcceptInput )
+hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)
 
 -- Accept input
 function hl2cOnNPCKilled( ent, attacker )
-
 	if GAMEMODE.EXMode then
 		if ent:GetName() == "barney" then
 			if barney_killed_themselves or ent == attacker then
@@ -343,6 +319,5 @@ function hl2cOnNPCKilled( ent, attacker )
 			gman_killed = true
 		end
 	end
-
 end
 hook.Add( "OnNPCKilled", "hl2cOnNPCKilled", hl2cOnNPCKilled )
