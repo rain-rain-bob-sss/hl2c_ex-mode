@@ -459,7 +459,6 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 					ent.DelayedDamage = delayed
 				end
 				ent.DelayedDamageAttacker = attacker
-				]]
 				ent:GiveDelayedDamage(attacker,damage * 2)
 			end
 		end
@@ -1297,9 +1296,8 @@ function GM:PlayerCanPickupItem(ply, item)
 	end
 	local class = item:GetClass()
 	if class == "item_healthkit" then
-		if ply:HasPerkActive("3_medkit_enhancer") then
 		if not ply:HasWeapon("weapon_hl2ce_medkit") then ply:Give("weapon_hl2ce_medkit") end
-		if ply:HasPerkActive("medkit_enhancer_3") then
+		if ply:HasPerkActive("3_medkit_enhancer") then
 			if ply:Health() < ply:GetMaxHealth() then
 				timer.Simple(0, function() -- using a timer bcoz directly trying to set health while calling the hook won't really work much well
 					-- but even with timer sethealth will still be called 1 tick later (Troublesome, no?)
@@ -2112,50 +2110,6 @@ function GM:Think()
 		end
 		nextAreaOpenTime = CurTime() + 1
 	end
-
-	/*
-	for _,ent in pairs(ents.FindByClass("npc_*")) do
-		if ent.IsPet then
-			-- print(ent)
-			ent:AddRelationship("player D_FR 99")
-			for k,v in pairs(FRIENDLY_NPCS) do
-				for _,e in pairs(ents.FindByClass(v)) do
-					ent:AddEntityRelationship(e, D_FR, 99)
-					e:AddEntityRelationship(ent, D_FR, 99)
-				end
-			end
-			for k,v in pairs(GODLIKE_NPCS) do
-				for _,e in pairs(ents.FindByClass(v)) do
-					ent:AddEntityRelationship(e, D_FR, 99)
-					e:AddEntityRelationship(ent, D_FR, 99)
-				end
-			end
-		end
-	end
-*/
-
-	--[[
-	if delayedDMGTick + 0.5 < CurTime() then
-		for _,ent in ipairs(ents.GetAll()) do
-			if ent.DelayedDamage and ent.DelayedDamage >= 1 then
-				local mult = (1 - (0.8 / math.max(1, math.log10(ent.DelayedDamage) - 2)))
-				ent.DelayedDamage = ent.DelayedDamage - math.ceil(ent.DelayedDamage*mult)
-
-
-
-				local dmg = DamageInfo()
-				dmg:SetDamage(math.ceil(ent.DelayedDamage*mult))
-				dmg:SetDamageType(DMG_DIRECT)
-				dmg:SetAttacker(ent.DelayedDamageAttacker or game.GetWorld())
-				dmg:SetInflictor(game.GetWorld())
-				ent:TakeDamageInfo(dmg)
-			end
-		end
-
-		delayedDMGTick = CurTime()
-	end
-	]]
-
 
 	self:RespawnThink()
 end

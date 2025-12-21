@@ -384,7 +384,7 @@ function meta:GetXPMul(nomul)
     end
 
 	local prestigexpmul = 1
-    prestigexpmul = prestigexpmul + math.min(self.Prestige*0.2, 100) + math.min(self.Eternity*1.2, 100) + math.min(self.Celestiality*5, 100)
+    prestigexpmul = prestigexpmul + infmath.min((self.Prestige or 0)*0.2, 100) + infmath.min((self.Eternity or 0)*1.2, 100) + infmath.min((self.Celestiality or 0)*5, 100)
 
     xpmul = xpmul * prestigexpmul
 	return xpmul
