@@ -12,8 +12,8 @@ function GM:NetworkString_UpdateStats(ply)
     net.WriteInfNumber(ply.PrestigePoints)
     net.WriteInfNumber(ply.Eternities)
     net.WriteInfNumber(ply.EternityPoints)
-    -- net.WriteInfNumber(ply.Celestiality)
-    -- net.WriteInfNumber(ply.CelestialityPoints)
+    net.WriteInfNumber(ply.Celestiality)
+    net.WriteInfNumber(ply.CelestialityPoints)
     net.Send(ply)
 end
 
@@ -87,21 +87,25 @@ net.Receive("hl2ce_unlockperk", function(len, ply)
     if !perk then return end
     if ply.UnlockedPerks[name] then return end
 
-    local cost = infmath.ConvertNumberToInfNumber(perk.Cost)
+    local cost = infmath.ConvertInfNumberToNormalNumber(perk.Cost)
     local prestigelvl = perk.PrestigeLevel
-    local prestigereq = infmath.ConvertNumberToInfNumber(perk.PrestigeReq)
-    local prestigetype = prestigelvl == 3 and "Celestiality" or prestigelvl == 2 and "Eternity" or prestigelvl == 1 and "Prestige"
+    local prestigereq = infmath.ConvertInfNumberToNormalNumber(perk.PrestigeReq)
 
-    if ply[prestigetype] < prestigereq then
+    local prestigetype = prestigelvl == 3 and "Celestiality" or prestigelvl == 2 and "Eternities" or prestigelvl == 1 and "Prestige"
+    local prestigetypepoints = (prestigelvl == 3 and "Celestiality" or prestigelvl == 2 and "Eternity" or prestigelvl == 1 and "Prestige").."Points"
+
+    local plyprestige = infmath.ConvertInfNumberToNormalNumber(ply[prestigetypepoints])
+
+    if infmath.ConvertInfNumberToNormalNumber(ply[prestigetype]) < prestigereq then
         ply:PrintMessage(3, "Not enough "..prestigetype)
         return
     end
 
-    if ply[prestigetype.."Points"] < cost then
+    if plyprestige < cost then
         ply:PrintMessage(3, "Not enough "..prestigetype.." Points!")
         return
     end
-    ply[prestigetype.."Points"] = ply[prestigetype.."Points"] - cost
+    ply[prestigetypepoints] = plyprestige - cost
 
     ply:PrintMessage(3, "Perk Unlocked: "..perk.Name)
     ply.UnlockedPerks[name] = true

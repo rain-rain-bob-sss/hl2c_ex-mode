@@ -65,12 +65,9 @@ function meta:HasPerkUnlocked(perk)
 end
 
 function meta:HasPerkActive(perk)
-	-- do return false end -- temporarily disabled
-
-	local perkdata = GAMEMODE.PerksData[perk]
-
 	if GAMEMODE.NoProgressionAdvantage then return false end
 
+	local perkdata = GAMEMODE.PerksData[perk]
 	return self:HasPerkUnlocked(perk) and not table.HasValue(self.DisabledPerks, perk) and (GAMEMODE.EndlessMode or perkdata.PrestigeLevel < 2)
 end
 
@@ -182,6 +179,7 @@ end
 
 -- Eternity Upgrades
 function meta:GetEternityUpgradeEffectValue(upg, forcevalue)
+	if GAMEMODE.NoProgressionAdvantage then return 1 end
 	local upgrade = GAMEMODE.UpgradesEternity[upg]
 	if not upgrade then return 1 end
 	
@@ -341,6 +339,9 @@ function meta:GetOriginalMaxHealth()
 		end
 		if self:HasPerkActive("3_celestial") then
 			maxhp = maxhp + 320
+		end
+		if self:HasPerkActive("3_ultra_tough") then
+			maxhp = maxhp + 6125
 		end
 	end
 

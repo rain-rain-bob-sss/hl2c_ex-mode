@@ -37,23 +37,22 @@ hook.Add("PlayerSpawn", "hl2cPlayerSpawn", hl2cPlayerSpawn)
 
 -- Entity removed
 function hl2cEntityRemoved( ent )
-
 	if ( ent:GetClass() == "item_suit" ) then
-	
 		TRAINSTATION_REMOVESUIT = false
 		for _, ply in ipairs(player.GetAll()) do
-		
 			ply:EquipSuit()
 			if ( !GAMEMODE.CustomPMs ) then ply:SetModel( string.gsub( ply:GetModel(), "group01", "group03" ) ); end
 			ply:SetupHands()
 			GAMEMODE:SetPlayerSpeed( ply, 190, 320 )
-		
 		end
-	
 	end
-
 end
 hook.Add( "EntityRemoved", "hl2cEntityRemoved", hl2cEntityRemoved )
+
+function hl2cMapEdit()
+	TRAINSTATION_REMOVESUIT = true
+end
+hook.Add("MapEdit", "hl2cMapEdit", hl2cMapEdit)
 
 
 -- Accept input
@@ -159,7 +158,10 @@ function hl2cAcceptInput( ent, input, activator, caller, value )
 	end
 
 	if ent:GetName() == "button_keypad_1" and input:lower() == "use" then
-		ents.FindByName("hev_door")[1]:Fire("open")
+		local e = ents.FindByName("hev_door")[1]
+		if e and e:IsValid() then
+			e:Fire("open")
+		end
 		
 		ents.FindByName("prop_keypad_1")[1]:Fire("skin", "1")
 		ents.FindByName("prop_keypad_1")[1]:Fire("skin", "0", 2)

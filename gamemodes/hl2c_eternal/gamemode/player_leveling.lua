@@ -2,27 +2,35 @@ local meta = FindMetaTable("Player")
 
 function meta:GiveXP(xp, nomul)
     local xpmul = InfNumber(1)
-    xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("1_better_knowledge") and 0.065 or 0.05) or 0.03))
 
-    if GAMEMODE.EndlessMode then
-        if self:HasPerkActive("1_difficult_decision") then
-            xpmul = xpmul * 1.1
+    if !nomul then
+        xpmul = xpmul + (self:GetSkillAmount("Knowledge") * (GAMEMODE.EndlessMode and (self:HasPerkActive("1_better_knowledge") and 0.065 or 0.05) or 0.03))
+
+        if GAMEMODE.EndlessMode then
+            if self:HasPerkActive("1_difficult_decision") then
+                xpmul = xpmul * 1.1
+            end
+
+            if self:HasPerkActive("1_aggressive_gameplay") then
+                xpmul = xpmul * 1.35
+            end
+
+            if self:HasPerkActive("3_celestial") then
+                xpmul = xpmul * 1.4
+            end
         end
 
-        if self:HasPerkActive("1_aggressive_gameplay") then
-            xpmul = xpmul * 1.35
+        local prestigexpmul = 1
+        prestigexpmul = prestigexpmul + infmath.min(self.Prestige*0.2, 100) + infmath.min(self.Eternities*1.2, 100) + infmath.min(self.Celestiality*5, 100)
+
+        if nomul then
+            xpmul = 1
+            prestigexpmul = 1
         end
+
+        xpmul = xpmul * prestigexpmul
     end
 
-    local prestigexpmul = 1
-    prestigexpmul = prestigexpmul + infmath.min(self.Prestige*0.2, 100) + infmath.min(self.Eternities*1.2, 100) + infmath.min(self.Celestiality*5, 100)
-
-    if nomul then
-        xpmul = 1
-        prestigexpmul = 1
-    end
-
-    xpmul = xpmul * prestigexpmul
 
     local xpgain = xp*xpmul
     self.XP = self.XP + xpgain
