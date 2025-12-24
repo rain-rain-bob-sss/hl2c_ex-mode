@@ -19,8 +19,8 @@ local hl2ce_server_force_difficulty = CreateConVar("hl2ce_server_force_difficult
 GM.Name = "Half-Life 2 Campaign: Eternal" -- alt name: Half-Life 2 Campaign: China Edition
 GM.OriginalAuthor = "AMT (ported and improved by D4 the Perth Fox)"
 GM.Author = "Uklejamini"
-GM.Version = "0.inf-8" -- what version?
-GM.DateVer = "20-12-2025"
+GM.Version = "0.inf-9" -- what version?
+GM.DateVer = "23-12-2025"
 
 do
     local base = "player_sandbox"
@@ -305,6 +305,18 @@ function GM:GetDifficulty(noncvar, noadditionalmul)
 
 
 	return value
+end
+
+function GM:GetEffectiveDifficulty(ply)
+	if !ply then return self:GetDifficulty() end
+
+	local power = 1
+
+	if ply:HasPerkActive("3_extremility") then
+		power = power * 0.9
+	end
+
+	return self:GetDifficulty()^power
 end
 
 

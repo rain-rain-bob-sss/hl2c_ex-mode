@@ -148,12 +148,11 @@ end
 
 -- Called when the player dies
 function GM:DoPlayerDeath(ply, attacker, dmgInfo)
-
 	ply.deathPos = ply:EyePos()
 	ply.GravGunGrab = NULL
 
 	-- Add to deadPlayers table to prevent respawning on re-connect
-	if (((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && !table.HasValue(deadPlayers, ply:SteamID())) then
+	if ((!self.PlayerRespawning and !FORCE_PLAYER_RESPAWNING) or OVERRIDE_PLAYER_RESPAWNING) and !table.HasValue(deadPlayers, ply:SteamID()) then
 		table.insert(deadPlayers, ply:SteamID())
 	end
 
@@ -178,7 +177,7 @@ function GM:DoPlayerDeath(ply, attacker, dmgInfo)
 		net.WriteString(attacker:GetClass())
 		net.Send(ply)
 	end
-	
+
 	local diff = self:GetDifficulty(true, true)
 	self:SetDifficulty(infmath.max(1, diff * (
 		diff >= InfNumber(1000) and 0.957 or diff >= InfNumber(100) and 0.962 or
@@ -197,13 +196,12 @@ end
 
 -- Called when the player is waiting to spawn
 function GM:PlayerDeathThink(ply)
+	if ply.NextSpawnTime and (ply.NextSpawnTime > CurTime()) then
+		return
+	end
 
-	if (ply.NextSpawnTime && (ply.NextSpawnTime > CurTime())) then return; end
-
-	if ((ply:GetObserverMode() != OBS_MODE_ROAMING) && (ply:IsBot() || ply:KeyPressed(IN_ATTACK) || ply:KeyPressed(IN_ATTACK2) || ply:KeyPressed(IN_JUMP))) then
-	
-		if ((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) then
-		
+	if ply:GetObserverMode() != OBS_MODE_ROAMING and (ply:IsBot() or ply:KeyPressed(IN_ATTACK) or ply:KeyPressed(IN_ATTACK2) or ply:KeyPressed(IN_JUMP)) then
+		if (!self.PlayerRespawning and !FORCE_PLAYER_RESPAWNING) or OVERRIDE_PLAYER_RESPAWNING then
 			ply:Spectate(OBS_MODE_ROAMING)
 			ply:SetPos(ply.deathPos)
 			ply:SetNoTarget(true)
@@ -216,7 +214,6 @@ function GM:PlayerDeathThink(ply)
 		end
 
 	end
-
 end
 
 
@@ -224,12 +221,12 @@ end
 function GM:OnEntityCreated(ent)
 
 	-- NPC Lag Compensation
-	if (self.LagCompensation && ent:IsNPC() && !table.HasValue(NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass())) then
+	if self.LagCompensation and ent:IsNPC() or !table.HasValue(NPC_EXCLUDE_LAG_COMPENSATION, ent:GetClass()) then
 		ent:SetLagCompensated(true)
 	end
 
 	-- Vehicle Passenger Seating
-	if (self.JeepPassengerSeat && !GetConVar("hl2_episodic"):GetBool() && ent:IsVehicle() && string.find(ent:GetClass(), "prop_vehicle_jeep")) then
+	if self.JeepPassengerSeat and !GetConVar("hl2_episodic"):GetBool() and ent:IsVehicle() and string.find(ent:GetClass(), "prop_vehicle_jeep") then
 		ent.passengerSeat = ents.Create("prop_vehicle_prisoner_pod")
 		ent.passengerSeat:SetPos(ent:LocalToWorld(Vector(21, -32, 18)))
 		ent.passengerSeat:SetAngles(ent:LocalToWorldAngles(Angle(0, -3.5, 0)))
@@ -306,6 +303,9 @@ function GM:EntityKeyValue(ent, key, value)
 		ent.HL2CEKeyValues[key] = value
 	end
 
+	if ent:GetClass() == "npc_combine_s" and key == "additionalequipment" and value == "weapon_shotgun" then
+		ent:SetSkin(1)
+	end
 end
 
 local NpcsSecondWeapon={
@@ -352,6 +352,8 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	local attacker = dmgInfo:GetAttacker()
 	local damage = InfNumber(math.min(dmgInfo:GetDamage(), 2^128)) -- fuck the infinite damage's float limits
 	local dmgdirect = bit.band(DMG_DIRECT, dmgInfo:GetDamageType()) ~= 0
+	local difficulty = self:GetDifficulty()
+	local eff_difficulty = ent:IsPlayer() and self:GetEffectiveDifficulty(ent) or attacker:IsPlayer() and self:GetEffectiveDifficulty(attacker) or difficulty
 
 	-- Godlike NPCs take no damage ever
 	if (IsValid(ent) && ent:IsGodlikeNPC()) then
@@ -359,7 +361,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	end
 
 	-- NPCs cannot be damaged by friends
-	if (IsValid(ent) && ent:IsNPC() && (ent:GetClass() != "npc_turret_ground") && IsValid(attacker) && (ent:Disposition(attacker) == D_LI)) and not MAP_FORCE_NO_FRIENDLIES and not ent.AllowFriendlyFire then
+	if (IsValid(ent) and ent:IsNPC() and ent:GetClass() != "npc_turret_ground" and IsValid(attacker) and ent:Disposition(attacker) == D_LI) and not MAP_FORCE_NO_FRIENDLIES then
 		return true
 	end
 
@@ -410,23 +412,24 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	if ent:IsPlayer() and attacker:IsValid() and attackerisworld then
 		damage = damage * math.max(1, ent:GetMaxHealth()*0.01)
 	elseif ent:IsPlayer() and attacker == game.GetWorld() and dmgInfo:GetDamageType() == DMG_FALL then
-		damage = damage * math.max(1, ent:GetMaxHealth()*0.01) * self:GetDifficulty()^0.2
+		damage = damage * math.max(1, ent:GetMaxHealth()*0.01) * eff_difficulty^0.2
 	end
 
 	-- if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() then
 	if (ent:IsPlayer() or ent:IsNPC() and ent:IsFriendlyNPC()) and attacker:IsNPC() and not attacker:IsFriendlyNPC() then
 		-- print("increase damage", ent:IsFriendlyNPC(), attacker:IsFriendlyNPC())
 		if not ispoisonheadcrab then
-			damage = damage * self:GetDifficulty()^0.7
+			damage = damage * eff_difficulty^0.7
 		elseif ent:IsPlayer() and ent:HasPerkActive("1_antipoison") then
 			damage = damage - math.min(self.EndlessMode and 100 or 25, ent:Health()/2)
 		end
 	end
+
 	-- if ent:IsNPC() and not ent:IsFriendlyNPC() then
 	if ent:IsNPC() and not ent:IsFriendlyNPC() and (attacker:IsFriendlyNPC() or attacker:IsPlayer()) then
 		-- print("decrease damage", ent:IsFriendlyNPC())
 		if ent:GetClass() ~= "npc_combinegunship" then
-			damage = damage / self:GetDifficulty()^0.55
+			damage = damage / eff_difficulty^0.55
 		end
 	end
 
@@ -464,7 +467,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 		end
 
 		if attacker:HasPerkActive("2_vampiric_killer") then
-			local heal = math.ceil(math.min(ent:Health(), damage)*0.2)
+			local heal = math.ceil(infmath.ConvertInfNumberToNormalNumber(infmath.min(ent:Health(), damage)*0.2))
 			attacker:SetHealth(math.min(attacker:Health() + heal, attacker:GetMaxHealth()))
 		end
 
@@ -475,7 +478,7 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 
 
 	if ent ~= attacker and ent:IsNPC() and attacker:IsNPC() and (not attacker:IsFriendlyNPC() and not ent:IsFriendlyNPC()) then
-		local diff = self:GetDifficulty()^0.1
+		local diff = difficulty^0.1
 		local diff2 = infmath.min(1e200, infmath.max(1, diff/1e10)^0.1)
 
 		damage = damage * infmath.min(diff, 1e5) * diff2
@@ -491,9 +494,9 @@ function GM:EntityTakeDamage(ent, dmgInfo)
 	infmath.ConvertInfNumberToNormalNumber(damage)
 	dmgInfo:SetDamage(damage)
 
-	if attacker:IsPlayer() then
+	-- if attacker:IsPlayer() then
 		-- attacker:PrintMessage(3, tostring(damage))
-	end
+	-- end
 
 	if self.EXMode and attacker:GetClass() == "npc_sniper" and attacker.VariantType == 1 then
 		--PrintMessage(3, tostring(attacker).." "..(ent:IsPlayer() and ent:Nick() or ent:GetClass()).." "..dmgInfo:GetDamage())
@@ -651,7 +654,7 @@ function GM:Initialize()
 	self.XP_REWARD_ON_MAP_COMPLETION = self.XP_REWARD_ON_MAP_COMPLETION or 1 -- because it would call true if it was false, we use other values
 	self:SetDifficulty(1)
 	self.EXMode = self.EnableEXMode
-	
+
 	-- Network strings
 	util.AddNetworkString("SetCheckpointPosition")
 	util.AddNetworkString("NextMap")
@@ -852,17 +855,12 @@ local function MasterPlayerStartExists()
 
 	-- Returns true if conditions are met
 	for _, ips in pairs(ents.FindByClass("info_player_start")) do
-
 		if (ips:HasSpawnFlags(1) || INFO_PLAYER_SPAWN) then
-
 			return true
-
 		end
-
 	end
 
 	return false
-
 end
 
 function GM:OnReloaded()
@@ -1071,6 +1069,11 @@ function GM:OnNPCKilled(npc, killer, weapon)
 				if killer:HasPerkActive("2_difficult_decision") then
 					xpmul = xpmul * 1.45
 					npckilldiffgainmul = npckilldiffgainmul * 3.35
+				end
+
+				if killer:HasPerkActive("3_difficult_decision") then
+					xpmul = xpmul * 1.25
+					npckilldiffgainmul = npckilldiffgainmul * difficulty:log10()*2.5
 				end
 			end
 			killer:GiveXP(NPC_XP_VALUES[npcclass] * xpmul)
@@ -1505,9 +1508,9 @@ function GM:PlayerLoadout(ply)
 		end
 
 		ply:RemoveAllAmmo()
-	
+
 		for _, wep in ipairs(ply:GetWeapons()) do
-		
+
 			local wepClass = wep:GetClass()
 
 			if (ply.info.loadout[ wepClass ]) then
@@ -1545,7 +1548,7 @@ function GM:PlayerLoadout(ply)
 		ply:Give("weapon_physgun")
 	end
 
-	if self.PlayerMedkitOnSpawn then
+	if ply:IsSuitEquipped() and self.PlayerMedkitOnSpawn then
 		ply:Give("weapon_hl2ce_medkit")
 	end
 
@@ -1592,15 +1595,15 @@ function GM:PlayerSetModel(ply)
 
 	-- Stores the model as a variable part of the player
 	if (!self.CustomPMs && ply.info && ply.info.model) then
-	
+
 		ply.modelName = ply.info.model
 
 	else
 
 		local modelName = player_manager.TranslatePlayerModel(ply:GetInfo("cl_playermodel"))
-	
+
 		if (self.CustomPMs || (modelName && table.HasValue(PLAYER_MODELS, string.lower(modelName)))) then
-		
+
 			ply.modelName = modelName
 
 		else
@@ -1612,7 +1615,7 @@ function GM:PlayerSetModel(ply)
 	end
 
 	if (!self.CustomPMs) then
-	
+
 		if (ply:IsSuitEquipped()) then
 
 			ply.modelName = string.gsub(string.lower(ply.modelName), "group01", "group03")
@@ -1632,7 +1635,7 @@ function GM:PlayerSetModel(ply)
 
 	-- Skin, modelgroups and player color are primarily a custom playermodel thing
 	if (self.CustomPMs) then
-	
+
 		ply:SetSkin(ply:GetInfoNum("cl_playerskin", 0))
 
 		ply.modelGroups = ply:GetInfo("cl_playerbodygroups")
@@ -1659,7 +1662,7 @@ function GM:PlayerSpawn(ply)
 	player_manager.SetPlayerClass(ply, "player_hl2ce")
 
 	if (((!self.PlayerRespawning && !FORCE_PLAYER_RESPAWNING) || OVERRIDE_PLAYER_RESPAWNING) && (ply:Team() == TEAM_DEAD)) then
-	
+
 		ply:Spectate(OBS_MODE_ROAMING)
 		ply:SetPos(ply.deathPos)
 		ply:SetNoTarget(true)
@@ -1852,6 +1855,8 @@ function GM:OnMapFailed(ply)
 	elseif diff > InfNumber(1, 33) then
 		local result = 0.9/(1+math.log10(diff:log10())-math.log10(33))
 		self:SetDifficulty(diff^(0.9/math.log10(diff:log10())))
+	elseif diff > InfNumber(1, 4) then
+		self:SetDifficulty(diff^0.95)
 	else
 		self:SetDifficulty(infmath.max(1, diff * (
 			diff >= InfNumber(1000) and 0.85 or diff >= InfNumber(100) and 0.87 or
@@ -2117,19 +2122,15 @@ end
 
 -- Player just picked up or was given a weapon
 function GM:WeaponEquip(wep)
-
-	if (IsValid(wep) && !table.HasValue(startingWeapons, wep:GetClass())) then
-
+	if IsValid(wep) and not table.HasValue(startingWeapons, wep:GetClass()) then
 		table.insert(startingWeapons, wep:GetClass())
-
 	end
-
 end
 
 
 -- Tell the game to update the player's playermodel
 local function UpdatePlayerModel(len, ply)
-	if IsValid(ply) && ply:Team() == TEAM_ALIVE then
+	if IsValid(ply) and ply:Team() == TEAM_ALIVE then
 		hook.Call("PlayerSetModel", GAMEMODE, ply)
 	end
 end

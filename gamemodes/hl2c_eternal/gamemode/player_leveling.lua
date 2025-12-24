@@ -3,6 +3,7 @@ local meta = FindMetaTable("Player")
 function meta:GiveXP(xp, nomul)
     local xpmul = self:GetXPMul(nomul)
     local xpgain = xp * xpmul
+    
     self.XP = self.XP + xpgain
     if self.MapStats then
         self.MapStats.GainedXP = (self.MapStats.GainedXP or 0) + xpgain

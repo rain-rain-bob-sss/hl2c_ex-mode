@@ -520,27 +520,26 @@ GM.PerksData = {
 	-- Celestial Perks
 	["3_celestial"] = {
 		Name = "Celestial.",
-		DescriptionEndless = "OP Perk: +320 health, +80 armor, x1.6 damage dealt, 1.7x damage resistance, 1.4x xp gain", -- 1.4x xp gain unimplemented
+		DescriptionEndless = "OP Perks: +320 health, +80 armor, x1.6 damage dealt, 1.7x damage resistance, 1.4x xp gain",
 		Cost = 1,
 		PrestigeReq = 1,
 		PrestigeLevel = 3
 	},
-
-	["3_difficult_decision"] = {
-		Name = "Megea Difficult Decision",
-		DescriptionEndless = "Increases difficulty gain from NPC kills by x log10(difficulty)*2.5\n1.25x xp gain (NYI)",
-		Cost = 1,
-		PrestigeReq = 3,
-		PrestigeLevel = 3
-	},
-
+--[[
 	["3_prestige_improvement_3"] = {
 		Name = "Prestige Improvement III",
 		DescriptionEndless = " (NYI)",
 		Cost = 1,
 		PrestigeReq = 2,
 		PrestigeLevel = 3,
-
+	},
+]]
+	["3_extremility"] = {
+		Name = "Extremility",
+		DescriptionEndless = "^0.9 to the effective difficulty.\nEffective difficulty affects only damage dealt to, and taken by NPC's.",
+		Cost = 1,
+		PrestigeReq = 2,
+		PrestigeLevel = 3,
 	},
 
 	["3_medkit_enhancer"] = {
@@ -561,13 +560,45 @@ GM.PerksData = {
 
 	},
 
+	["3_difficult_decision"] = {
+		Name = "Mega Difficult Decision",
+		DescriptionEndless = "Increases difficulty gain from NPC kills by x log10(difficulty)*2.5\n1.25x xp gain",
+		Cost = 1,
+		PrestigeReq = 3,
+		PrestigeLevel = 3
+	},
+
+	["3_ultra_armor"] = {
+		Name = "Ultra Armor",
+		DescriptionEndless = "+500 armor, +25% damage resistance mul, damage vs yourself is powered to ^0.5,\ndamage increases with armor (+1% dmg/10ap) (NYI)",
+		Cost = 2,
+		PrestigeReq = 4,
+		PrestigeLevel = 3
+	},
+
+	["3_ultra_tough"] = {
+		Name = "Ultra Tough",
+		DescriptionEndless = "+6125 health",
+		Cost = 2,
+		PrestigeReq = 4,
+		PrestigeLevel = 3
+	},
+
+	["3_exponentially_cursed"] = {
+		Name = "Exponentially Cursed",
+		DescriptionEndless = "Your health and damage taken becomes logarithmed (min 0.01 damage taken)\nx100 to your health after logarithm (NYI)",
+		Cost = 1e100,
+		PrestigeReq = 1000000,
+		PrestigeLevel = 3
+	},
+
 }
 
 GM.UpgradesEternity = {
 	["damage_upgrader"] = {
 		Name = "Damage Upgrader",
 		Description = "Increases damage multiplier by %s%%",
-		Cost = function(ply, amt) return InfNumber(100) + InfNumber(25*amt*amt)^(1 + amt*0.01) end,
+		Cost = function(ply, amt) return InfNumber(100) + InfNumber(25*amt*amt)^(1 + amt*0.01)^math.max(1, amt*0.001) end,
 		EffectValue = function(ply, amt)
 			return 1 + 0.1*amt
 		end,
@@ -583,7 +614,7 @@ GM.UpgradesEternity = {
 			local val = InfNumber(1.1)
 			val = val^amt
 			if infmath.ConvertInfNumberToNormalNumber(val) > 10 then
-				val = val / infmath.max(1, (val/10)^(1-(0.9/(val:log10()/1.25))))
+				val = val / infmath.max(1, (val/10)^(1-(0.9/(val:log10()/2.5))))
 			end
 
 			return val
@@ -593,7 +624,7 @@ GM.UpgradesEternity = {
 	["difficultygain_upgrader"] = {
 		Name = "Difficulty Gain Upgrader",
 		Description = "+%s%% difficulty gain\n(Softcaps after 10x)",
-		Cost = function(ply, amt) return InfNumber(100) + InfNumber(25*amt*amt)^(1 + amt*0.01) end,
+		Cost = function(ply, amt) return InfNumber(100) + InfNumber(25*amt*amt)^(1 + amt*0.01)^math.max(1, 0.5+amt/2e3) end,
 		EffectValue = function(ply, amt)
 			local val = 1 + 0.1*amt
 			if val > 10 then

@@ -208,7 +208,7 @@ function GM:HUDPaint()
 		surface.SetFont("TargetIDSmall")
 		local len = surface.GetTextSize(s)
 		local l = 0
-		
+
 
 		local c = d_normal >= 1e63 and HSVToColor(SysTime()*math.log10(d_normal)^1.15, 1, 1) or
 			d_normal >= 1e33 and HSVToColor((math.log10(d_normal)-33)*(65*(math.log10(d_normal)-30)), 1, 1) or
@@ -230,6 +230,10 @@ function GM:HUDPaint()
 			end
 		else
 			draw.DrawText(s, "TargetIDSmall", ScrW() / 2 - len/2 + l, ScrH() / 6, c, TEXT_ALIGN_LEFT )
+		end
+
+		if (ContextMenu and ContextMenu:IsValid()) and self:GetEffectiveDifficulty(pl):log10() ~= (d/100):log10() then
+			draw.DrawText(Format("(Effective: %s%%)", FormatNumber(self:GetEffectiveDifficulty(pl)*100)), "TargetIDSmall", ScrW() / 2, ScrH() / 6 - 15, c, TEXT_ALIGN_CENTER)
 		end
 
 		if self.DifficultyDifferenceTimeChange + 3 >= CurTime() and self.DifficultyDifference ~= 0 then

@@ -75,7 +75,9 @@ function GM:SavePlayer(ply)
 	insertdata("PrestigePoints", ply.PrestigePoints)
 	insertdata("Eternities", ply.Eternities)
 	insertdata("EternityPoints", ply.EternityPoints)
-    
+	insertdata("Celestiality", ply.Celestiality)
+	insertdata("CelestialityPoints", ply.CelestialityPoints)
+
 	insertdata("XPUsedThisPrestige", ply.XPUsedThisPrestige)
 	insertdata("Moneys", ply.Moneys)
     

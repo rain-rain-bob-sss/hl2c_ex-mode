@@ -27,23 +27,24 @@ function GM:CMenu()
 		y = y + y_add
 
 		if pl:HasPrestigeUnlocked() then
-			draw.DrawText(Format("Prestige: %s", FormatNumber(pl.Prestige)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Prestige: %s", FormatNumber(infmath.Round(pl.Prestige))), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText(Format("Prestige Points: %s", FormatNumber(pl.PrestigePoints)), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Prestige Points: %s", FormatNumber(infmath.Round(pl.PrestigePoints))), "TargetIDSmall", x, y, Color(255,255,155,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
 		if pl:HasEternityUnlocked() then
-			draw.DrawText(Format("Eternities: %s", FormatNumber(pl.Eternities)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Eternities: %s", FormatNumber(infmath.Round(pl.Eternities))), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText(Format("Eternity Points: %s", FormatNumber(pl.EternityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Eternity Points: %s", FormatNumber(infmath.Round(pl.EternityPoints))), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
 		if pl:HasCelestialityUnlocked() then
-			draw.DrawText(Format("Celestialities: %s", FormatNumber(pl.Celestiality)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			local c = Color(125+math.sin(SysTime())*125,125+math.sin(SysTime())*125,125+math.sin(SysTime())*-125,alpha)
+			draw.DrawText(Format("Celestialities: %s", FormatNumber(infmath.Round(pl.Celestiality))), "TargetIDSmall", x, y, c, TEXT_ALIGN_LEFT)
 			y = y + y_add
-			draw.DrawText(Format("Celestiality Points: %s", FormatNumber(pl.CelestialityPoints)), "TargetIDSmall", x, y, Color(155,155,255,alpha), TEXT_ALIGN_LEFT)
+			draw.DrawText(Format("Celestiality Points: %s", FormatNumber(infmath.Round(pl.CelestialityPoints))), "TargetIDSmall", x, y, c, TEXT_ALIGN_LEFT)
 			y = y + y_add
 		end
 
@@ -372,7 +373,7 @@ function GM:PerksMenu()
 
 			local perkpanel = vgui.Create("DPanel")
 			perkpanel:SetPos(5, 5)
-	        local size_x,size_y = 810,150
+	        local size_x,size_y = 810,180
 			perkpanel:SetSize(size_x, size_y)
 			perkpanel.Paint = function(panel) -- Paint function
 				draw.RoundedBoxEx(8,1,1,panel:GetWide()-2,panel:GetTall()-2,
@@ -384,7 +385,7 @@ function GM:PerksMenu()
 
 			local perkname = vgui.Create("DLabel", perkpanel)
 			perkname:SetFont("TargetID")
-			perkname:SetPos(0, 10)
+			perkname:SetPos(0, 5)
 			perkname:SetText(v.Name)
 			perkname:SetTextColor(color_white)
 			if v.GetTextColor then
@@ -397,7 +398,7 @@ function GM:PerksMenu()
 			end
 			perkname:SizeToContents()
 	        local x,y = perkname:GetSize()
-			perkname:SetSize(math.min(size_x - 20, x), y)
+			perkname:SetSize(math.min(size_x - 20, x), y+5)
 			perkname:CenterHorizontal()
 
 			local perkdesc = vgui.Create("DLabel", perkpanel)
@@ -414,21 +415,21 @@ function GM:PerksMenu()
 			end
 			perkdesc:SizeToContents()
 	        local x,y = perkdesc:GetSize()
-			perkdesc:SetSize(math.min(size_x - 20, x), 35)
+			perkdesc:SetSize(math.min(size_x - 20, x), 50)
 			perkdesc:SetWrap(true)
 			perkdesc:CenterHorizontal()
 
 			local perkcost = vgui.Create("DLabel", perkpanel)
 			perkcost:SetFont("TargetIDSmall")
 			perkcost:SetText("Points cost: "..v.Cost)
-	        perkcost:SetPos(10, 72)
+	        perkcost:SetPos(10, 102)
 			perkcost:SetSize(size_x - 20, 15)
 			perkcost:SetWrap(true)
 			perkcost:SetColor(Color(155,155,255,255))
 
 			local perkprestige = vgui.Create("DLabel", perkpanel)
 			perkprestige:SetFont("TargetIDSmall")
-			perkprestige:SetPos(10, 89)
+			perkprestige:SetPos(10, 119)
 			perkprestige:SetSize(size_x - 20, 15)
 			perkprestige:SetText(perks_names[prestige][1].." needed: "..tostring(prestigereq))
 			perkprestige:SetWrap(true)
