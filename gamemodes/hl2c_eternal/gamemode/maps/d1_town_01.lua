@@ -26,6 +26,20 @@ function hl2cAcceptInput(ent, input)
 				end)
 			end
 		end)
+
+		-- the hell is this?
+		BroadcastLua [[
+			for i = 1,30 do
+				sound.PlayFile("sound/music/ravenholm_1.mp3","",function(sound)
+					if IsValid(sound) then
+						sound:SetVolume(0.4)
+						sound:SetPlaybackRate(math.Rand(0.4,5))
+					end
+				end)
+			end
+		]]
+
+		return true
 	end
 
 end
