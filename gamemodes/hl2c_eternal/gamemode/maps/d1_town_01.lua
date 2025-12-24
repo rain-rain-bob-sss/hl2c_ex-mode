@@ -57,6 +57,7 @@ hook.Add( "MapEdit", "hl2cMapEdit", hl2cMapEdit )
 hook.Add("EntityTakeDamage", "hl2cEntityTakeDamage", function(ent, dmginfo)
 	if !GAMEMODE.EXMode then return end
 	if !ent:IsPlayer() then return end
+	if ent == dmginfo:GetAttacker() then return end
 	dmginfo:ScaleDamage(5)
 end)
 
