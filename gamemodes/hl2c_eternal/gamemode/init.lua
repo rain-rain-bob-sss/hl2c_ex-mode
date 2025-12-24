@@ -683,6 +683,7 @@ function GM:Initialize()
 	util.AddNetworkString("hl2ce_fail")
 	util.AddNetworkString("hl2ce_map_event")
 	util.AddNetworkString("hl2ce_playerkilled")
+	util.AddNetworkString("hl2ce_broadcastcslua")
 
 	-- We want regular fall damage and the ai to attack players and stuff
 	game.ConsoleCommand("ai_disabled 0\n")
@@ -2274,4 +2275,12 @@ end
 
 function GM:AddResources()
 	resource.AddFile("sound/hl2c_eternal/music/chopper_fight.wav")
+end
+
+
+-- i did this to bypass the stupid 255 bytes limit
+function BroadcastLua(str)
+	net.Start("hl2c_broadcastlua")
+	net.WriteString(str)
+	net.Broadcast()
 end

@@ -10,6 +10,7 @@ local function SpawnNPC(class, pos, ang, func)
 		func(ent)
 	end
 	ent:Spawn()
+	ent:Activate()
 
 	return ent
 end

@@ -426,27 +426,24 @@ end
 
 
 if net then
--- Same as net.WriteTable and net.ReadTable, but with small differences to make it a bit optimized
-  function net.WriteInfNumber(tbl)
-    tbl = ConvertNumberToInfNumber(tbl)
+    -- Same as net.WriteTable and net.ReadTable, but with small differences to make it a bit optimized
+    function net.WriteInfNumber(tbl)
+        tbl = ConvertNumberToInfNumber(tbl)
 
-    net.WriteDouble(tbl.mantissa)
-    net.WriteDouble(tbl.exponent)
---[[
-    net.WriteTable({
-        mantissa = tbl.mantissa,
-        exponent = tbl.exponent,
-    })
-]]
-  end
+        net.WriteDouble(tbl.mantissa)
+        net.WriteDouble(tbl.exponent)
+    --[[
+        net.WriteTable({
+            mantissa = tbl.mantissa,
+            exponent = tbl.exponent,
+        })
+    ]]
+    end
 
-  function net.ReadInfNumber()
-    local t = {}
-    t.mantissa = net.ReadDouble()
-    t.exponent = net.ReadDouble()
-
-    return InfNumber(t.mantissa, t.exponent)
-  end
+    function net.ReadInfNumber()
+        local num = InfNumber(net.ReadDouble(), net.ReadDouble())
+        return num
+    end
 end
 
 if FindMetaTable then

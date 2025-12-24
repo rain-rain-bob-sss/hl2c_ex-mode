@@ -80,5 +80,12 @@ function hl2cAcceptInput(ent, input)
 		end
 	end
 
+	if GAMEMODE.EXMode and ent:GetName() == "aftermath_music" and string.lower(input) == "playsound" then
+		BroadcastLua [[
+			for a=1,10 do sound.PlayFile("sound/music/hl2_song23_suitsong3.mp3","",function(sound)if IsValid(sound)then sound:SetVolume(2)sound:SetPlaybackRate(math.Rand(9,12))end end)end;util.ScreenShake(MainEyePos(),100,40,5,69420,true)util.ScreenShake(MainEyePos(),30,30,25,69420,true)
+		]]
+		return true
+	end
+
 end
 hook.Add("AcceptInput", "hl2cAcceptInput", hl2cAcceptInput)

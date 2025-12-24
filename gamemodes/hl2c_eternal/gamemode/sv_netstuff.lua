@@ -64,8 +64,7 @@ net.Receive("UpgradePerk", function(length, ply)
     local limit = ply:GetMaxSkillLevel(perk)
 
     count = infmath.ConvertInfNumberToNormalNumber(infmath.min(limit - sks[perk], curpoints, count))
-
-    if infmath.ConvertInfNumberToNormalNumber(ply.StatPoints) < 1 then
+    if infmath.ConvertInfNumberToNormalNumber(curpoints) < 0.999 then
         ply:PrintMessage(HUD_PRINTTALK, "You need Skill Points to upgrade this skill!")
 		return false
 	end
