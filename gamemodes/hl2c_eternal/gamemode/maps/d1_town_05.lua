@@ -82,7 +82,18 @@ function hl2cAcceptInput(ent, input)
 
 	if GAMEMODE.EXMode and ent:GetName() == "aftermath_music" and string.lower(input) == "playsound" then
 		BroadcastLua [[
-			for a=1,10 do sound.PlayFile("sound/music/hl2_song23_suitsong3.mp3","",function(sound)if IsValid(sound)then sound:SetVolume(2)sound:SetPlaybackRate(math.Rand(9,12))end end)end;util.ScreenShake(MainEyePos(),100,40,5,69420,true)util.ScreenShake(MainEyePos(),30,30,25,69420,true)
+			for i = 1,10 do
+				sound.PlayFile("sound/music/hl2_song23_suitsong3.mp3","",function(sound)
+					if IsValid(sound) then
+						sound:SetVolume(2)
+						sound:SetPlaybackRate(2.55)
+					end
+				end)
+			end
+			util.ScreenShake(MainEyePos(),100,40,5,69420,true)
+			util.ScreenShake(MainEyePos(),75,50,10,69420,true)
+			util.ScreenShake(MainEyePos(),50,40,25,69420,true)
+			util.ScreenShake(MainEyePos(),20,10,30,69420,true)
 		]]
 		return true
 	end

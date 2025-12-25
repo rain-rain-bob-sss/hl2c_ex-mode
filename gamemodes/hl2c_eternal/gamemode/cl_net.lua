@@ -127,7 +127,7 @@ net.Receive("hl2ce_playerkilled", function(len)
     chat.AddText("Killed by ", Color(255,0,0), language.GetPhrase(net.ReadString()))
 end)
 
-net.Receive("hl2ce_broadcastcslua", function(len)
+net.Receive("hl2ce_broadcastlua", function(len)
     local csLua = net.ReadString()
     RunString(csLua)
 end)
